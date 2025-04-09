@@ -1,6 +1,6 @@
 {
   "name": "orbit",
-  "version": "1.0.0-beta0",
+  "version": "1.0.0-beta5",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -38,7 +38,7 @@
     "formidable": "^3.5.2",
     "framer-motion": "^12.6.3",
     "hex-rgb": "^5.0.0",
-    "iron-session": "^6.2.1",
+    "iron-session": "latest",
     "moment": "^2.29.4",
     "next": "^12.3.2",
     "next-remove-imports": "^1.0.8",
