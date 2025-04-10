@@ -114,6 +114,7 @@ const SECTIONS = {
 const Settings: pageWithLayout<Props> = ({ users, roles, grouproles }) => {
 	const [login, setLogin] = useRecoilState(loginState);
 	const [activeSection, setActiveSection] = useState('general');
+	const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
 
 	const renderContent = () => {
 		if (activeSection === 'permissions') {
@@ -133,7 +134,7 @@ const Settings: pageWithLayout<Props> = ({ users, roles, grouproles }) => {
 					<h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
 						{title}
 					</h3>
-					<Component triggerToast={toast} />
+					<Component triggerToast={toast} isSidebarExpanded={isSidebarExpanded} />
 				</div>
 			</div>
 		));
@@ -166,7 +167,7 @@ const Settings: pageWithLayout<Props> = ({ users, roles, grouproles }) => {
 											className={clsx(
 												'w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors',
 												activeSection === key
-													? 'text-primary bg-primary/10'
+													? 'text-primary bg-primary/10 dark:bg-primary/20'
 													: 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
 											)}
 										>
@@ -175,7 +176,7 @@ const Settings: pageWithLayout<Props> = ({ users, roles, grouproles }) => {
 											<IconChevronRight
 												size={16}
 												className={clsx(
-													'ml-auto transition-transform',
+													'ml-auto transition-transform text-gray-400 dark:text-gray-300',
 													activeSection === key ? 'rotate-90' : ''
 												)}
 											/>

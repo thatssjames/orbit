@@ -34,6 +34,7 @@ export async function handler(
 			owner: {
 				select: {
 					username: true,
+					picture: true,
 				}
 			}
 		}

@@ -18,11 +18,11 @@ const Button: FC<Props> = ({ children, onPress, loading, classoverride, workspac
 		<button
 			onClick={onPress || onClick}
 			disabled={disabled}
-			className={twMerge(`ml-auto bg-orbit ${compact ? 'py-2 px-4' : 'py-3 px-5'} transition rounded-lg text-sm text-white ${!workspace ? "hover:bg-orbit/80  focus-visible:bg-orbit/80 disabled:bg-orbit/80/50" : "bg-primary hover:bg-primary/50 focus-visible:bg-primary/50 disabled:bg-primary/50"} dark:hover:bg-gray-300 dark:focus-visible:bg-gray-300 dark:bg-white dark:disabled:bg-white/50 dark:text-black focus-visible:outline-none `, classoverride)}
+			className={twMerge(`ml-auto bg-orbit dark:bg-gray-700 ${compact ? 'py-2 px-4' : 'py-3 px-5'} transition rounded-lg text-sm text-white ${!workspace ? "hover:bg-orbit/80  focus-visible:bg-orbit/80 disabled:bg-orbit/80/50" : "bg-primary dark:bg-gray-700 hover:bg-primary/50 focus-visible:bg-primary/50 disabled:bg-primary/50"} dark:hover:bg-gray-300 dark:focus-visible:bg-gray-300 dark:bg-white dark:disabled:bg-white/50 dark:text-black focus-visible:outline-none `, classoverride)}
 		>
 			{loading ? (
 				<svg
-				className="animate-spin mx-auto h-5 w-5 text-white dark:text-black"
+				className="animate-spin mx-auto h-5 w-5 text-black dark:text-white"
 					xmlns="http://www.w3.org/2000/svg"
 					fill="none"
 					viewBox="0 0 24 24"

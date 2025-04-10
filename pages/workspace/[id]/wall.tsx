@@ -13,7 +13,7 @@ import { withSessionSsr } from "@/lib/withSession";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/router";
 import axios from "axios";
-import { IconSend, IconPhoto, IconMoodSmile, IconX } from "@tabler/icons";
+import { IconSend, IconPhoto, IconMoodSmile, IconX, IconArrowLeft } from "@tabler/icons";
 import EmojiPicker, { Theme } from 'emoji-picker-react';
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(async ({ query, req }) => {
@@ -106,15 +106,16 @@ const Wall: pageWithLayout<pageProps> = (props) => {
 		<div className="pagePadding">
 			<Toaster position="bottom-center" />
 			
-			{/* Header Section */}
-			<div className="flex items-center justify-between mb-8">
+			<div className="flex items-center gap-3 mb-6">
+				<button onClick={() => router.back()} className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+					<IconArrowLeft className="w-5 h-5" />
+				</button>
 				<div>
-					<h1 className="text-2xl font-medium text-gray-900 dark:text-white">Wall</h1>
+					<h1 className="text-2xl font-medium text-gray-900 dark:text-white">Group Wall</h1>
 					<p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Share updates and announcements with your team</p>
 				</div>
 			</div>
 
-			{/* Post Creation Section */}
 			<div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 mb-8">
 				<div className="flex items-start gap-4">
 					<img 
@@ -160,7 +161,7 @@ const Wall: pageWithLayout<pageProps> = (props) => {
 								>
 									<IconPhoto size={20} />
 								</button>
-								<div className="relative">
+								<div className="relative z-10">
 									<button 
 										className="p-2 text-gray-500 hover:text-primary rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
 										onClick={() => setShowEmojiPicker(!showEmojiPicker)}
@@ -182,7 +183,7 @@ const Wall: pageWithLayout<pageProps> = (props) => {
 								</div>
 							</div>
 							<Button 
-								classoverride="bg-primary hover:bg-primary/90 text-white px-6" 
+								classoverride="bg-primary hover:bg-primary/90 text-white dark:text-white px-6 dark:bg-[var(--group-theme)] dark:hover:bg-[var(--group-theme)]/60" 
 								workspace 
 								onPress={sendPost} 
 								loading={loading}
@@ -196,7 +197,6 @@ const Wall: pageWithLayout<pageProps> = (props) => {
 				</div>
 			</div>
 
-			{/* Posts Feed */}
 			<div className="space-y-6">
 				{posts.length < 1 ? (
 					<div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 text-center">

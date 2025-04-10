@@ -18,23 +18,26 @@ export async function handler(
 	req: NextApiRequest,
 	res: NextApiResponse<Data>
 ) {
-	if (req.method !== 'DELETE') return res.status(405).json({ success: false, error: 'Method not allowed' })
+	if (req.method !== 'DELETE') return res.status(405).json({ success: false, error: 'Method not allowed' });
 	if (!req.session.userid) return res.status(401).json({ success: false, error: 'Not logged in' });
-	if (!req.query.qid) return res.status(400).json({ success: false, error: 'Missing quota id' });
-	if (typeof req.query.qid !== 'string') return res.status(400).json({ success: false, error: 'Invalid quota id' })
-
+	if (!req.query.qid || typeof req.query.qid !== 'string') return res.status(400).json({ success: false, error: 'Missing or invalid quota id' });
 
 	try {
+		await prisma.quotaRole.deleteMany({
+			where: {
+				quotaId: req.query.qid
+			}
+		});
+
 		await prisma.quota.delete({
 			where: {
 				id: req.query.qid
 			}
 		});
-		
 
 		return res.status(200).json({ success: true });
 	} catch (error) {
-		console.error(error);
+		console.error('Error deleting quota:', error);
 		return res.status(500).json({ success: false, error: "Something went wrong" });
 	}
 }

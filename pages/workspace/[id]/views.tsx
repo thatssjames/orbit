@@ -46,6 +46,7 @@ type User = {
 	idleMinutes: number
 	hostedSessions: any,
 	messages: number
+	registered: boolean;
 }
 
 export const getServerSideProps = withPermissionCheckSsr(async ({ params }: GetServerSidePropsContext) => {
@@ -128,7 +129,8 @@ export const getServerSideProps = withPermissionCheckSsr(async ({ params }: GetS
 			minutes: ms.length ? Math.round(ms.reduce((p, c) => p + c) / 60000) : 0,
 			idleMinutes: ims.length ? Math.round(ims.reduce((p, c) => p + c)) : 0,
 			hostedSessions: sh,
-			messages: messages.length ? Math.round(messages.reduce((p, c) => p + c)) : 0
+			messages: messages.length ? Math.round(messages.reduce((p, c) => p + c)) : 0,
+			registered: user.registered || false
 		})
 	}
 
@@ -162,7 +164,8 @@ export const getServerSideProps = withPermissionCheckSsr(async ({ params }: GetS
 			minutes: ms.length ? Math.round(ms.reduce((p, c) => p + c) / 60000) : 0,
 			idleMinutes: 0,
 			hostedSessions: [],
-			messages: messages.length ? Math.round(messages.reduce((p, c) => p + c)) : 0
+			messages: messages.length ? Math.round(messages.reduce((p, c) => p + c)) : 0,
+			registered: x.user.registered || false
 		})
 	})
 
@@ -221,6 +224,9 @@ const filters: {
 		'equal',
 		'greaterThan',
 		'lessThan'
+	],
+	registered: [
+		'equal'
 	]
 }
 
@@ -377,9 +383,21 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 				);
 			}
 		}),
+		columnHelper.accessor("registered", {
+			header: 'Registered',
+			cell: (row) => {
+				return (
+					<p>{row.getValue() ? "✅" : "❌"}</p>
+				);
+			}
+		}),
 	];
 
-	const [columnVisibility, setColumnVisibility] = useState([])
+	const [columnVisibility, setColumnVisibility] = useState({
+		inactivityNotices: false,
+		idleMinutes: false,
+		registered: false
+	});
 
 	const table = useReactTable({
 		columns,
@@ -551,6 +569,13 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 							valid = false;
 						}
 					}
+				} else if (filter.column === 'registered') {
+					if (!filter.value) return;
+					if (filter.filter === 'equal') {
+						if (user.registered.toString() !== filter.value.toLowerCase()) {
+							valid = false;
+						}
+					}
 				}
 			});
 			return valid;
@@ -632,11 +657,13 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 			return "Idle minutes"
 		} else if (columnId == "messages") {
 			return "Messages"
+		} else if (columnId == "registered") {
+			return "Registered"
 		}
  	}
 
 	return (
-		<div className="min-h-screen bg-gray-50">
+		<div className="min-h-screen bg-gray-50 dark:bg-gray-900">
 			<Toaster position="bottom-center" />
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 				{/* Header */}
@@ -649,7 +676,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 						<IconArrowLeft className="w-5 h-5" />
 					</button>
 					<div>
-						<h1 className="text-xl font-medium text-gray-900">Staff Management</h1>
+						<h1 className="text-xl font-medium text-gray-900 dark:text-white">Staff Management</h1>
 						<p className="text-sm text-gray-500">View and manage your staff members</p>
 					</div>
 				</div>
@@ -662,8 +689,8 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 								{({ open }) => (
 									<>
 										<Popover.Button
-											className={`inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${
-												open ? 'bg-gray-50 ring-2 ring-primary' : ''
+											className={`inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white dark:text-white dark:bg-gray-800 hover:bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${
+												open ? 'bg-gray-50 dark:bg-gray-800 ring-2 ring-primary' : ''
 											}`}
 										>
 											<IconFilter className="w-4 h-4 mr-1.5" />
@@ -679,7 +706,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 											leaveFrom="opacity-100 translate-y-0"
 											leaveTo="opacity-0 translate-y-1"
 										>
-											<Popover.Panel className="absolute left-0 z-10 mt-2 w-72 origin-top-left rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-3">
+											<Popover.Panel className="absolute left-0 z-10 mt-2 w-72 origin-top-left rounded-lg bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-3">
 												<div className="space-y-3">
 													<button
 														onClick={newfilter}
@@ -690,7 +717,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 													</button>
 
 													{colFilters.map((filter) => (
-														<div key={filter.id} className="p-2 border border-gray-200 rounded-lg">
+														<div key={filter.id} className="p-2 border border-gray-200 rounded-lg dark:text-white">
 															<Filter
 																ranks={ranks}
 																updateFilter={(col, op, value) => updateFilter(filter.id, col, op, value)}
@@ -710,8 +737,8 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 								{({ open }) => (
 									<>
 										<Popover.Button
-											className={`inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${
-												open ? 'bg-gray-50 ring-2 ring-primary' : ''
+											className={`inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-white bg-white dark:bg-gray-800 hover:bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${
+												open ? 'bg-gray-50 dark:bg-gray-800 ring-2 ring-primary' : ''
 											}`}
 										>
 											<IconUsers className="w-4 h-4 mr-1.5" />
@@ -727,7 +754,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 											leaveFrom="opacity-100 translate-y-0"
 											leaveTo="opacity-0 translate-y-1"
 										>
-											<Popover.Panel className="absolute left-0 z-10 mt-2 w-56 origin-top-left rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-3">
+											<Popover.Panel className="absolute left-0 z-10 mt-2 w-56 origin-top-left rounded-lg bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-3">
 												<div className="space-y-2">
 													{table.getAllLeafColumns().map((column: any) => {
 														if (column.id !== "select" && column.id !== "info") {
@@ -737,7 +764,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 																		checked={column.getIsVisible()}
 																		onChange={column.getToggleVisibilityHandler()}
 																	/>
-																	<span className="text-sm text-gray-700">{getSelectionName(column.id)}</span>
+																	<span className="text-sm text-gray-700 dark:text-gray-200">{getSelectionName(column.id)}</span>
 																</label>
 															)
 														}
@@ -760,13 +787,13 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 									type="text"
 									value={searchQuery}
 									onChange={(e) => updateSearchQuery(e.target.value)}
-									className="block w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+									className="block w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded-md leading-5 bg-white dark:bg-gray-800 placeholder-gray-500 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
 									placeholder="Search username..."
 								/>
 							</div>
 
 							{searchOpen && (
-								<div className="absolute z-10 mt-1 w-full bg-white rounded-md shadow-lg">
+								<div className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 rounded-md shadow-lg">
 									<div className="py-1">
 										{searchResults.length === 0 && (
 											<div className="px-3 py-1.5 text-sm text-gray-500">
@@ -784,7 +811,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 													alt={u.username}
 													className="w-6 h-6 rounded-full bg-primary"
 												/>
-												<span className="text-sm font-medium text-gray-900">{u.username}</span>
+												<span className="text-sm font-medium text-gray-900 dark:text-white">{u.username}</span>
 											</button>
 										))}
 									</div>
@@ -831,10 +858,10 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 				</div>
 
 				{/* Table */}
-				<div className="bg-white rounded-lg shadow overflow-hidden">
+				<div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
 					<div className="overflow-x-auto">
 						<table className="min-w-full divide-y divide-gray-200">
-							<thead className="bg-gray-50">
+							<thead className="bg-gray-50 dark:bg-gray-800">
 								<tr>
 									{table.getHeaderGroups().map((headerGroup) => (
 										headerGroup.headers.map((header) => (
@@ -854,11 +881,11 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 									))}
 								</tr>
 							</thead>
-							<tbody className="bg-white divide-y divide-gray-200">
+							<tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
 								{table.getRowModel().rows.map((row) => (
 									<tr
 										key={row.id}
-										className="hover:bg-gray-50 transition-colors"
+										className="hover:bg-gray-50 dark:bg-gray-800 transition-colors"
 									>
 										{row.getVisibleCells().map((cell) => (
 											<td
@@ -875,23 +902,23 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 					</div>
 
 					{/* Pagination */}
-					<div className="bg-white px-3 py-2 flex items-center justify-between border-t border-gray-200 sm:px-4">
+					<div className="bg-white dark:bg-gray-800 px-3 py-2 flex items-center justify-between border-t border-gray-200 sm:px-4">
 						<div className="flex-1 flex justify-center">
 							<div className="flex gap-1">
 								<button
 									onClick={() => table.previousPage()}
 									disabled={!table.getCanPreviousPage()}
-									className="relative inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+									className="relative inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:bg-gray-800 dark:text-white disabled:bg-gray-100 disabled:cursor-not-allowed"
 								>
 									Previous
 								</button>
-								<span className="relative inline-flex items-center px-3 py-1.5 border border-gray-300 bg-white text-sm font-medium text-gray-700 rounded-md">
+								<span className="relative inline-flex items-center px-3 py-1.5 border border-gray-300 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-white rounded-md">
 									Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
 								</span>
 								<button
 									onClick={() => table.nextPage()}
 									disabled={!table.getCanNextPage()}
-									className="relative inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+									className="relative inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:bg-gray-800 dark:text-white disabled:bg-gray-100 disabled:cursor-not-allowed"
 								>
 									Next
 								</button>
@@ -927,9 +954,9 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 								leaveFrom="opacity-100 scale-100"
 								leaveTo="opacity-0 scale-95"
 							>
-								<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-5 text-left align-middle shadow-xl transition-all">
+								<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-5 text-left align-middle shadow-xl transition-all">
 									<Dialog.Title as="div" className="flex items-center justify-between mb-3">
-										<h3 className="text-lg font-medium text-gray-900">
+										<h3 className="text-lg font-medium text-gray-900 dark:text-white">
 											Mass {type} {type === "add" ? "minutes" : ""}
 										</h3>
 										<button
@@ -968,7 +995,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 									<div className="mt-5 flex justify-end gap-2">
 										<button
 											type="button"
-											className="inline-flex justify-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+											className="inline-flex justify-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white dark:bg-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 dark:bg-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
 											onClick={() => setIsOpen(false)}
 										>
 											Cancel
@@ -1031,7 +1058,7 @@ const Filter: React.FC<{
 			<div className="space-y-4">
 				<button
 					onClick={deleteFilter}
-					className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+					className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
 				>
 					Delete Filter
 				</button>
@@ -1042,7 +1069,7 @@ const Filter: React.FC<{
 					</label>
 					<select
 						{...register('col')}
-						className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
+						className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
 					>
 						{Object.keys(filters).map((filter) => (
 							<option value={filter} key={filter}>{filter}</option>
@@ -1056,7 +1083,7 @@ const Filter: React.FC<{
 					</label>
 					<select
 						{...register('op')}
-						className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
+						className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
 					>
 						{filters[methods.getValues().col].map((filter) => (
 							<option value={filter} key={filter}>{filterNames[filter]}</option>
@@ -1080,7 +1107,7 @@ const Filter: React.FC<{
 						</label>
 						<select
 							{...register('value')}
-							className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
+							className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
 						>
 							{ranks.map((rank) => (
 								<option value={rank.rank} key={rank.id}>{rank.name}</option>
@@ -1088,6 +1115,22 @@ const Filter: React.FC<{
 						</select>
 					</div>
 				)}
+				
+				{getValues('col') === 'registered' && (
+					<div className="space-y-2">
+						<label className="block text-sm font-medium text-gray-700">
+							Value
+						</label>
+						<select
+							{...register('value')}
+							className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
+						>
+							<option value="true">✅</option>
+							<option value="false">❌</option>
+						</select>
+					</div>
+				)}
+				
 			</div>
 		</FormProvider>
 	);

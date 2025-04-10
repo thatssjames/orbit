@@ -29,7 +29,11 @@ export const getServerSideProps = withPermissionCheckSsr(
 						workspaceGroupId: parseInt(query.id as string)
 					},
 					include: {
-						assignedQuotas: true
+						quotaRoles: {
+							include: {
+								quota: true
+							}
+						}
 					}
 				}
 			}
@@ -37,18 +41,22 @@ export const getServerSideProps = withPermissionCheckSsr(
 
 		if (!userTakingAction) return { notFound: true };
 
-		if (!parseInt(query?.id as string) && !userTakingAction?.roles[0]?.isOwnerRole && !userTakingAction?.roles[0]?.permissions?.includes('manage_activity')) return { notFound: true };
-		
+		if (
+			!parseInt(query?.id as string) &&
+			!userTakingAction?.roles[0]?.isOwnerRole &&
+			!userTakingAction?.roles[0]?.permissions?.includes('manage_activity')
+		) return { notFound: true };
+
+		const quotas = userTakingAction.roles
+  			.flatMap((role) => role.quotaRoles)
+  			.map((qr) => qr.quota);
+
 		const notices = await prisma.inactivityNotice.findMany({
 			where: {
 				userId: BigInt(query?.uid as string),
 				workspaceGroupId: parseInt(query?.id as string),
 			},
-			orderBy: [
-				{
-					startTime: "desc"
-				}
-			]
+			orderBy: [{ startTime: "desc" }]
 		});
 
 		const sessions = await prisma.activitySession.findMany({
@@ -68,18 +76,13 @@ export const getServerSideProps = withPermissionCheckSsr(
 			}
 		});
 
-		var sumOfMs: number[] = [];
-		var timeSpent: number;
-
-		sessions.forEach((session: ActivitySession) => {
-			sumOfMs.push(session.endTime?.getTime() as number - session.startTime.getTime());
-		});
-
-		if(sumOfMs.length) timeSpent = sumOfMs.reduce((p, c) => p + c);
-		else timeSpent = 0;
-		timeSpent = Math.round(timeSpent / 60000);
-		
-		moment.locale("es")
+		let timeSpent = 0;
+		if (sessions.length) {
+			timeSpent = sessions.reduce((sum, session) => {
+				return sum + ((session.endTime?.getTime() ?? 0) - session.startTime.getTime());
+			}, 0);
+			timeSpent = Math.round(timeSpent / 60000);
+		}
 
 		const startOfWeek = moment().startOf("week").toDate();
 		const endOfWeek = moment().endOf("week").toDate();
@@ -98,61 +101,30 @@ export const getServerSideProps = withPermissionCheckSsr(
 			}
 		});
 
-		type Day = {
-			day: number;
-			ms: number[];
-		}
+		const days: { day: number; ms: number[] }[] = Array.from({ length: 7 }, (_, i) => ({
+			day: i,
+			ms: []
+		}));
 
-		const days: Day[] = [
-			{
-				day: 1,
-				ms: []
-			},
-			{
-				day: 2,
-				ms: []
-			},
-			{
-				day: 3,
-				ms: []
-			},
-			{
-				day: 4,
-				ms: []
-			},
-			{
-				day: 5,
-				ms: []
-			},
-			{
-				day: 6,
-				ms: []
-			},
-			{
-				day: 0,
-				ms: []
-			}
-		];
-
-		weeklySessions.forEach((session: ActivitySession) => {
+		weeklySessions.forEach((session) => {
 			const day = session.startTime.getDay();
-			const calc = Math.round((session.endTime?.getTime() as number - session.startTime.getTime()) / 60000);
-			days.find(x => x.day == day)?.ms.push(calc);
+			const duration = Math.round(((session.endTime?.getTime() ?? 0) - session.startTime.getTime()) / 60000);
+			days.find(d => d.day === day)?.ms.push(duration);
 		});
 
-		const data: number[] = [];
-
-		days.forEach((day) => {
-			if(day.ms.length < 1) return data.push(0);
-			data.push(day.ms.reduce((p, c) => p + c));
-		});
+		const data: number[] = days.map(d => d.ms.reduce((sum, val) => sum + val, 0));
 
 		const ubook = await prisma.userBook.findMany({
 			where: {
 				userId: BigInt(query?.uid as string)
 			},
 			include: {
-				admin: true
+				admin: {
+					select: {
+						userid: true,
+						username: true,
+					}
+				}
 			},
 			orderBy: {
 				createdAt: "desc"
@@ -167,10 +139,10 @@ export const getServerSideProps = withPermissionCheckSsr(
 						not: null
 					}
 				}
-			},
+			}
 		});
 
-		const sesisonsHosted = await prisma.session.findMany({
+		const sessisonsHosted = await prisma.session.findMany({
 			where: {
 				ownerId: BigInt(query?.uid as string),
 				ended: {
@@ -181,21 +153,21 @@ export const getServerSideProps = withPermissionCheckSsr(
 
 		return {
 			props: {
-				notices: (JSON.parse(JSON.stringify(notices, (_key, value) => (typeof value === 'bigint' ? value.toString() : value))) as typeof notices),
+				notices: JSON.parse(JSON.stringify(notices, (_k, v) => (typeof v === 'bigint' ? v.toString() : v))),
 				timeSpent,
 				timesPlayed: sessions.length,
 				data,
-				sessions: (JSON.parse(JSON.stringify(sessions, (_key, value) => (typeof value === 'bigint' ? value.toString() : value))) as typeof sessions),
+				sessions: JSON.parse(JSON.stringify(sessions, (_k, v) => (typeof v === 'bigint' ? v.toString() : v))),
 				info: {
 					username: await getUsername(Number(query?.uid as string)),
 					displayName: await getDisplayName(Number(query?.uid as string)),
 					avatar: await getThumbnail(Number(query?.uid as string))
 				},
 				isUser: req.session.userid === Number(query?.uid as string),
-				sesisonsHosted: sesisonsHosted.length,
+				sessisonsHosted: sessisonsHosted.length,
 				sessionsAttended: sessionsAttended.length,
-				quotas: userTakingAction?.roles[0].assignedQuotas,
-				userBook: (JSON.parse(JSON.stringify(ubook, (_key, value) => (typeof value === 'bigint' ? value.toString() : value))) as typeof ubook)
+				quotas,
+				userBook: JSON.parse(JSON.stringify(ubook, (_k, v) => (typeof v === 'bigint' ? v.toString() : v)))
 			}
 		};
 	}
@@ -218,11 +190,11 @@ type pageProps = {
 	}
 	userBook: any;
 	quotas: Quota[];
-	sesisonsHosted: number;
+	sessionsHosted: number;
 	sessionsAttended: number;
 	isUser: boolean;
 }
-const Profile: pageWithLayout<pageProps> = ({ notices, timeSpent, timesPlayed, data, sessions, userBook: initialUserBook, isUser, info, sesisonsHosted, sessionsAttended, quotas }) => {
+const Profile: pageWithLayout<pageProps> = ({ notices, timeSpent, timesPlayed, data, sessions, userBook: initialUserBook, isUser, info, sessionsHosted, sessionsAttended, quotas }) => {
 	const [login, setLogin] = useRecoilState(loginState);
 	const [userBook, setUserBook] = useState(initialUserBook);
 	const router = useRouter();
@@ -239,7 +211,7 @@ const Profile: pageWithLayout<pageProps> = ({ notices, timeSpent, timesPlayed, d
 
 	return <div className="pagePadding">
 		<div className="max-w-7xl mx-auto">
-			<div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+			<div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm mb-6">
 				<div className="flex items-center gap-4">
 					<div className="relative">
 						<img 
@@ -252,20 +224,20 @@ const Profile: pageWithLayout<pageProps> = ({ notices, timeSpent, timesPlayed, d
 						</div>
 					</div>
 					<div>
-						<h1 className="text-2xl font-medium text-gray-900">{info.displayName}</h1>
-						<p className="text-sm text-gray-500">@{info.username}</p>
+						<h1 className="text-2xl font-medium text-gray-900 dark:text-white">{info.displayName}</h1>
+						<p className="text-sm text-gray-500 dark:text-gray-400">@{info.username}</p>
 					</div>
 				</div>
 			</div>
 
-			<div className="bg-white rounded-xl shadow-sm overflow-hidden">
+			<div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
 				<Tab.Group>
-					<Tab.List className="flex p-1 gap-1 bg-gray-50 border-b">
+					<Tab.List className="flex p-1 gap-1 bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600">
 						<Tab className={({ selected }) =>
 							`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${
 								selected 
-									? "bg-white text-primary shadow-sm" 
-									: "text-gray-600 hover:bg-white/50 hover:text-gray-900"
+									? "bg-white dark:bg-gray-800 text-primary shadow-sm" 
+									: "text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
 							}`
 						}>
 							<IconHistory className="w-4 h-4" />
@@ -274,8 +246,8 @@ const Profile: pageWithLayout<pageProps> = ({ notices, timeSpent, timesPlayed, d
 						<Tab className={({ selected }) =>
 							`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${
 								selected 
-									? "bg-white text-primary shadow-sm" 
-									: "text-gray-600 hover:bg-white/50 hover:text-gray-900"
+									? "bg-white dark:bg-gray-800 text-primary shadow-sm" 
+									: "text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
 							}`
 						}>
 							<IconBook className="w-4 h-4" />
@@ -284,22 +256,22 @@ const Profile: pageWithLayout<pageProps> = ({ notices, timeSpent, timesPlayed, d
 						<Tab className={({ selected }) =>
 							`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${
 								selected 
-									? "bg-white text-primary shadow-sm" 
-									: "text-gray-600 hover:bg-white/50 hover:text-gray-900"
+									? "bg-white dark:bg-gray-800 text-primary shadow-sm" 
+									: "text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
 							}`
 						}>
 							<IconBell className="w-4 h-4" />
 							Notices
 						</Tab>
 					</Tab.List>
-					<Tab.Panels className="p-6">
+					<Tab.Panels className="p-6 bg-white dark:bg-gray-800 rounded-b-xl">
 						<Tab.Panel>
 							<Activity
 								timeSpent={timeSpent}
 								timesPlayed={timesPlayed}
 								data={data}
 								quotas={quotas}
-								sessionsHosted={sesisonsHosted}
+								sessionsHosted={sessionsHosted}
 								sessionsAttended={sessionsAttended}
 								avatar={info.avatar}
 								sessions={sessions}

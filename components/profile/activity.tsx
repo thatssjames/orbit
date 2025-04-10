@@ -5,7 +5,7 @@ import { FC } from '@/types/settingsComponent'
 import { Chart, ChartData, ScatterDataPoint } from "chart.js"
 import { Line } from "react-chartjs-2";
 import type { ActivitySession, Quota, inactivityNotice } from "@prisma/client";
-import Tooltip from "../tooltip";
+import Tooltip from "@/components/tooltip";
 import moment from "moment";
 import { Dialog, Transition } from "@headlessui/react";
 import Button from "../button";
@@ -161,38 +161,38 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 			<div>
 				<div className="grid gap-4 xl:grid-cols-2">
 					<div className="space-y-4">
-						<div className="bg-white rounded-xl shadow-sm overflow-hidden">
+						<div className="bg-white dark:bg-gray-700 rounded-xl shadow-sm overflow-hidden">
 							<div className="flex items-center gap-3 p-4 border-b">
 								<div className="bg-primary/10 p-2 rounded-lg">
 									<IconChartBar className="w-5 h-5 text-primary" />
 								</div>
-								<h2 className="text-lg font-medium text-gray-900">Activity Chart</h2>
+								<h2 className="text-lg font-medium text-gray-900 dark:text-white">Activity Chart</h2>
 							</div>
 							<div className="p-4 h-[300px]">
 								<Line options={chartOptions} data={chartData} />
 							</div>
 						</div>
 
-						<div className="bg-white rounded-xl shadow-sm overflow-hidden">
+						<div className="bg-white dark:bg-gray-700 rounded-xl shadow-sm overflow-hidden">
 							<div className="flex items-center gap-3 p-4 border-b">
 								<div className="bg-primary/10 p-2 rounded-lg">
 									<IconCalendarTime className="w-5 h-5 text-primary" />
 								</div>
-								<h2 className="text-lg font-medium text-gray-900">Timeline</h2>
+								<h2 className="text-lg font-medium text-gray-900 dark:text-white">Timeline</h2>
 							</div>
 							<div className="p-4">
 								{timeline.length === 0 ? (
 									<div className="text-center py-12">
-										<div className="bg-gray-50 rounded-xl p-8 max-w-md mx-auto">
+										<div className="bg-white dark:bg-gray-700 rounded-xl p-8 max-w-md mx-auto">
 											<div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
 												<IconClipboardList className="w-8 h-8 text-primary" />
 											</div>
-											<h3 className="text-lg font-medium text-gray-900 mb-1">No Activity</h3>
-											<p className="text-sm text-gray-500 mb-4">No activity has been recorded yet</p>
+											<h3 className="text-lg font-medium  text-gray-900 dark:text-white mb-1">No Activity</h3>
+											<p className="text-sm  text-gray-900 dark:text-white mb-4">No activity has been recorded yet</p>
 										</div>
 									</div>
 								) : (
-									<ol className="relative border-l border-gray-200 ml-3 mt-3">
+									<ol className="relative border-l dark:bg-gray-600 border-gray-200 ml-3 mt-3">
 										{timeline.map((item: any, index: number) => (
 											<div key={item.id}>
 												{"reason" in item ? (
@@ -200,14 +200,15 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 														<span className="flex absolute -left-3 justify-center items-center w-6 h-6 bg-primary rounded-full ring-4 ring-white">
 															<img className="rounded-full" src={avatar} alt="timeline avatar" />
 														</span>
-														<div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+														<div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-100 dark:border-gray-600">
 															<div className="flex justify-between items-center mb-1">
 																<p className="text-sm font-medium text-gray-900">Inactivity Notice</p>
 																<time className="text-xs text-gray-500">
 																	{moment(item.startTime).format("DD MMM")} - {moment(item.endTime).format("DD MMM YYYY")}
 																</time>
 															</div>
-															<p className="text-sm text-gray-600">{item.reason}</p>
+															<p className="text-sm text-gray-600 dark:text-gray-300">{item.reason}</p>
+															<p className="text-3xl font-semibold text-gray-900 dark:text-white">{timeSpent}m</p>
 														</div>
 													</li>
 												) : (
@@ -217,10 +218,10 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 														</span>
 														<div 
 															onClick={() => fetchSession(item.id)}
-															className="p-4 bg-gray-50 rounded-lg border border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors"
+															className="p-4 bg-gray-50 dark:bg-gray-500 rounded-lg border border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors"
 														>
-															<div className="flex justify-between items-center mb-1">
-																<p className="text-sm font-medium text-gray-900">Activity Session</p>
+															<div className="flex justify-between items-center mb-1 dark:bg-gray-500">
+																<p className="text-sm font-medium text-gray-900 dark:text-white">Activity Session</p>
 																<time className="text-xs text-gray-500">
 																	{moment(item.startTime).format("HH:mm")} - {moment(item.endTime).format("HH:mm")} on {moment(item.startTime).format("DD MMM YYYY")}
 																</time>
@@ -238,46 +239,46 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 
 					<div className="space-y-4">
 						<div className="grid grid-cols-2 gap-4">
-							<div className="bg-white rounded-xl p-5 shadow-sm">
+							<div className="bg-white dark:bg-gray-700 rounded-xl p-5 shadow-sm">
 								<div className="flex items-center gap-3 mb-3">
 									<div className="bg-primary/10 p-2 rounded-lg">
 										<IconPlayerPlay className="w-5 h-5 text-primary" />
 									</div>
-									<p className="text-sm font-medium text-gray-600">Time Active</p>
+									<p className="text-sm font-medium text-gray-600 dark:text-white">Time Active</p>
 								</div>
-								<p className="text-3xl font-semibold text-gray-900">{timeSpent}m</p>
+								<p className="text-3xl font-semibold text-gray-400">{timeSpent}m</p>
 							</div>
-							<div className="bg-white rounded-xl p-5 shadow-sm">
+							<div className="bg-white dark:bg-gray-700 rounded-xl p-5 shadow-sm">
 								<div className="flex items-center gap-3 mb-3">
 									<div className="bg-primary/10 p-2 rounded-lg">
 										<IconUsers className="w-5 h-5 text-primary" />
 									</div>
-									<p className="text-sm font-medium text-gray-600">Sessions</p>
+									<p className="text-sm font-medium text-gray-600 dark:text-white">Sessions</p>
 								</div>
-								<p className="text-3xl font-semibold text-gray-900">{timesPlayed}</p>
+								<p className="text-3xl font-semibold text-gray-400 ">{timesPlayed}</p>
 							</div>
-							<div className="bg-white rounded-xl p-5 shadow-sm">
+							<div className="bg-white dark:bg-gray-700 rounded-xl p-5 shadow-sm">
 								<div className="flex items-center gap-3 mb-3">
 									<div className="bg-primary/10 p-2 rounded-lg">
 										<IconMessages className="w-5 h-5 text-primary" />
 									</div>
-									<p className="text-sm font-medium text-gray-600">Messages</p>
+									<p className="text-sm font-medium text-gray-600 dark:text-white">Messages</p>
 								</div>
-								<p className="text-3xl font-semibold text-gray-900">{messages}</p>
+								<p className="text-3xl font-semibold text-gray-400">{messages}</p>
 							</div>
-							<div className="bg-white rounded-xl p-5 shadow-sm">
+							<div className="bg-white dark:bg-gray-700 rounded-xl p-5 shadow-sm">
 								<div className="flex items-center gap-3 mb-3">
 									<div className="bg-primary/10 p-2 rounded-lg">
 										<IconMoon className="w-5 h-5 text-primary" />
 									</div>
-									<p className="text-sm font-medium text-gray-600">Idle Time</p>
+									<p className="text-sm font-medium text-gray-600 dark:text-white">Idle Time</p>
 								</div>
-								<p className="text-3xl font-semibold text-gray-900">{idleMins}m</p>
+								<p className="text-3xl font-semibold text-gray-400">{idleMins}m</p>
 							</div>
 						</div>
 
 						{quotas.length > 0 && (
-							<div className="bg-white rounded-xl shadow-sm overflow-hidden">
+							<div className="bg-white dark:bg-gray-700 rounded-xl shadow-sm overflow-hidden">
 								<div className="flex items-center gap-3 p-4 border-b">
 									<div className="bg-primary/10 p-2 rounded-lg">
 										<IconChartBar className="w-5 h-5 text-primary" />
@@ -292,8 +293,8 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 													<h3 className="text-sm font-medium text-gray-900">{quota.name}</h3>
 													<p className="text-xs text-gray-500">{getQuotaProgress(quota)}</p>
 												</div>
-												<Tooltip orientation="top" tooltipText={getQuotaProgress(quota)} isWorkspace>
-													<div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+												<Tooltip orientation="top" tooltipText={getQuotaProgress(quota)}>
+													<div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
 														<div 
 															className="h-full bg-primary transition-all" 
 															style={{
@@ -337,8 +338,8 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 								leaveFrom="opacity-100 scale-100"
 								leaveTo="opacity-0 scale-95"
 							>
-								<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-									<Dialog.Title as="h3" className="text-lg font-medium text-gray-900 mb-4">
+								<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
+									<Dialog.Title as="h3" className="text-lg dark:text-white font-medium text-gray-900 mb-4">
 										Session Details
 									</Dialog.Title>
 									{loading ? (
@@ -348,25 +349,25 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 									) : (
 										<div>
 											{dialogData.universe && (
-												<div className="bg-gray-50 rounded-lg p-4 mb-4">
-													<h4 className="text-sm font-medium text-gray-900 mb-1">Universe</h4>
-													<p className="text-sm text-gray-600">{dialogData.universe.name}</p>
+												<div>
+													<h4 className="text-sm font-medium text-gray-900 mb-1 dark:text-white dark:bg-gray-800">Universe</h4>
+													<p className="text-sm text-gray-600 dark:text-gray-400">{dialogData.universe.name}</p>
 												</div>
 											)}
 											<div className="space-y-4">
 												<div>
-													<h4 className="text-sm font-medium text-gray-900 mb-1">Duration</h4>
-													<p className="text-sm text-gray-600">
+													<h4 className="text-sm font-medium text-gray-900 mb-1 dark:text-white dark:bg-gray-800">Duration</h4>
+													<p className="text-sm text-gray-600 dark:text-gray-400">
 														{moment.duration(moment(dialogData.data?.endTime).diff(moment(dialogData.data?.startTime))).humanize()}
 													</p>
 												</div>
 												<div>
-													<h4 className="text-sm font-medium text-gray-900 mb-1">Messages Sent</h4>
-													<p className="text-sm text-gray-600">{dialogData.data?.messages || 0}</p>
+													<h4 className="text-sm font-medium text-gray-900 mb-1 dark:bg-gray-800 dark:text-white">Messages Sent</h4>
+													<p className="text-sm text-gray-600 dark:text-gray-400">{dialogData.data?.messages || 0}</p>
 												</div>
 												<div>
-													<h4 className="text-sm font-medium text-gray-900 mb-1">Idle Time</h4>
-													<p className="text-sm text-gray-600">{dialogData.data?.idleTime || 0} minutes</p>
+													<h4 className="text-sm font-medium text-gray-900 mb-1 dark:bg-gray-800 dark:text-white">Idle Time</h4>
+													<p className="text-sm text-gray-600 dark:text-gray-400">{dialogData.data?.idleTime || 0} minutes</p>
 												</div>
 											</div>
 										</div>

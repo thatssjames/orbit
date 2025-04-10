@@ -67,7 +67,7 @@ const Button: FC<Props> = (props) => {
 								{...userForm.register("username")}
 								label=""
 								placeholder="Enter username"
-								classoverride="w-48"
+								classoverride="w-48 py-1.5 text-sm"
 							/>
 							<button
 								onClick={addUser}
@@ -180,11 +180,11 @@ const Button: FC<Props> = (props) => {
 																			>
 																				{({ selected }) => (
 																					<>
-																						<span className="block truncate text-sm">
+																						<span className="block truncate text-sm dark:text-white">
 																							{role.name}
 																						</span>
 																						{selected ? (
-																							<span className="absolute inset-y-0 left-0 flex items-center pl-3 text-primary">
+																							<span className="absolute inset-y-0 left-0 flex items-center pl-3 text-primary dark:text-white">
 																								<IconCheck className="w-5 h-5" />
 																							</span>
 																						) : null}

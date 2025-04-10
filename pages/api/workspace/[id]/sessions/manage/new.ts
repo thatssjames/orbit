@@ -18,7 +18,7 @@ export async function handler(
 	const { name, schedule, permissions, webhook, slots, statues } = req.body;
 	if (!name || !schedule || !permissions) return res.status(400).json({ success: false, error: 'Missing required fields' });
 	const { days, time, allowUnscheduled } = schedule;
-	if (schedule.enebaled && (!days || !time || !allowUnscheduled)) return res.status(400).json({ success: false, error: 'Missing required fields' });
+	if (schedule.enebled && (!days || !time || !allowUnscheduled)) return res.status(400).json({ success: false, error: 'Missing required fields' });
 	if (schedule.enabled) {
 		const session = await prisma.sessionType.create({
 			data: {
@@ -64,7 +64,7 @@ export async function handler(
 			statues: statues || [],
 			webhookBody: webhook?.body,
 			webhookTitle: webhook?.title,
-			hostingRoles: {
+			hostingRoles: { 
 				connect: [
 					...permissions.map((role: string) => ({ id: role }))
 				]

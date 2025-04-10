@@ -18,6 +18,8 @@ const Sessions: React.FC = () => {
 		axios.get(`/api/workspace/${router.query.id}/home/activeSessions`).then(res => {
 			if (res.status === 200) {
 				setActiveSessions(res.data.sessions)
+				console.log(res.data.sessions)
+
 			}
 		})
 	}, []);
@@ -34,7 +36,7 @@ const Sessions: React.FC = () => {
 						<IconSpeakerphone className="w-8 h-8 text-primary" />
 					</div>
 					<p className="text-lg font-medium text-gray-900 dark:text-white mb-1">No active sessions</p>
-					<p className="text-sm text-gray-500 dark:text-gray-400 mb-4">There are no ongoing training sessions right now</p>
+					<p className="text-sm text-gray-500 dark:text-gray-400 mb-4">There are no ongoing sessions right now</p>
 					<button
 						onClick={goToSessions}
 						className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
@@ -46,6 +48,7 @@ const Sessions: React.FC = () => {
 			) : (
 				<div className="flex flex-col gap-4">
 					{activeSessions.map(session => (
+						console.log(session),
 						<div 
 							key={session.id} 
 							className="bg-gradient-to-br from-primary/90 to-primary rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden"
@@ -53,7 +56,7 @@ const Sessions: React.FC = () => {
 							<div className="p-4">
 								<div className="flex items-start gap-3">
 									<img 
-										src={String(session.owner.picture)} 
+										src={session.owner.picture ?? ''} 
 										alt={`${session.owner.username}'s avatar`}
 										className="rounded-lg h-10 w-10 bg-white/10 object-cover" 
 									/>

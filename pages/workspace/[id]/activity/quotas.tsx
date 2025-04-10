@@ -15,7 +15,7 @@ import { withPermissionCheckSsr } from "@/utils/permissionsManager";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import Input from "@/components/input";
 import prisma, { inactivityNotice } from "@/utils/database";
-import { IconChartBar, IconPlus, IconTrash, IconUsers, IconClipboardList } from "@tabler/icons";
+import { IconChartBar, IconPlus, IconTrash, IconUsers, IconClipboardList, IconArrowLeft } from "@tabler/icons";
 
 type Form = {
 	type: string;
@@ -30,8 +30,13 @@ export const getServerSideProps = withPermissionCheckSsr(
 				workspaceGroupId: parseInt(params?.id as string)
 			},
 			include: {
-				assignedRoles: true
-			}
+				quotaRoles: {
+				  include: {
+					role: true
+				  }
+				}
+			  }
+			  
 		});
 
 		const roles = await prisma.role.findMany({
@@ -43,7 +48,7 @@ export const getServerSideProps = withPermissionCheckSsr(
 
 		return {
 			props: {
-				quotas,
+				quotas: JSON.parse(JSON.stringify(quotas, (_key, value) => (typeof value === 'bigint' ? value.toString() : value))),
 				roles
 			}
 		}
@@ -65,15 +70,13 @@ const Quotas: pageWithLayout<pageProps> = (props) => {
 	const { register, handleSubmit, setError, watch } = form;
 
 	const toggleRole = async (role: string) => {
-		const roles = selectedRoles;
-		if (roles.includes(role)) {
-			roles.splice(roles.indexOf(role), 1);
+		const updatedRoles = [...selectedRoles];
+		if (updatedRoles.includes(role)) {
+			setSelectedRoles(updatedRoles.filter(r => r !== role));
+		} else {
+			setSelectedRoles([...updatedRoles, role]);
 		}
-		else {
-			roles.push(role);
-		}
-		setSelectedRoles(roles);
-	}
+	};
 
 	const onSubmit: SubmitHandler<Form> = async ({ type, requirement, name }) => {
 		const axiosPromise = axios.post(
@@ -81,6 +84,7 @@ const Quotas: pageWithLayout<pageProps> = (props) => {
 			{ value: Number(requirement), type, roles: selectedRoles, name }
 		).then(req => {
 			setQuotas([...quotas, req.data.quota]);
+			setSelectedRoles([]);
 		});
 		toast.promise(
 			axiosPromise,
@@ -125,10 +129,15 @@ const Quotas: pageWithLayout<pageProps> = (props) => {
 		<div className="pagePadding">
 			<div className="max-w-7xl mx-auto">
 				<div className="flex items-center gap-3 mb-6">
-					<h1 className="text-2xl font-medium text-gray-900">{text}</h1>
+					<button onClick={() => router.back()} className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+						<IconArrowLeft className="w-5 h-5" />
+					</button>
+					<div>
+						<h1 className="text-2xl font-medium text-gray-900 dark:text-white">Activity Quotas</h1>
+					</div>
 				</div>
 
-				<div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+				<div className="bg-white dark:bg-gray-700 rounded-xl shadow-sm overflow-hidden mb-6">
 					<div className="p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div className="flex items-center gap-3">
@@ -136,8 +145,8 @@ const Quotas: pageWithLayout<pageProps> = (props) => {
 									<IconChartBar className="w-5 h-5 text-primary" />
 								</div>
 								<div>
-									<h2 className="text-lg font-medium text-gray-900">Activity Quotas</h2>
-									<p className="text-sm text-gray-500">Set requirements for your staff</p>
+									<h2 className="text-lg font-medium text-gray-900 dark:text-white">Quotas</h2>
+									<p className="text-sm text-gray-500 dark:text-gray-400">Set requirements for your staff</p>
 								</div>
 							</div>
 							<button
@@ -151,11 +160,11 @@ const Quotas: pageWithLayout<pageProps> = (props) => {
 
 						{quotas.length === 0 ? (
 							<div className="text-center py-12">
-								<div className="bg-gray-50 rounded-xl p-8 max-w-md mx-auto">
+								<div className="bg-gray-50 dark:bg-gray-600 rounded-xl p-8 max-w-md mx-auto">
 									<div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
 										<IconClipboardList className="w-8 h-8 text-primary" />
 									</div>
-									<h3 className="text-lg font-medium text-gray-900 mb-1">No Quotas</h3>
+									<h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">No Quotas</h3>
 									<p className="text-sm text-gray-500 mb-4">You haven't set up any activity quotas yet</p>
 									<button
 										onClick={() => setIsOpen(true)}
@@ -169,11 +178,11 @@ const Quotas: pageWithLayout<pageProps> = (props) => {
 						) : (
 							<div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
 								{quotas.map((quota: any) => (
-									<div key={quota.id} className="bg-gray-50 rounded-lg p-4">
+									<div key={quota.id} className="bg-gray-50 dark:bg-gray-500 rounded-lg p-4">
 										<div className="flex items-start justify-between mb-3">
 											<div>
-												<h3 className="text-sm font-medium text-gray-900">{quota.name}</h3>
-												<p className="text-xs text-gray-500 mt-1">
+												<h3 className="text-sm font-medium text-gray-900 dark:text-white">{quota.name}</h3>
+												<p className="text-xs text-gray-500 mt-1 dark:text-gray-400">
 													{quota.value} {types[quota.type]} per timeframe
 												</p>
 											</div>
@@ -197,13 +206,13 @@ const Quotas: pageWithLayout<pageProps> = (props) => {
 											</button>
 										</div>
 										<div className="flex flex-wrap gap-2">
-											{quota.assignedRoles?.map((role: any) => (
+											{quota.quotaRoles?.map((qr: any) => (
 												<div 
-													key={role.id} 
+													key={qr.role.id}
 													className={`${getRandomColor()} text-white py-1 px-2 rounded-full text-xs font-medium flex items-center gap-1`}
 												>
 													<IconUsers className="w-3 h-3" />
-													{role.name}
+													{qr.role.name}
 												</div>
 											))}
 										</div>
@@ -241,8 +250,8 @@ const Quotas: pageWithLayout<pageProps> = (props) => {
 							leaveFrom="opacity-100 scale-100"
 							leaveTo="opacity-0 scale-95"
 						>
-							<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-								<Dialog.Title as="h3" className="text-lg font-medium text-gray-900 mb-4">
+							<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
+								<Dialog.Title as="h3" className="text-lg font-medium text-gray-900 mb-4 dark:text-white">
 									Create Activity Quota
 								</Dialog.Title>
 
@@ -251,7 +260,7 @@ const Quotas: pageWithLayout<pageProps> = (props) => {
 										<form onSubmit={handleSubmit(onSubmit)}>
 											<div className="space-y-4">
 												<div>
-													<label className="block text-sm font-medium text-gray-700 mb-2">
+													<label className="block text-sm font-medium dark:text-white text-gray-700 mb-2">
 														Assigned Roles
 													</label>
 													<div className="space-y-2">
@@ -265,19 +274,19 @@ const Quotas: pageWithLayout<pageProps> = (props) => {
 																	onChange={() => toggleRole(role.id)}
 																	className="rounded border-gray-300 text-primary focus:ring-primary"
 																/>
-																<span className="text-sm text-gray-900">{role.name}</span>
+																<span className="text-sm text-gray-900 dark:text-white">{role.name}</span>
 															</label>
 														))}
 													</div>
 												</div>
 
 												<div>
-													<label className="block text-sm font-medium text-gray-700 mb-2">
+													<label className="block text-sm font-medium text-gray-700 mb-2 dark:text-white">
 														Quota Type
 													</label>
 													<select 
 														{...register('type')} 
-														className="w-full rounded-lg border-gray-300 focus:border-primary focus:ring-primary"
+														className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-600 text-gray-900 dark:text-white focus:border-primary focus:ring-primary"
 													>
 														<option value='sessions_hosted'>Sessions Hosted</option>
 														<option value='sessions_attended'>Sessions Attended</option>
@@ -289,11 +298,13 @@ const Quotas: pageWithLayout<pageProps> = (props) => {
 													label="Requirement" 
 													type="number" 
 													append={watch('type') === 'mins' ? 'Minutes' : 'Sessions'} 
+													classoverride="dark:text-white"
 													{...register("requirement", { required: true })} 
 												/>
 												<Input 
 													label="Name" 
 													placeholder="Enter a name for this quota..."
+													classoverride="dark:text-white"
 													{...register("name", { required: true })} 
 												/>
 											</div>

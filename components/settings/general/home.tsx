@@ -55,8 +55,8 @@ const Color: FC<props> = (props) => {
 						className={clsx(
 							'flex items-center justify-between p-3 rounded-lg border transition-colors',
 							workspace.settings.widgets.includes(toggleAble[key])
-								? 'border-primary bg-primary/5 text-primary'
-								: 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+								? 'border-primary bg-primary/5 text-primary dark:text-white'
+								: 'border-gray-200 dark:border-gray-700 dark:text-white hover:border-gray-300 dark:hover:border-gray-600'
 						)}
 					>
 						<span className="text-sm font-medium">{key}</span>

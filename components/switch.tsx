@@ -26,7 +26,7 @@ const SwitchComponenet: FC<Props> = ({ disabled, onChange, label, checked }: Pro
 						} inline-block h-4 w-4 transform rounded-full bg-white transition shadow`}
 				/>
 			</Switch>
-			<p className="ml-2">{label}</p>
+			<p className="ml-2 dark:text-white">{label}</p>
 		</div>
 
 	);

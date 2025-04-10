@@ -27,9 +27,19 @@ export async function handler(
 	};
 
 
-	let xml_string = fs.readFileSync(path.join('Tovy2-activity-alpha.rbxmx'), "utf8");
-	res.setHeader('Content-Disposition', 'attachment; filename=Tovy2-activity-alpha.rbxmx');
-	const protocol = req.headers['x-forwarded-proto'] || req.headers.referer?.split('://')[0] || 'http';
+	let xml_string = fs.readFileSync(path.join('Orbitb5-activity.rbxmx'), "utf8");
+	res.setHeader('Content-Disposition', 'attachment; filename=Orbitb5-activity.rbxmx');
+	
+	// Fix the protocol handling to ensure it's a valid protocol string
+	let protocol = req.headers['x-forwarded-proto'] || req.headers.referer?.split('://')[0] || 'http';
+
+	// Clean up protocol if it contains commas (Cloud hosting)
+	if (typeof protocol === 'string') {
+		protocol = protocol.split(',')[0];
+	} else if (Array.isArray(protocol)) {
+		protocol = protocol[0].split(',')[0];
+	}
+	
 	let currentUrl = new URL(`${protocol}://${req.headers.host}${req.url}`);
 	let xx = xml_string.replace('<apikey>', activityconfig.key).replace('<url>', currentUrl.origin);
 

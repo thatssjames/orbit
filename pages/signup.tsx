@@ -75,10 +75,10 @@ const SignUp: NextPage = ({ }) => {
 	};
 
 	return (
-		<div className="flex bg-infobg h-screen bg-no-repeat bg-cover bg-center">
+		<div className="flex bg-infobg-light dark:bg-infobg-dark h-screen bg-no-repeat bg-cover bg-center">
 			<Slider activeSlide={selectedSlide}>
 				<div>
-					<p className="font-bold text-2xl ">Create an account</p>
+					<p className="font-bold text-2xl dark:text-white">Create an account</p>
 					<p className="text-md text-gray-500 dark:text-gray-200">
 						Create a new account for this group's Orbit
 					</p>

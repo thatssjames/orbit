@@ -49,10 +49,10 @@ const Login: NextPage = ({ }) => {
 		}
 	}
 	return (
-		<div className="flex bg-infobg h-screen bg-no-repeat bg-cover bg-center" >
+		<div className="flex bg-infobg-light dark:bg-infobg-dark h-screen bg-no-repeat bg-cover bg-center" >
 			<div className=" bg-white dark:bg-gray-800 dark:bg-opacity-50 dark:backdrop-blur-lg w-11/12 sm:w-4/6 md:3/6 xl:w-5/12 mx-auto my-auto rounded-3xl p-6" 					>
 				<div>
-					<p className="font-bold text-2xl ">👋 Welcome to Orbit</p>
+					<p className="font-bold text-2xl dark:text-white">👋 Welcome to Orbit</p>
 					<p className="text-md text-gray-500 dark:text-gray-200">
 						Login to your Orbit account to continue
 					</p>

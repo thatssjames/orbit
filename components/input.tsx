@@ -49,7 +49,7 @@ const Input = React.forwardRef<
 				/>
 				{append && (
 					<div className="flex -mr-px">
-						<span className="flex items-center leading-normal bg-grey-lighter rounded-lg rounded-l-none border-2 border-l-0 border-grey-light px-3 whitespace-no-wrap text-grey-dark text-sm">{append}</span>
+						<span className="flex items-center leading-normal bg-grey-lighter rounded-lg rounded-l-none border-2 border-l-0 border-grey-light px-3 whitespace-no-wrap text-grey-dark dark:text-white text-sm">{append}</span>
 					</div>
 				)}
 			</div> : <textarea
