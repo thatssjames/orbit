@@ -371,7 +371,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 							leaveTo="opacity-0 scale-95"
 						>
 							<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
-								<Dialog.Title as="h3" className="text-lg font-medium text-gray-900 mb-4 dark:text-white">
+								<Dialog.Title as="h3" className="text-lg font-medium text-gray-900 mb-4">
 									Create New Visit
 								</Dialog.Title>
 
@@ -508,7 +508,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 						<div className="flex items-center gap-4">
 							<img src={ally.icon} className="w-16 h-16 rounded-full" />
 							<div>
-								<h2 className="text-xl font-medium text-gray-900 dark:text-white">{ally.name}</h2>
+								<h2 className="text-xl font-medium text-gray-900">{ally.name}</h2>
 								<p className="text-sm text-gray-500 mt-1">Group ID: {ally.groupId}</p>
 								<div className="flex flex-wrap gap-2 mt-2">
 									{ally.reps.map((rep: any) => (
@@ -539,7 +539,10 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 									<p className="text-sm text-gray-500 dark:text-gray-400">Keep track of important information about this ally</p>
 								</div>
 							</div>
-							<button onClick={() => createNote()} className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+							<button
+								onClick={() => createNote()}
+								className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+							>
 								<IconPlus className="w-4 h-4" />
 								<span className="text-sm font-medium">Add Note</span>
 							</button>
@@ -558,9 +561,9 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 						) : (
 							<div className="space-y-4">
 								{notes.map((note: any, index: any) => (
-									<div key={index} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+									<div key={index} className="bg-gray-50 rounded-lg p-4">
 										<div className="flex items-start justify-between mb-3">
-											<p className={`text-sm text-gray-700 dark:text-white ${editNotes.includes(index) ? "hidden" : null}`}>
+											<p className={`text-sm text-gray-700 ${editNotes.includes(index) ? "hidden" : null}`}>
 												{notes[index]}
 											</p>
 											<div className="flex items-center gap-2">
@@ -627,7 +630,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 							</div>
 						) : (
 							<div className="space-y-4">
-								<div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 max-h-64 overflow-y-auto">
+								<div className="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto">
 									{users.map((user: any) => (
 										<label
 											key={user.userid}
@@ -688,7 +691,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 									<div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
 										<IconCalendar className="w-6 h-6 text-primary" />
 									</div>
-									<h3 className="text-sm font-medium text-gray-900 mb-1 dark:text-white">No Visits</h3>
+									<h3 className="text-sm font-medium text-gray-900 mb-1">No Visits</h3>
 									<p className="text-sm text-gray-500 dark:text-gray-400">You haven't scheduled any visits yet</p>
 								</div>
 							</div>

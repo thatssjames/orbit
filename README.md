@@ -8,7 +8,7 @@
     <img height="40px" src=".github/logo.png"></img>
     <h1>Orbit by Team Planetary</h1>
   </div>
-    <img src="https://img.shields.io/badge/version-v1.00beta6-purple"></img>
+    <img src="https://img.shields.io/badge/version-v1.00beta5-purple"></img>
   <ul>
     <li><a href="#about">About</a></li>
     <li><a href="#why-consider">Why consider</a></li>
@@ -50,7 +50,7 @@
           Host your docs with Orbit
         </li>
 		<li>
-          Assign your staff activity requirements
+          Assign your staff activity requirements (soon)
         </li>
 		<li>
           Track when your members are inactive with notices
@@ -70,7 +70,7 @@
   <h2>Quicklinks</h2>
   <ul>
     <li>
-      Don't know how to install? –– <a href="https://guide.tovy.relatio.cc/guides">Visit our documentation!</a>
+      Don't know how to install? –– <a href="https://docs.tovyblox.xyz/">Visit our documentation!</a>
     </li>
     <li>
       🐛 Bugs? ✨ Suggestions? –– <a href="https://discord.gg/planetorbit">Get support and let us know here!</a>

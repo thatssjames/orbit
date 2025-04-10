@@ -29,11 +29,7 @@ export const getServerSideProps = withPermissionCheckSsr(
 						workspaceGroupId: parseInt(query.id as string)
 					},
 					include: {
-						quotaRoles: {
-							include: {
-								quota: true
-							}
-						}
+						assignedQuotas: true
 					}
 				}
 			}
@@ -41,22 +37,18 @@ export const getServerSideProps = withPermissionCheckSsr(
 
 		if (!userTakingAction) return { notFound: true };
 
-		if (
-			!parseInt(query?.id as string) &&
-			!userTakingAction?.roles[0]?.isOwnerRole &&
-			!userTakingAction?.roles[0]?.permissions?.includes('manage_activity')
-		) return { notFound: true };
-
-		const quotas = userTakingAction.roles
-  			.flatMap((role) => role.quotaRoles)
-  			.map((qr) => qr.quota);
-
+		if (!parseInt(query?.id as string) && !userTakingAction?.roles[0]?.isOwnerRole && !userTakingAction?.roles[0]?.permissions?.includes('manage_activity')) return { notFound: true };
+		
 		const notices = await prisma.inactivityNotice.findMany({
 			where: {
 				userId: BigInt(query?.uid as string),
 				workspaceGroupId: parseInt(query?.id as string),
 			},
-			orderBy: [{ startTime: "desc" }]
+			orderBy: [
+				{
+					startTime: "desc"
+				}
+			]
 		});
 
 		const sessions = await prisma.activitySession.findMany({
@@ -76,13 +68,18 @@ export const getServerSideProps = withPermissionCheckSsr(
 			}
 		});
 
-		let timeSpent = 0;
-		if (sessions.length) {
-			timeSpent = sessions.reduce((sum, session) => {
-				return sum + ((session.endTime?.getTime() ?? 0) - session.startTime.getTime());
-			}, 0);
-			timeSpent = Math.round(timeSpent / 60000);
-		}
+		var sumOfMs: number[] = [];
+		var timeSpent: number;
+
+		sessions.forEach((session: ActivitySession) => {
+			sumOfMs.push(session.endTime?.getTime() as number - session.startTime.getTime());
+		});
+
+		if(sumOfMs.length) timeSpent = sumOfMs.reduce((p, c) => p + c);
+		else timeSpent = 0;
+		timeSpent = Math.round(timeSpent / 60000);
+		
+		moment.locale("es")
 
 		const startOfWeek = moment().startOf("week").toDate();
 		const endOfWeek = moment().endOf("week").toDate();
@@ -101,18 +98,54 @@ export const getServerSideProps = withPermissionCheckSsr(
 			}
 		});
 
-		const days: { day: number; ms: number[] }[] = Array.from({ length: 7 }, (_, i) => ({
-			day: i,
-			ms: []
-		}));
+		type Day = {
+			day: number;
+			ms: number[];
+		}
 
-		weeklySessions.forEach((session) => {
+		const days: Day[] = [
+			{
+				day: 1,
+				ms: []
+			},
+			{
+				day: 2,
+				ms: []
+			},
+			{
+				day: 3,
+				ms: []
+			},
+			{
+				day: 4,
+				ms: []
+			},
+			{
+				day: 5,
+				ms: []
+			},
+			{
+				day: 6,
+				ms: []
+			},
+			{
+				day: 0,
+				ms: []
+			}
+		];
+
+		weeklySessions.forEach((session: ActivitySession) => {
 			const day = session.startTime.getDay();
-			const duration = Math.round(((session.endTime?.getTime() ?? 0) - session.startTime.getTime()) / 60000);
-			days.find(d => d.day === day)?.ms.push(duration);
+			const calc = Math.round((session.endTime?.getTime() as number - session.startTime.getTime()) / 60000);
+			days.find(x => x.day == day)?.ms.push(calc);
 		});
 
-		const data: number[] = days.map(d => d.ms.reduce((sum, val) => sum + val, 0));
+		const data: number[] = [];
+
+		days.forEach((day) => {
+			if(day.ms.length < 1) return data.push(0);
+			data.push(day.ms.reduce((p, c) => p + c));
+		});
 
 		const ubook = await prisma.userBook.findMany({
 			where: {
@@ -123,6 +156,7 @@ export const getServerSideProps = withPermissionCheckSsr(
 					select: {
 						userid: true,
 						username: true,
+
 					}
 				}
 			},
@@ -130,7 +164,7 @@ export const getServerSideProps = withPermissionCheckSsr(
 				createdAt: "desc"
 			}
 		});
-
+		
 		const sessionsAttended = await prisma.sessionUser.findMany({
 			where: {
 				userid: BigInt(query?.uid as string),
@@ -139,7 +173,7 @@ export const getServerSideProps = withPermissionCheckSsr(
 						not: null
 					}
 				}
-			}
+			},
 		});
 
 		const sessisonsHosted = await prisma.session.findMany({
@@ -153,11 +187,11 @@ export const getServerSideProps = withPermissionCheckSsr(
 
 		return {
 			props: {
-				notices: JSON.parse(JSON.stringify(notices, (_k, v) => (typeof v === 'bigint' ? v.toString() : v))),
+				notices: (JSON.parse(JSON.stringify(notices, (_key, value) => (typeof value === 'bigint' ? value.toString() : value))) as typeof notices),
 				timeSpent,
 				timesPlayed: sessions.length,
 				data,
-				sessions: JSON.parse(JSON.stringify(sessions, (_k, v) => (typeof v === 'bigint' ? v.toString() : v))),
+				sessions: (JSON.parse(JSON.stringify(sessions, (_key, value) => (typeof value === 'bigint' ? value.toString() : value))) as typeof sessions),
 				info: {
 					username: await getUsername(Number(query?.uid as string)),
 					displayName: await getDisplayName(Number(query?.uid as string)),
@@ -166,8 +200,8 @@ export const getServerSideProps = withPermissionCheckSsr(
 				isUser: req.session.userid === Number(query?.uid as string),
 				sessisonsHosted: sessisonsHosted.length,
 				sessionsAttended: sessionsAttended.length,
-				quotas,
-				userBook: JSON.parse(JSON.stringify(ubook, (_k, v) => (typeof v === 'bigint' ? v.toString() : v)))
+				quotas: userTakingAction?.roles[0].assignedQuotas,
+				userBook: (JSON.parse(JSON.stringify(ubook, (_key, value) => (typeof value === 'bigint' ? value.toString() : value))) as typeof ubook)
 			}
 		};
 	}

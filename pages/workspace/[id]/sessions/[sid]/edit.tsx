@@ -205,8 +205,8 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
 	<p className="text-4xl font-bold dark:text-white">Edit session type</p>
 	<FormProvider {...form}>
 		<div className="pt-5 grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-3 gap-y-2">
-			<div className="bg-white dark:bg-gray-800 p-4 border border-1 border-gray-300 dark:border-gray-700 rounded-md">
-				<p className="text-2xl font-bold dark:text-white">Info</p>
+			<div className="bg-white p-4 border border-1 border-gray-300 rounded-md">
+				<p className="text-2xl font-bold">Info</p>
 				<Input
 					{...form.register('name', {
 						required: { value: true, message: "This field is required" }
@@ -289,9 +289,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
 					/>
 				)}
 			</div>
-				<div className="bg-white dark:bg-gray-800 p-4 border border-1 border-gray-300 dark:border-gray-700  rounded-md">
-					<p className="text-2xl font-bold mb-2 dark:text-white">Permissions </p>
-					<p className="text-1xl font-bold mb-2 dark:text-white">Hosting/Claiming</p>
+				<div className="bg-white p-4 border border-1 border-gray-300  rounded-md">
+					<p className="text-2xl font-bold mb-2">Permissions </p>
+					<p className="text-1xl font-bold mb-2">Hosting/Claiming</p>
 					{roles.map((role: any) => (
 						<div
 							className="flex items-center"
@@ -299,17 +299,17 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
 						>
 							<input
 								type="checkbox"
-								checked={selectedRoles.includes(role.id)}
 								onChange={() => toggleRole(role.id)}
+								value={String(selectedRoles.includes(role.id))}
 
-								className="rounded-sm mr-2 w-4 h-4 transform transition dark:text-white text-primary bg-slate-100 border-gray-300 dark:border-gray-700 hover:bg-gray-300 focus-visible:bg-gray-300 checked:hover:bg-primary/75 checked:focus-visible:bg-primary/75 focus:ring-0"
+								className="rounded-sm mr-2 w-4 h-4 transform transition text-primary bg-slate-100 border-gray-300 hover:bg-gray-300 focus-visible:bg-gray-300 checked:hover:bg-primary/75 checked:focus-visible:bg-primary/75 focus:ring-0"
 							/>
 							<p>{role.name}</p>
 						</div>
 					))}
 				</div>
-				<div className="bg-white dark:bg-gray-800 p-4 border border-1 border-gray-300 dark:border-gray-700  rounded-md">
-					<p className="text-2xl font-bold mb-2 dark:text-white">Discord webhooks  </p>
+				<div className="bg-white p-4 border border-1 border-gray-300  rounded-md">
+					<p className="text-2xl font-bold mb-2">Discord webhooks  </p>
 					<Switchcomponenet label="Enabled" classoverride="mb-2" checked={webhooksEnabled} onChange={() => setWebhooksEnabled(!webhooksEnabled)} />
 					{webhooksEnabled && (
 						<>
@@ -352,8 +352,8 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
 
 				</div>
 
-				<div className="bg-white dark:bg-gray-800 p-4 border border-1 border-gray-300 dark:border-gray-700  rounded-md">
-					<p className="text-2xl font-bold mb-2 dark:text-white">Statuses  </p>
+				<div className="bg-white p-4 border border-1 border-gray-300  rounded-md">
+					<p className="text-2xl font-bold mb-2">Statuses  </p>
 					<Button onPress={() => newStatus()} classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"> New Status </Button>
 					{statues.map((status: any, i) => (
 						<div className="p-3 outline outline-gray-300 rounded-md mt-4 outline-1" key={i}><Status updateStatus={(value, mins, color) => updateStatus(status.id, value, color, mins)} deleteStatus={() => deleteStatus(status.id)} data={status} /></div>
@@ -361,8 +361,8 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
 					))}
 				</div>
 
-				<div className="bg-white dark:bg-gray-800 p-4 border border-1 border-gray-300 dark:border-gray-700  rounded-md">
-					<p className="text-2xl font-bold mb-2 dark:text-white">Slots  </p>
+				<div className="bg-white p-4 border border-1 border-gray-300  rounded-md">
+					<p className="text-2xl font-bold mb-2">Slots  </p>
 					<Button onPress={() => newSlot()} classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"> New Slot </Button>
 					<div className="p-3 outline outline-gray-300 rounded-md mt-4 outline-1"><Slot updateStatus={() => {}} isPrimary deleteStatus={() => {}} data={{
 						name: 'Host',

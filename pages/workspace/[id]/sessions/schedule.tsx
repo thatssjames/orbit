@@ -211,7 +211,7 @@ const Home: pageWithLayout<{
 
 	const checkDisabled = (session: esession) => {
 		const s = session.sessions.find(e => new Date(e.date).getUTCDate() === selectedDate.getUTCDate());
-		const findRole = session.sessionType?.hostingRoles?.find(e => e.id === workspace.yourRole);
+		const findRole = session.sessionType.hostingRoles.find(e => e.id === workspace.yourRole);
 		if (!findRole && !workspace.yourPermission.includes('manage_sessions')) return {
 			disabled: true,
 			text: "You don't have the required role to host this session"
@@ -241,14 +241,20 @@ const Home: pageWithLayout<{
 	}
 
 	return (
-		<div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+		<div className="min-h-screen bg-gray-50">
 			<Toaster position="bottom-center" />
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 				<div className="flex items-center gap-3 mb-8">
-					<button onClick={() => router.back()} className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+					<button 
+						onClick={() => router.back()}
+						className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+						aria-label="Go back"
+					>
 						<IconArrowLeft className="w-5 h-5" />
 					</button>
-					<h1 className="text-2xl font-medium text-gray-900 dark:text-white">Sessions</h1>
+					<div>
+						<h1 className="text-2xl font-medium text-gray-900 dark:text-white">Sessions</h1>
+					</div>
 				</div>
 
 				<div className="mb-8">
@@ -258,21 +264,25 @@ const Home: pageWithLayout<{
 								<IconCalendarEvent className="w-5 h-5 text-primary" />
 							</div>
 							<div>
-								<h2 className="text-lg font-medium text-gray-900 dark:text-white">Session Schedule</h2>
-								<p className="text-sm text-gray-500 dark:text-gray-400">View and manage upcoming sessions</p>
+								<h2 className="text-lg font-medium text-gray-900">Session Schedule</h2>
+								<p className="text-sm text-gray-500">View and manage upcoming sessions</p>
 							</div>
 						</div>
-						<button onClick={() => router.push(`/workspace/${router.query.id}/sessions/new`)} className="inline-flex items-center px-4 py-2 shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+						<button
+							onClick={() => router.push(`/workspace/${router.query.id}/sessions/new`)}
+							className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
+						>
 							<IconPlus className="w-4 h-4 mr-2" />
 							New Session Type
 						</button>
 					</div>
 
 					<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+						{/* Date Selection */}
 						<div className="lg:col-span-3">
-							<div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-								<div className="p-4 border-b border-gray-200 dark:border-gray-700">
-									<h3 className="text-sm font-medium text-gray-900 dark:text-white">Select Date</h3>
+							<div className="bg-white rounded-lg shadow">
+								<div className="p-4 border-b border-gray-200">
+									<h3 className="text-sm font-medium text-gray-900">Select Date</h3>
 								</div>
 								<div className="p-4 space-y-2">
 									{getLastThreeDays.map((day, i) => (
@@ -281,8 +291,8 @@ const Home: pageWithLayout<{
 											onClick={() => setSelectedDate(day)}
 											className={`w-full px-4 py-3 rounded-lg text-left transition-colors ${
 												selectedDate.getDate() === day.getDate()
-												? 'bg-primary/10 text-primary dark:bg-primary/20'
-												: 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+													? 'bg-primary/10 text-primary'
+													: 'hover:bg-gray-50 text-gray-700'
 											}`}
 										>
 											<div className="font-medium">{day.toLocaleDateString("en-US", { weekday: "long" })}</div>
@@ -293,6 +303,7 @@ const Home: pageWithLayout<{
 							</div>
 						</div>
 
+						{/* Sessions List */}
 						<div className="lg:col-span-9">
 							{activeSessions.length > 0 ? (
 								<div className="space-y-4">
@@ -305,20 +316,20 @@ const Home: pageWithLayout<{
 										date.setUTCFullYear(selectedDate.getUTCFullYear());
 
 										const currentSession = session.sessions.find(s => 
-										  new Date(s.date).getUTCDate() === selectedDate.getUTCDate()
+											new Date(s.date).getUTCDate() === selectedDate.getUTCDate()
 										);
 
 										const isDisabled = checkDisabled(session).disabled;
 
 										return (
-											<div key={session.id} className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+											<div key={session.id} className="bg-white rounded-lg shadow overflow-hidden">
 												<div className="p-6">
 													<div className="flex items-start justify-between">
 														<div>
-															<h3 className="text-lg font-medium text-gray-900 dark:text-white">
+															<h3 className="text-lg font-medium text-gray-900">
 																{session.sessionType.name}
 															</h3>
-															<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+															<p className="mt-1 text-sm text-gray-500">
 																{moment(date).format('hh:mm A')}
 															</p>
 														</div>
@@ -331,48 +342,62 @@ const Home: pageWithLayout<{
 																		className="w-8 h-8 rounded-full"
 																	/>
 																	<div className="text-sm">
-																		<div className="font-medium text-gray-900 dark:text-white">
+																		<div className="font-medium text-gray-900">
 																			{currentSession.owner.username}
 																		</div>
-																		<div className="text-gray-500 dark:text-gray-400">Host</div>
+																		<div className="text-gray-500">Host</div>
 																	</div>
 																	{currentSession.owner.userid === BigInt(login.userId) && (
-																		<button onClick={() => unclaimSession(session)} disabled={isLoading} className="ml-2 p-2 text-gray-400 hover:text-red-500 transition-colors">
+																		<button
+																			onClick={() => unclaimSession(session)}
+																			disabled={isLoading}
+																			className="ml-2 p-2 text-gray-400 hover:text-red-500 transition-colors"
+																			aria-label="Unclaim session"
+																		>
 																			<IconX className="w-5 h-5" />
 																		</button>
 																	)}
 																</div>
 															) : (
-															<Button onPress={() => claimSession(session)} loading={isLoading} disabled={isDisabled}>
-																Claim Session
-															</Button>
-														)}
-														{session.sessionType.slots && (
-															<Button onPress={() => setSelectedSession(session)} classoverride="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-white" disabled={isLoading}>
-																View Slots
-															</Button>
-														)}
+																<Button
+																	onPress={() => claimSession(session)}
+																	loading={isLoading}
+																	disabled={isDisabled}
+																>
+																	Claim Session
+																</Button>
+															)}
+															{session.sessionType.slots && (
+																<Button
+																	onPress={() => setSelectedSession(session)}
+																	classoverride="bg-gray-100 hover:bg-gray-200 text-gray-700"
+																	disabled={isLoading}
+																>
+																	View Slots
+																</Button>
+															)}
+														</div>
 													</div>
 												</div>
 											</div>
-										</div>
-									);
-								})}
-							</div>
-						) : (
-						<div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
-							<div className="mx-auto w-12 h-12 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center mb-4">
-								<IconCalendarEvent className="w-6 h-6 text-primary" />
-							</div>
-							<h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">No Sessions Scheduled</h3>
-							<p className="text-sm text-gray-500 dark:text-gray-400">There are no sessions scheduled for this date.</p>
+										);
+									})}
+								</div>
+							) : (
+								<div className="bg-white rounded-lg shadow-sm p-8 text-center">
+									<div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+										<IconCalendarEvent className="w-6 h-6 text-primary" />
+									</div>
+									<h3 className="text-sm font-medium text-gray-900 mb-1">No Sessions Scheduled</h3>
+									<p className="text-sm text-gray-500">There are no sessions scheduled for this date.</p>
+								</div>
+							)}
 						</div>
-					)}
+					</div>
 				</div>
 			</div>
-		</div>
-	</div>
 
+			{/* Slots Dialog */}
 			<Transition appear show={!!selectedSession} as={Fragment}>
 				<Dialog as="div" className="relative z-10" onClose={() => setSelectedSession(null)}>
 					<Transition.Child
@@ -412,79 +437,72 @@ const Home: pageWithLayout<{
 									</Dialog.Title>
 
 									<div className="space-y-4 max-h-96 overflow-y-auto">
-									{selectedSession?.sessionType.slots.map((slot: any, index: number) => {
-  if (typeof slot !== 'object') return null;
-  const slotData = JSON.parse(JSON.stringify(slot));
-  const session = Array.isArray(selectedSession?.sessions)
-    ? selectedSession.sessions.find(s =>
-        new Date(s.date).getUTCDate() === selectedDate.getUTCDate()
-      )
-    : undefined;
+										{selectedSession?.sessionType.slots.map((slot: any, index: number) => {
+											if (typeof slot !== 'object') return null;
+											const slotData = JSON.parse(JSON.stringify(slot));
+											const session = selectedSession.sessions.find(s => 
+												new Date(s.date).getUTCDate() === selectedDate.getUTCDate()
+											);
 
-  const user = session?.users.find(u =>
-    u.roleID === slotData.id && u.slot === index
-  );
+											const user = session?.users.find(u => 
+												u.roleID === slotData.id && u.slot === index
+											);
 
-  return (
-    <div key={index} className="bg-gray-50 rounded-lg p-4">
-      <h4 className="text-sm font-medium text-gray-900 mb-3">
-        {slotData.name}
-      </h4>
-      <div className="space-y-2">
-        {Array.from(Array(slotData.slots)).map((_, i) => {
-          const matchedUser = session?.users.find(u =>
-            u.roleID === slotData.id && u.slot === i
-          );
-
-          return (
-            <div key={i} className="flex items-center justify-between bg-white rounded-md p-2">
-              <div className="flex items-center gap-2">
-                <img
-                  src={matchedUser?.user?.picture || '/default-avatar.png'}
-                  alt={matchedUser?.user?.username || ''}
-                  className="w-6 h-6 rounded-full"
-                />
-                <span className="text-sm text-gray-600">
-                  {slotData.name} #{i + 1}
-                </span>
-              </div>
-              {matchedUser ? (
-                <div className="flex items-center gap-2">
-                  <img
-                    src={matchedUser.user.picture || '/default-avatar.png'}
-                    alt={matchedUser.user.username || ''}
-                    className="w-6 h-6 rounded-full"
-                  />
-                  <span className="text-sm font-medium">
-                    {matchedUser.user.username}
-                  </span>
-                  {matchedUser.user.userid === BigInt(login.userId) && (
-                    <button
-                      onClick={() => unclaimSessionSlot(selectedSession, slotData.id, i)}
-                      disabled={isLoading}
-                      className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                    >
-                      <IconX className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <Button
-                  onPress={() => claimSessionSlot(selectedSession, slotData.id, i)}
-                  classoverride="text-sm px-3 py-1"
-                  loading={isLoading}
-                >
-                  Claim
-                </Button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-})}
-
+											return (
+												<div key={index} className="bg-gray-50 rounded-lg p-4">
+													<h4 className="text-sm font-medium text-gray-900 mb-3">
+														{slotData.name}
+													</h4>
+													<div className="space-y-2">
+														{Array.from(Array(slotData.slots)).map((_, i) => {
+															return (
+																<div key={i} className="flex items-center justify-between bg-white rounded-md p-2">
+																	<div className="flex items-center gap-2">
+																		<img
+																			src={user?.user.picture || '/default-avatar.png'}
+																			alt={user?.user.username || ''}
+																			className="w-6 h-6 rounded-full"
+																		/>
+																		<span className="text-sm text-gray-600">
+																			{slotData.name} #{i + 1}
+																		</span>
+																	</div>
+																	{user ? (
+																		<div className="flex items-center gap-2">
+																			<img
+																				src={user.user.picture || '/default-avatar.png'}
+																				alt={user.user.username || ''}
+																				className="w-6 h-6 rounded-full"
+																			/>
+																			<span className="text-sm font-medium">
+																				{user.user.username}
+																			</span>
+																			{user.user.userid === BigInt(login.userId) && (
+																				<button
+																					onClick={() => unclaimSessionSlot(selectedSession, slotData.id, i)}
+																					disabled={isLoading}
+																					className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+																				>
+																					<IconX className="w-4 h-4" />
+																				</button>
+																			)}
+																		</div>
+																	) : (
+																		<Button
+																			onPress={() => claimSessionSlot(selectedSession, slotData.id, i)}
+																			classoverride="text-sm px-3 py-1"
+																			loading={isLoading}
+																		>
+																			Claim
+																		</Button>
+																	)}
+																</div>
+															);
+														})}
+													</div>
+												</div>
+											);
+										})}
 									</div>
 								</Dialog.Panel>
 							</Transition.Child>
