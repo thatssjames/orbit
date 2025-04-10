@@ -10,6 +10,7 @@ type Data = {
 	success: boolean
 	error?: string
 }
+
 export default withPermissionCheck(handler, 'admin');
 
 export async function handler(
@@ -17,44 +18,23 @@ export async function handler(
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'DELETE') return res.status(405).json({ success: false, error: 'Method not allowed' });
-
-	const workspaceId = parseInt(req.query.id as string);
-	const userId = parseInt(req.query.userid as string);
-
-	// Check if the workspace has more than one user
-	const userCount = await prisma.user.count({
-		where: {
-			roles: {
-				some: {
-					workspaceGroupId: workspaceId
-				}
-			}
-		}
-	});
-
-	if (userCount <= 1) {
-		return res.status(403).json({ success: false, error: 'You cannot remove the last user from a workspace' });
-	}
-
 	const user = await prisma.user.findUnique({
 		where: {
-			userid: userId
+			userid: parseInt(req.query.userid as string)
 		},
 		include: {
 			roles: {
 				where: {
-					workspaceGroupId: workspaceId
+					workspaceGroupId: parseInt(req.query.id as string)
 				}
 			}
 		}
 	});
-
 	if (!user?.roles.length) return res.status(404).json({ success: false, error: 'User not found' });
 	if (user.roles[0].isOwnerRole) return res.status(403).json({ success: false, error: 'You cannot remove the owner of a workspace' });
-
 	await prisma.user.update({
 		where: {
-			userid: userId
+			userid: parseInt(req.query.userid as string)
 		},
 		data: {
 			roles: {
@@ -64,7 +44,8 @@ export async function handler(
 			}
 		}
 	});
+	
 
-	res.status(200).json({ success: true });
+
+	res.status(200).json({ success: true })
 }
-

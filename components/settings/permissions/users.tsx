@@ -1,6 +1,6 @@
 import React, { FC } from "react";
 import { Disclosure, Transition, Listbox } from "@headlessui/react";
-import { IconCheck, IconChevronDown, IconPlus, IconUser, IconCircleMinus } from "@tabler/icons";
+import { IconCheck, IconChevronDown, IconPlus, IconUser } from "@tabler/icons";
 import { workspacestate } from "@/state";
 import { useForm, FormProvider } from "react-hook-form";
 import { role } from "@/utils/database";
@@ -109,7 +109,7 @@ const Button: FC<Props> = (props) => {
 									</div>
 								</Disclosure.Button>
 
-	<Transition
+								<Transition
 									enter="transition duration-100 ease-out"
 									enterFrom="transform scale-95 opacity-0"
 									enterTo="transform scale-100 opacity-100"
@@ -196,17 +196,7 @@ const Button: FC<Props> = (props) => {
 																</Transition>
 															</div>
 														</Listbox>
-														<button
-														onClick={() => removeUser(user.userid)}
-														className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors"
-													>
-														<IconCircleMinus size={16} className="mr-1.5" />
-														Remove
-													</button>
-
 													</div>
-										
-										
 												))}
 											</div>
 										)}

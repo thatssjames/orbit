@@ -9,9 +9,10 @@ import clsx from 'clsx';
 
 type props = {
 	triggerToast: typeof toast;
+	isSidebarExpanded: boolean; // Add a prop to track sidebar state
 }
 
-const Color: FC<props> = ({ triggerToast }) => {
+const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
 	const [workspace, setWorkspace] = useRecoilState(workspacestate);
 
 	const updateColor = async (color: string) => {
@@ -37,7 +38,7 @@ const Color: FC<props> = ({ triggerToast }) => {
 	];
 
 	return (
-		<div>
+		<div className={clsx("transition-all", { "ml-64": isSidebarExpanded, "ml-0": !isSidebarExpanded })}>
 			<p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
 				Choose a color theme for your workspace
 			</p>
@@ -47,12 +48,12 @@ const Color: FC<props> = ({ triggerToast }) => {
 						key={i}
 						onClick={() => updateColor(color)}
 						className={clsx(
-							'relative aspect-square rounded-lg transition-transform hover:scale-105',
+							'relative aspect-square rounded-lg transition-transform hover:scale-105 z-0',
 							color
 						)}
 					>
 						{workspace.groupTheme === color && (
-							<div className="absolute inset-0 flex items-center justify-center">
+							<div className="absolute inset-0 flex items-center justify-center z-10 bg-black/30 rounded-lg">
 								<IconCheck size={16} className="text-white" />
 							</div>
 						)}

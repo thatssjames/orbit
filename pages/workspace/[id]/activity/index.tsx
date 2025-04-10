@@ -197,8 +197,8 @@ const Activity: pageWithLayout = () => {
 						<ActionButton
 							icon={IconUsers}
 							title="View Notices"
-							desc="Review pending notices"
-							onClick={() => router.push(`/workspace/${id}/notices/pending`)}
+							desc="Manage team notices"
+							onClick={() => router.push(`/workspace/${id}/notices/manage`)}
 						/>
 					)}
 					<ActionButton

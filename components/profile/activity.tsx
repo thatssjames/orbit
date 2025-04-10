@@ -293,8 +293,8 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 													<h3 className="text-sm font-medium text-gray-900">{quota.name}</h3>
 													<p className="text-xs text-gray-500">{getQuotaProgress(quota)}</p>
 												</div>
-												<Tooltip orientation="top" tooltipText={getQuotaProgress(quota)} isWorkspace>
-													<div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+												<Tooltip orientation="top" tooltipText={getQuotaProgress(quota)}>
+													<div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
 														<div 
 															className="h-full bg-primary transition-all" 
 															style={{
