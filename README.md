@@ -46,13 +46,13 @@
         <li>
           Communicate with your members directly in Orbit
         </li>
-		<li>
+        <li>
           Host your docs with Orbit
         </li>
-		<li>
+        <li>
           Assign your staff activity requirements
         </li>
-		<li>
+        <li>
           Track when your members are inactive with notices
         </li>
         <li>
@@ -67,6 +67,7 @@
       Completely open source
     </li>
   </ul>
+
   <h2>Quicklinks</h2>
   <ul>
     <li>
@@ -76,6 +77,18 @@
       🐛 Bugs? ✨ Suggestions? –– <a href="https://discord.gg/planetorbit">Get support and let us know here!</a>
     </li>
   </ul>
+
+  <h2>🚀 One-Click Deploy</h2>
+  <p>The fastest way to get started with Orbit is by deploying it to <strong>Vercel</strong> in just one click:</p>
+  <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FPlanetaryOrbit%2Forbit&env=SESSION_SECRET,DATABASE_URL&build-command=prisma%20generate%20%26%26%20prisma%20migrate%20deploy%20%26%26%20next%20build">
+    <img src="https://vercel.com/button" alt="Deploy with Vercel" />
+  </a>
+  <p><strong>Required environment variables:</strong></p>
+  <ul>
+    <li><code>SESSION_SECRET</code> – A strong secret string (e.g. generated via <code>openssl rand -base64 32</code>)</li>
+    <li><code>DATABASE_URL</code> – Your PostgreSQL connection string (e.g. hosted on Supabase, Railway, Neon, etc.)</li>
+  </ul>
+
   <h2>License</h2>
   Orbit is licensed under the <a href="./LICENSE">GNU General Public License v3.0.</a>
 </div>
