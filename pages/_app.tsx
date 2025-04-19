@@ -1,9 +1,8 @@
-import "@/styles/globals.scss";
+import "@/styles/globals.scss"; // Global styles should only be imported here
 import type { AppProps } from "next/app";
 import { loginState, workspacestate } from "@/state";
 import { RecoilRoot, useRecoilValue, useRecoilState } from "recoil";
 import { pageWithLayout } from "@/layoutTypes";
-import RecoilNexus, { setRecoil } from "recoil-nexus";
 import { useEffect, useState } from "react";
 import Router from "next/router";
 import Head from "next/head";
@@ -36,6 +35,7 @@ ChartJS.register(
   LineElement
 );
 
+// ThemeHandler and ColorThemeHandler stay the same
 function ThemeHandler() {
   const theme = useRecoilValue(themeState);
 
@@ -62,31 +62,39 @@ function ColorThemeHandler() {
 
 function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const [loading, setLoading] = useState(true);
-  const Layout = Component.layout || (({ children }) => <>{children}</>);
+  const [user, setUser] = useState(null);
+  const [workspaces, setWorkspaces] = useState([]);
+
+  const Layout = Component.layout || (({ children }: { children: React.ReactNode }) => <>{children}</>);
 
   useEffect(() => {
     const checkLogin = async () => {
-      let req;
       try {
-        req = await axios.get("/api/@me");
+        const req = await axios.get("/api/@me");
+
+        // If request is successful and workspace is set up
+        setUser(req.data.user);
+        setWorkspaces(req.data.workspaces);
+        setLoading(false);
       } catch (err: any) {
+        console.error("Login check error:", err.response?.data);
+
+        // Handle errors based on response data
         if (err.response?.data.error === "Workspace not setup") {
+          // Redirect to the /welcome page
           Router.push("/welcome");
           setLoading(false);
           return;
         }
+
         if (err.response?.data.error === "Not logged in") {
+          // Redirect to the /login page
           Router.push("/login");
           setLoading(false);
           return;
         }
-      } finally {
-        if (req?.data) {
-          setRecoil(loginState, {
-            ...req.data.user,
-            workspaces: req.data.workspaces,
-          });
-        }
+
+        // Handle other errors if needed
         setLoading(false);
       }
     };
@@ -102,11 +110,10 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
 
       <ThemeHandler />
       <ColorThemeHandler />
-      <RecoilNexus />
 
       {!loading ? (
         <Layout>
-          <Component {...pageProps} />
+            <Component {...pageProps} />
         </Layout>
       ) : (
         <div className="flex h-screen dark:bg-gray-900">

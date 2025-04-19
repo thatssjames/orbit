@@ -51,7 +51,7 @@ export default function StickyNoteAnnouncement() {
           <p>
             🛠️ <strong>Spotted an issue or have a suggestion?</strong>
             <br />
-            Let us know through <strong>Live Chat</strong> — we're actively listening.
+            Let us know through <strong>Github</strong> — we're actively listening.
           </p>
           <p>
             ❗ <strong>Group-specific questions?</strong>

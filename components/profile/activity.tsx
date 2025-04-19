@@ -40,7 +40,10 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 		datasets: []
 	});
 	const [chartOptions, setChartOptions] = useState({});
-	const [timeline, setTimeline] = useState<any>([...sessions, ...notices]);
+	const [timeline, setTimeline] = useState<any>([
+		...sessions,
+		...notices.filter(notice => notice.approved === true)
+	]);
 	const [isOpen, setIsOpen] = useState(false);
 	const [dialogData, setDialogData] = useState<any>({});
 
@@ -208,7 +211,6 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 																</time>
 															</div>
 															<p className="text-sm text-gray-600 dark:text-gray-300">{item.reason}</p>
-															<p className="text-3xl font-semibold text-gray-900 dark:text-white">{timeSpent}m</p>
 														</div>
 													</li>
 												) : (

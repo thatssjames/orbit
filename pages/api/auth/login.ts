@@ -17,7 +17,6 @@ type User = {
 	displayname: string
 	thumbnail: string
 	isOwner: boolean
-	registered: boolean
 }
 
 type DatabaseUser = {
@@ -28,7 +27,6 @@ type DatabaseUser = {
 		workspaceGroupId: number;
 	}[];
 	isOwner: boolean;
-	registered: boolean;
 }
 
 type DatabaseResponse = DatabaseUser | { error: string };
@@ -69,8 +67,7 @@ export async function handler(
 			select: {
 				info: true,
 				roles: true,
-				isOwner: true,
-				registered: true
+				isOwner: true
 			}
 		}).catch(error => {
 			console.error('Database error:', error);
@@ -104,25 +101,6 @@ export async function handler(
 			return res.status(401).json({ success: false, error: 'Invalid username or password' })
 		}
 
-		await prisma.user.updateMany({
-			where: {
-				userid: BigInt(id),
-				registered: false
-			},
-			data: {
-				registered: true
-			}
-		});
-
-		const updatedUser = await prisma.user.update({
-			where: { userid: BigInt(id) },
-			data: { registered: true },
-			select: {
-				registered: true,
-			}
-		});
-
-
 		req.session.userid = id
 		await req.session?.save()
 
@@ -131,8 +109,7 @@ export async function handler(
 			username: await getUsername(req.session.userid),
 			displayname: await getDisplayName(req.session.userid),
 			thumbnail: await getThumbnail(req.session.userid),
-			isOwner: user.isOwner || false,
-			registered: updatedUser.registered || false
+			isOwner: user.isOwner || false
 		}
 
 		let roles: any[] = [];
@@ -152,7 +129,6 @@ export async function handler(
 				}
 			} catch (error) {
 				console.error('Error fetching group information:', error);
-				// Continue without group information rather than failing the whole request
 			}
 		}
 

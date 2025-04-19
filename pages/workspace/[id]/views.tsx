@@ -273,7 +273,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 	const columnHelper = createColumnHelper<User>();
 
 	const updateUsers = async (query: string) => {
-		
+
 	}
 
 	const columns = [
@@ -1115,7 +1115,7 @@ const Filter: React.FC<{
 						</select>
 					</div>
 				)}
-				
+
 				{getValues('col') === 'registered' && (
 					<div className="space-y-2">
 						<label className="block text-sm font-medium text-gray-700">
@@ -1137,5 +1137,4 @@ const Filter: React.FC<{
 };
 
 Views.layout = workspace;
-
 export default Views;

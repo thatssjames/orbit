@@ -20,9 +20,6 @@ const Login: NextPage = ({ }) => {
 	const { register, handleSubmit, watch, formState: { errors } } = methods;
 	const [selectedSlide, setSelectedSlide] = useState(0);
 
-	useEffect(() => {
-		if(login.workspaces) Router.push("/");
-	}, []);
 
 	async function createAccount() {
 		let request: { data: { success: boolean; user: any } } | undefined

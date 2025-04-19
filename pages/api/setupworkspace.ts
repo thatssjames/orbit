@@ -118,20 +118,21 @@ export async function handler(
 
 	await prisma.user.create({
 		data: {
-			userid: userid,
-			info: {
-				create: {
-					passwordhash: await bcrypt.hash(req.body.password, 10),
-				}
-			},
-			isOwner: true,
-			roles: {
-				connect: {
-					id: role.id
-				}
+		  userid: userid,
+		  registered: true, // Explicitly set the registered field
+		  info: {
+			create: {
+			  passwordhash: await bcrypt.hash(req.body.password, 10),
 			}
+		  },
+		  isOwner: true,
+		  roles: {
+			connect: {
+			  id: role.id
+			}
+		  }
 		}
-	});
+	  });
 
 	req.session.userid = userid
 	await req.session?.save()

@@ -44,6 +44,7 @@ export async function handler(
 
 	if (!dbuser) return res.status(401).json({ success: false, error: 'Not logged in' });
 	
+	
 	if (!groupId) return res.status(400).json({ success: false, error: 'Missing groupId' })
 
 	if (typeof groupId !== 'number') return res.status(400).json({ success: false, error: 'Invalid groupId' })

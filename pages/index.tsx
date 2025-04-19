@@ -1,4 +1,3 @@
-// pages/index.tsx
 import type { NextPage } from "next";
 import Head from "next/head";
 import Topbar from "@/components/topbar";
@@ -62,10 +61,15 @@ const Home: NextPage = () => {
 			req = await axios.get("/api/@me");
 		  } catch (err: any) {
 			if (err.response?.data.error === "Workspace not setup") {
-			  router.push("/welcome");
-			  setLoading(false);
-			  return;
-			}
+				const currentPath = router.pathname;
+				// Only redirect if we are not already on the /welcome page
+				if (currentPath !== "/welcome") {
+				  router.push("/welcome");
+				}
+			  
+				setLoading(false);
+				return;
+			  }
 			if (err.response?.data.error === "Not logged in") {
 			  router.push("/login");
 			  setLoading(false);
