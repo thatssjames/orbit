@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '@/utils/database';
 import { withSessionRoute } from '@/lib/withSession';
 import * as noblox from 'noblox.js';
-import { getRobloxUsername, getThumbnail } from '@/utils/userinfoEngine';
+import { getUsername, getThumbnail } from '@/utils/userinfoEngine';
 import { checkSpecificUser } from '@/utils/permissionsManager';
 
 type Data = {
@@ -58,7 +58,7 @@ export async function handler(
 		}
 
 		// Step 3: Ensure user exists in DB
-		const username = await getRobloxUsername(userid);
+		const username = await getUsername(userid);
 		const picture = await getThumbnail(userid);
 
 		await prisma.user.upsert({

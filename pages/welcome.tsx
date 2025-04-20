@@ -72,7 +72,7 @@ const Login: NextPage = ({ }) => {
 		"bg-gray-500",
 	];
 	return (
-		<div className="flex bg-infobg h-screen bg-no-repeat bg-cover bg-center">
+		<div className="flex bg-infobg-light dark:bg-infobg-dark h-screen bg-no-repeat bg-cover bg-center">
 			<p className="text-md -mt-1 text-white absolute top-4 left-4 xs:hidden md:text-6xl font-extrabold">
 				Welcome <br /> to <span className="text-pink-100 "> Orbit </span>
 			</p>

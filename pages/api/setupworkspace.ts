@@ -147,5 +147,7 @@ export async function handler(
 
 	await setRegistry((req.headers.host as string))
 
-	res.status(200).json({ success: true, user })
+	// Clear the session and redirect to login
+	req.session.destroy()
+	return res.redirect('/login')
 }
