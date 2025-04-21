@@ -8,8 +8,53 @@ import bcrypt from 'bcrypt'
 import * as noblox from 'noblox.js'
 import prisma from '@/utils/database';
 import axios from "axios";
+import rateLimit from 'express-rate-limit';
+import { NextApiHandler } from 'next';
 
-export default withSessionRoute(handler);
+// Rate limtning for login
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 mins
+	max: 5, // 5req/15 mins
+	message: 'Slow down! Too many login attempts, please try again later.',
+	standardHeaders: true, 
+	legacyHeaders: false,
+	keyGenerator: (req) => {
+		// Cloud instances (or if they self host proxied through cloudflare) use cloudflare, so we need to
+		// account for the possibility that the instance MIGHT be proxied through cloudflare or might not be
+		const cfConnectingIp = req.headers['cf-connecting-ip'];
+		const xRealIp = req.headers['x-real-ip'];
+		const xForwardedFor = req.headers['x-forwarded-for'];
+		const remoteAddress = req.socket.remoteAddress;
+		
+		// Use CF if available, otherwise fallback to other headers
+		return cfConnectingIp as string || 
+			   xRealIp as string || 
+			   (xForwardedFor as string)?.split(',')[0] || 
+			   remoteAddress || 
+			   'unknown';
+	}
+});
+
+const applyRateLimit = (handler: NextApiHandler) => {
+	return async (req: NextApiRequest, res: NextApiResponse) => {
+		try {
+			await new Promise<void>((resolve, reject) => {
+				limiter(req as any, res as any, (result: unknown) => {
+					if (result instanceof Error) reject(result);
+					resolve();
+				});
+			});
+			return handler(req, res);
+		} catch (error) {
+			return res.status(429).json({ 
+				success: false, 
+				error: 'Slow down! Too many login attempts, please try again later.' 
+			});
+		}
+	};
+};
+
+export default withSessionRoute(applyRateLimit(handler));
 
 type User = {
 	userId: number
@@ -57,7 +102,7 @@ export async function handler(
 
 		const id = await getRobloxUserId(req.body.username, req.headers.origin).catch(e => null) as number | undefined;
 		if (!id) {
-			return res.status(404).json({ success: false, error: 'Please enter a valid username' })
+			return res.status(401).json({ success: false, error: 'Invalid username or password' })
 		}
 
 		const user = await prisma.user.findUnique({
@@ -85,14 +130,7 @@ export async function handler(
 			});
 		}
 
-		if (!user) {
-			return res.status(500).json({ 
-				success: false, 
-				error: 'An error occurred while accessing the database. Please try again later.' 
-			});
-		}
-
-		if (!user.info?.passwordhash) {
+		if (!user || !user.info?.passwordhash) {
 			return res.status(401).json({ success: false, error: 'Invalid username or password' })
 		}
 

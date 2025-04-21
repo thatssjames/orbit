@@ -1,21 +1,47 @@
 import { withIronSessionApiRoute, withIronSessionSsr } from "iron-session/next";
 import * as crypto from "crypto";
+import zxcvbn from 'zxcvbn';
 import {
   GetServerSidePropsContext,
   GetServerSidePropsResult,
   NextApiHandler,
 } from "next";
 
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.SESSION_SECRET) {
+    throw new Error('SESSION_SECRET environment variable is must be required to be set in production');
+  }
+  
+  const secret = process.env.SESSION_SECRET;
+  
+  // disallow the default password
+  if (secret === 'supersecretpassword') {
+    throw new Error('SESSION_SECRET must be changed from the default secret in production');
+  }
+
+  // Stregnth
+  const strength = zxcvbn(secret);
+  if (strength.score < 4) { 
+    throw new Error(
+      `SESSION_SECRET is not strong enough. Score: ${strength.score}/4. Please generate a secret, e.g using "openssl rand -base64 32" or use a password manager to generate a secure password.`
+    );
+  }
+}
+
 const code = process.env.SESSION_SECRET || crypto.randomBytes(32).toString("hex");
 
-
 const sessionOptions = {
-  password: code, 
+  password: code,
   cookieName: "tovy_session",
-  // secure: true should be used in production (HTTPS) but can't be used in development (HTTP)
   cookieOptions: {
     secure: process.env.NODE_ENV === 'production',
-  }
+    httpOnly: true,
+    sameSite: "lax" as const,
+    maxAge: 60 * 60 * 24 * 7, // 1 week
+    path: '/',
+    domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : undefined,
+  },
+  ttl: 60 * 60 * 24 * 7, // 1 week
 };
 
 export function withSessionRoute(handler: NextApiHandler) {
