@@ -37,6 +37,7 @@
     "discord.js": "^14.7.1",
     "dotenv": "^16.0.3",
     "emoji-picker-react": "^4.12.2",
+    "express-rate-limit": "^7.5.0",
     "formidable": "^3.5.2",
     "framer-motion": "^12.6.3",
     "hex-rgb": "^5.0.0",
