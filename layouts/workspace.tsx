@@ -80,7 +80,7 @@ const workspace: LayoutProps = ({ children }) => {
 	}, []);
 
 	return (
-		<div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+		<div className="h-screen bg-gray-50 dark:bg-gray-900">
 			<Head>
 				<title>{workspace.groupName ? `Orbit - ${workspace.groupName}` : "Loading..."}</title>
 				<link rel="icon" href={`${workspace.groupThumbnail}/isCircular`} />
@@ -103,12 +103,12 @@ const workspace: LayoutProps = ({ children }) => {
 				/>
 			</Transition>
 
-			<div className="flex">
+			<div className="flex h-screen">
 				<Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 				
 				<main
   					className={clsx(
-    					"flex-1 transition-all duration-300",
+    					"flex-1 transition-all duration-300 overflow-y-auto",
     					!isMobile && (isCollapsed ? "ml-16" : "ml-60") // margin only on desktop!
   					)}
 >
