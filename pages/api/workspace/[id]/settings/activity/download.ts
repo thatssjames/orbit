@@ -39,8 +39,10 @@ export async function handler(
 	} else if (Array.isArray(protocol)) {
 		protocol = protocol[0].split(',')[0];
 	}
-	
-	let currentUrl = new URL(`${protocol}://${req.headers.host}${req.url}`);
+
+	// Use VERCEL_URL if available (for cloud deployments)
+	const host = process.env.VERCEL_URL ? process.env.VERCEL_URL : req.headers.host;
+	let currentUrl = new URL(`${protocol}://${host}`);
 	let xx = xml_string.replace('<apikey>', activityconfig.key).replace('<url>', currentUrl.origin);
 
 
