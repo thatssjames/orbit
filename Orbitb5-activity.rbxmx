@@ -31,7 +31,7 @@ TovyFolder.Name = "Orbit Assets"
 local TovyEvent = Instance.new("RemoteEvent", TovyFolder)
 TovyEvent.Name = "Activity"
 
-local TovyClient = script:WaitForChild("Components"):WaitForChild("TovyClient")
+local TovyClient = script:WaitForChild("Components"):WaitForChild("OrbitClient")
 TovyClient.Event.Value = TovyEvent
 
 local Close = Instance.new("BindableEvent")
