@@ -3,7 +3,7 @@ import type { NextPage } from "next"
 import { loginState, workspacestate } from "@/state"
 import { themeState } from "../state/theme"
 import { useRecoilState } from "recoil"
-import { Menu, Listbox } from "@headlessui/react"
+import { Menu, Listbox, Dialog } from "@headlessui/react"
 import { useRouter } from "next/router"
 import {
   IconHome,
@@ -20,6 +20,7 @@ import {
   IconMenu2,
   IconSun,
   IconMoon,
+  IconX,
 } from "@tabler/icons"
 import axios from "axios"
 import clsx from "clsx"
@@ -33,6 +34,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [login, setLogin] = useRecoilState(loginState)
   const [workspace, setWorkspace] = useRecoilState(workspacestate)
   const [theme, setTheme] = useRecoilState(themeState)
+  const [showCopyright, setShowCopyright] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const router = useRouter()
 
@@ -297,6 +299,60 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               </Menu.Items>
             </Menu>
           </div>
+		  `{!isCollapsed && (
+                        <>
+                            <button 
+                                onClick={() => setShowCopyright(true)} 
+                                className="mt-4 text-left text-xs text-gray-500 hover:text-primary"
+                            >
+                                © Copyright Notices
+                            </button>
+
+                            <Dialog
+                                open={showCopyright}
+                                onClose={() => setShowCopyright(false)}
+                                className="relative z-50"
+                            >
+                                <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+
+                                <div className="fixed inset-0 flex items-center justify-center p-4">
+                                    <Dialog.Panel className="mx-auto max-w-sm rounded-lg bg-white dark:bg-gray-800 p-6 shadow-xl">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <Dialog.Title className="text-lg font-medium text-gray-900 dark:text-white">
+                                                Copyright Notices
+                                            </Dialog.Title>
+                                            <button
+                                                onClick={() => setShowCopyright(false)}
+                                                className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            >
+                                                <IconX className="w-5 h-5 text-gray-500" />
+                                            </button>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <div>
+                                                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                                                    Orbit features, enhancements, and modifications:
+                                                </h3>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                    Copyright © 2025 Planetary. All rights reserved.
+                                                </p>
+                                            </div>
+
+                                            <div>
+                                                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                                                    Original Tovy features and code:
+                                                </h3>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                    Copyright © 2022 Tovy. All rights reserved.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </Dialog.Panel>
+                                </div>
+                            </Dialog>
+                        </>
+                    )}
         </aside>
       </div>
     </>
