@@ -44,16 +44,121 @@ type requestData = {
 export default withSessionRoute(handler);
 
 export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+  // Log at the very beginning
+  process.stdout.write(
+    `\n[${new Date().toISOString()}] Setup workspace request received\n`
+  );
+  process.stdout.write(`Method: ${req.method}\n`);
+  process.stdout.write(`Headers: ${JSON.stringify(req.headers, null, 2)}\n`);
+  process.stdout.write(`Body: ${JSON.stringify(req.body, null, 2)}\n`);
+  process.stdout.write(`Query: ${JSON.stringify(req.query, null, 2)}\n`);
+
   if (req.method !== "POST") {
+    process.stdout.write(`Invalid method: ${req.method}\n`);
     return res
       .status(405)
       .json({ success: false, error: "Method not allowed" });
   }
 
+  // Log raw body for debugging
+  process.stdout.write(
+    `Raw request body: ${JSON.stringify(req.body, null, 2)}\n`
+  );
+  process.stdout.write(
+    `Request headers: ${JSON.stringify(req.headers, null, 2)}\n`
+  );
+
+  // Ensure body is parsed
+  if (!req.body) {
+    process.stdout.write("No request body found\n");
+    return res
+      .status(400)
+      .json({ success: false, error: "No request body provided" });
+  }
+
+  // Parse and validate body
+  let parsedBody;
   try {
+    // If body is a string, try to parse it
+    if (typeof req.body === "string") {
+      parsedBody = JSON.parse(req.body);
+    } else {
+      parsedBody = req.body;
+    }
+    process.stdout.write(
+      `Parsed body: ${JSON.stringify(parsedBody, null, 2)}\n`
+    );
+  } catch (e) {
+    process.stdout.write(`Error parsing request body: ${e}\n`);
+    return res
+      .status(400)
+      .json({ success: false, error: "Invalid JSON in request body" });
+  }
+
+  const { groupid, username, password, color } = parsedBody;
+
+  // Log parsed fields
+  console.log("Parsed fields:", { groupid, username, password, color });
+
+  // Validate required fields
+  if (!groupid || !username || !password || !color) {
+    console.log("Missing required fields:", {
+      groupid,
+      username,
+      password,
+      color,
+    });
+    return res.status(400).json({
+      success: false,
+      error:
+        "Missing required fields. Required: groupid, username, password, color",
+    });
+  }
+
+  // Validate field types
+  if (typeof groupid !== "number" && typeof groupid !== "string") {
+    console.log("Invalid groupid type:", typeof groupid);
+    return res
+      .status(400)
+      .json({ success: false, error: "groupid must be a number" });
+  }
+
+  // Convert groupid to number if it's a string
+  const groupIdNumber =
+    typeof groupid === "string" ? parseInt(groupid) : groupid;
+  if (isNaN(groupIdNumber)) {
+    console.log("Invalid groupid value:", groupid);
+    return res
+      .status(400)
+      .json({ success: false, error: "groupid must be a valid number" });
+  }
+
+  if (typeof username !== "string") {
+    console.log("Invalid username type:", typeof username);
+    return res
+      .status(400)
+      .json({ success: false, error: "username must be a string" });
+  }
+
+  if (typeof password !== "string") {
+    console.log("Invalid password type:", typeof password);
+    return res
+      .status(400)
+      .json({ success: false, error: "password must be a string" });
+  }
+
+  if (typeof color !== "string") {
+    console.log("Invalid color type:", typeof color);
+    return res
+      .status(400)
+      .json({ success: false, error: "color must be a string" });
+  }
+
+  try {
+    console.log("Starting Roblox API call for username:", username);
     // Add timeout for Roblox API call
     const userid = (await Promise.race([
-      getRobloxUserId(req.body.username, req.headers.origin),
+      getRobloxUserId(username, req.headers.origin),
       new Promise((_, reject) =>
         setTimeout(() => reject(new Error("Roblox API timeout")), 10000)
       ),
@@ -69,6 +174,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         .json({ success: false, error: "Username not found" });
     }
 
+    console.log("Roblox user found:", userid);
+
     // Check workspace count
     const workspaceCount = await prisma.workspace.count({});
     if (workspaceCount > 0) {
@@ -82,7 +189,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       // Create workspace
       await tx.workspace.create({
         data: {
-          groupId: parseInt(req.body.groupid),
+          groupId: groupIdNumber,
         },
       });
 
@@ -91,23 +198,23 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         tx.config.create({
           data: {
             key: "customization",
-            workspaceGroupId: parseInt(req.body.groupid),
+            workspaceGroupId: groupIdNumber,
             value: {
-              color: req.body.color,
+              color: color,
             },
           },
         }),
         tx.config.create({
           data: {
             key: "theme",
-            workspaceGroupId: parseInt(req.body.groupid),
-            value: req.body.color,
+            workspaceGroupId: groupIdNumber,
+            value: color,
           },
         }),
         tx.config.create({
           data: {
             key: "guides",
-            workspaceGroupId: parseInt(req.body.groupid),
+            workspaceGroupId: groupIdNumber,
             value: {
               enabled: true,
             },
@@ -116,7 +223,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         tx.config.create({
           data: {
             key: "sessions",
-            workspaceGroupId: parseInt(req.body.groupid),
+            workspaceGroupId: groupIdNumber,
             value: {
               enabled: true,
             },
@@ -125,7 +232,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         tx.config.create({
           data: {
             key: "home",
-            workspaceGroupId: parseInt(req.body.groupid),
+            workspaceGroupId: groupIdNumber,
             value: {
               widgets: [],
             },
@@ -136,7 +243,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       // Create role
       const role = await tx.role.create({
         data: {
-          workspaceGroupId: parseInt(req.body.groupid),
+          workspaceGroupId: groupIdNumber,
           name: "Admin",
           isOwnerRole: true,
           permissions: [
@@ -155,7 +262,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       });
 
       // Create user with hashed password
-      const hashedPassword = await bcrypt.hash(req.body.password, 10);
+      const hashedPassword = await bcrypt.hash(password, 10);
       await tx.user.create({
         data: {
           userid: userid,
