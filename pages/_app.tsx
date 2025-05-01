@@ -19,6 +19,7 @@ import {
   LineElement
 } from "chart.js";
 import { themeState } from "../state/theme";
+import AuthProvider from "./AuthProvider";
 
 type AppPropsWithLayout = AppProps & {
   Component: pageWithLayout;
@@ -62,45 +63,9 @@ function ColorThemeHandler() {
 
 function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
-  const [workspaces, setWorkspaces] = useState([]);
 
   const Layout = Component.layout || (({ children }: { children: React.ReactNode }) => <>{children}</>);
 
-  useEffect(() => {
-    const checkLogin = async () => {
-      try {
-        const req = await axios.get("/api/@me");
-
-        // If request is successful and workspace is set up
-        setUser(req.data.user);
-        setWorkspaces(req.data.workspaces);
-        setLoading(false);
-      } catch (err: any) {
-        console.error("Login check error:", err.response?.data);
-
-        // Handle errors based on response data
-        if (err.response?.data.error === "Workspace not setup") {
-          // Redirect to the /welcome page
-          Router.push("/welcome");
-          setLoading(false);
-          return;
-        }
-
-        if (err.response?.data.error === "Not logged in") {
-          // Redirect to the /login page
-          Router.push("/login");
-          setLoading(false);
-          return;
-        }
-
-        // Handle other errors if needed
-        setLoading(false);
-      }
-    };
-
-    checkLogin();
-  }, []);
 
   return (
     <RecoilRoot>
@@ -108,6 +73,7 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
         <title>Orbit</title>
       </Head>
 
+	  <AuthProvider loading={loading} setLoading={setLoading} />
       <ThemeHandler />
       <ColorThemeHandler />
 

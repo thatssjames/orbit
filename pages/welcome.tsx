@@ -49,6 +49,7 @@ const Login: NextPage = () => {
 					...request?.data.user,
 					isOwner: true
 				}));
+				Router.push("/");
 			}
 		} catch (e: any) {
 			if (e?.response?.status === 404) {
