@@ -49,7 +49,7 @@ export default function AuthProvider({
 		};
 	
 		checkLogin();
-	  }, [Router, setLoading, setLogin]);
+	  }, [setLoading, setLogin]);
 
   return <></>;
 }
