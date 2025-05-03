@@ -1,12 +1,11 @@
 import "@/styles/globals.scss"; // Global styles should only be imported here
 import type { AppProps } from "next/app";
 import { loginState, workspacestate } from "@/state";
-import { RecoilRoot, useRecoilValue, useRecoilState } from "recoil";
+import { RecoilRoot, useRecoilValue } from "recoil";
 import { pageWithLayout } from "@/layoutTypes";
 import { useEffect, useState } from "react";
-import Router from "next/router";
 import Head from "next/head";
-import axios from "axios";
+import Router from "next/router";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -16,7 +15,7 @@ import {
   Tooltip,
   Legend,
   PointElement,
-  LineElement
+  LineElement,
 } from "chart.js";
 import { themeState } from "../state/theme";
 import AuthProvider from "./AuthProvider";
@@ -36,7 +35,6 @@ ChartJS.register(
   LineElement
 );
 
-// ThemeHandler and ColorThemeHandler stay the same
 function ThemeHandler() {
   const theme = useRecoilValue(themeState);
 
@@ -63,9 +61,19 @@ function ColorThemeHandler() {
 
 function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const [loading, setLoading] = useState(true);
-
   const Layout = Component.layout || (({ children }: { children: React.ReactNode }) => <>{children}</>);
 
+  const isDbConfigured = process.env.NEXT_PUBLIC_DATABASE_CHECK === "true";
+
+  // Redirect to /db-error if DB is not configured and we're not already there
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const currentPath = window.location.pathname;
+      if (!isDbConfigured && currentPath !== "/db-error") {
+        Router.replace("/db-error");
+      }
+    }
+  }, [isDbConfigured]);
 
   return (
     <RecoilRoot>
@@ -73,13 +81,13 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
         <title>Orbit</title>
       </Head>
 
-	  <AuthProvider loading={loading} setLoading={setLoading} />
+      <AuthProvider loading={loading} setLoading={setLoading} />
       <ThemeHandler />
       <ColorThemeHandler />
 
       {!loading ? (
         <Layout>
-            <Component {...pageProps} />
+          <Component {...pageProps} />
         </Layout>
       ) : (
         <div className="flex h-screen dark:bg-gray-900">
