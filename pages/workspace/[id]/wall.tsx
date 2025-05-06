@@ -21,15 +21,14 @@ import {
   IconArrowLeft,
 } from "@tabler/icons";
 import EmojiPicker, { Theme } from "emoji-picker-react";
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from "sanitize-html";
 
-// Configure DOMPurify for client-side
-if (typeof window !== "undefined") {
-  DOMPurify.setConfig({
-    ALLOWED_TAGS: [], // No HTML tags allowed in content
-    ALLOWED_ATTR: [], // No attributes allowed
-  });
-}
+// Client-side sanitization options
+const SANITIZE_OPTIONS = {
+  allowedTags: [],
+  allowedAttributes: {},
+  disallowedTagsMode: "recursiveEscape" as const,
+};
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
   async ({ query, req }) => {
@@ -81,16 +80,14 @@ const Wall: pageWithLayout<pageProps> = (props) => {
 
   // Sanitize posts on client-side as an extra layer of security
   useEffect(() => {
-    if (typeof window !== "undefined" && posts.length > 0) {
-      const sanitizedPosts = posts.map((post) => ({
+    if (typeof window !== "undefined" && props.posts.length > 0) {
+      const sanitizedPosts = props.posts.map((post) => ({
         ...post,
         content:
           typeof post.content === "string"
-            ? DOMPurify.sanitize(post.content)
+            ? sanitizeHtml(post.content, SANITIZE_OPTIONS)
             : post.content,
-        image: post.image
-          ? DOMPurify.sanitize(post.image as string)
-          : post.image,
+        image: typeof post.image === "string" ? post.image : null,
       }));
       setPosts(sanitizedPosts);
     }
@@ -112,7 +109,9 @@ const Wall: pageWithLayout<pageProps> = (props) => {
       })
       .catch((error) => {
         console.error(error);
-        toast.error("Could not post wall message.");
+        toast.error(
+          error.response?.data?.error || "Could not post wall message."
+        );
         setLoading(false);
       });
   }
@@ -206,6 +205,7 @@ const Wall: pageWithLayout<pageProps> = (props) => {
               value={wallMessage}
               onChange={(e) => setWallMessage(e.target.value)}
               rows={3}
+              maxLength={10000}
             />
             {selectedImage && (
               <div className="relative mt-2">
