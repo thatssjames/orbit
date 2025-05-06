@@ -1,11 +1,15 @@
-import "@/styles/globals.scss"; // Global styles should only be imported here
-import type { AppProps } from "next/app";
-import { loginState, workspacestate } from "@/state";
-import { RecoilRoot, useRecoilValue } from "recoil";
-import { pageWithLayout } from "@/layoutTypes";
-import { useEffect, useState } from "react";
-import Head from "next/head";
-import Router from "next/router";
+"use client"
+
+import type React from "react"
+
+import "@/styles/globals.scss" // Global styles should only be imported here
+import type { AppProps } from "next/app"
+import { workspacestate } from "@/state"
+import { RecoilRoot, useRecoilState, useRecoilValue } from "recoil"
+import type { pageWithLayout } from "@/layoutTypes"
+import { useEffect, useState } from "react"
+import Head from "next/head"
+import Router from "next/router"
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -16,64 +20,129 @@ import {
   Legend,
   PointElement,
   LineElement,
-} from "chart.js";
-import { themeState } from "../state/theme";
-import AuthProvider from "./AuthProvider";
+} from "chart.js"
+import { themeState } from "../state/theme"
+import AuthProvider from "./AuthProvider"
 
 type AppPropsWithLayout = AppProps & {
-  Component: pageWithLayout;
-};
+  Component: pageWithLayout
+}
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  PointElement,
-  LineElement
-);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, PointElement, LineElement)
 
 function ThemeHandler() {
-  const theme = useRecoilValue(themeState);
+  const theme = useRecoilValue(themeState)
 
   useEffect(() => {
-    if (!theme) return;
-    document.documentElement.classList.remove("light", "dark");
-    document.documentElement.classList.add(theme);
-  }, [theme]);
+    if (!theme) return
+    document.documentElement.classList.remove("light", "dark")
+    document.documentElement.classList.add(theme)
+  }, [theme])
 
-  return null;
+  return null
 }
 
 function ColorThemeHandler() {
-  const workspace = useRecoilValue(workspacestate);
+  const [workspace, setWorkspace] = useRecoilState(workspacestate)
 
   useEffect(() => {
-    if (workspace?.groupTheme) {
-      document.documentElement.style.setProperty("--group-theme", workspace.groupTheme);
-    }
-  }, [workspace]);
+    // Set a default color if workspace is not loaded yet or groupTheme is invalid
+    const defaultColor = "236, 72, 153" // pink-500
 
-  return null;
+    // First check localStorage for the most up-to-date color
+    const savedTheme = localStorage.getItem("orbit-theme-color")
+
+    if (savedTheme) {
+      // If we have a saved theme in localStorage, use it
+      const rgbValue = getRGBFromTailwindColor(savedTheme)
+      document.documentElement.style.setProperty("--group-theme", rgbValue)
+
+      // Also update the workspace state if it's different
+      // This prevents the server data from overriding the localStorage value
+      if (workspace && workspace.groupTheme !== savedTheme) {
+        setWorkspace((prev) => ({
+          ...prev,
+          groupTheme: savedTheme,
+        }))
+      }
+    } else if (workspace && workspace.groupTheme && typeof workspace.groupTheme === "string") {
+      // If no localStorage value but we have a valid workspace theme, use it
+      const rgbValue = getRGBFromTailwindColor(workspace.groupTheme)
+      document.documentElement.style.setProperty("--group-theme", rgbValue)
+
+      // Also save to localStorage for future use
+      localStorage.setItem("orbit-theme-color", workspace.groupTheme)
+    } else {
+      // If no saved theme and no valid workspace theme, use default
+      document.documentElement.style.setProperty("--group-theme", defaultColor)
+    }
+  }, [workspace, setWorkspace])
+
+  return null
+}
+
+// Add this helper function after the ColorThemeHandler function
+function getRGBFromTailwindColor(tw: any): string {
+  // Default fallback color (pink)
+  const fallback = "236, 72, 153" // pink-500
+
+  // Check if tw is a valid string
+  if (!tw || typeof tw !== "string") {
+    // Don't log warnings for null/undefined as these are expected during initialization
+    if (tw !== null && tw !== undefined) {
+      console.warn("Invalid color value:", tw)
+    }
+    return fallback
+  }
+
+  // Extract the color name from the bg-{color} class
+  const colorName = tw.replace("bg-", "")
+
+  // Handle special case for orbit color
+  if (colorName === "orbit") {
+    return "0, 112, 240" // Custom orbit blue color
+  }
+
+  // Handle common colors with hardcoded RGB values
+  const colorMap: Record<string, string> = {
+    "blue-500": "59, 130, 246",
+    "red-500": "239, 68, 68",
+    "red-700": "185, 28, 28",
+    "green-500": "34, 197, 94",
+    "green-600": "22, 163, 74",
+    "yellow-500": "234, 179, 8",
+    "orange-500": "249, 115, 22",
+    "purple-500": "168, 85, 247",
+    "pink-500": "236, 72, 153",
+    black: "0, 0, 0",
+    "gray-500": "107, 114, 128",
+  }
+
+  return colorMap[colorName] || fallback
 }
 
 function MyApp({ Component, pageProps }: AppPropsWithLayout) {
-  const [loading, setLoading] = useState(true);
-  const Layout = Component.layout || (({ children }: { children: React.ReactNode }) => <>{children}</>);
+  const [loading, setLoading] = useState(true)
+  const Layout = Component.layout || (({ children }: { children: React.ReactNode }) => <>{children}</>)
 
-  const isDbConfigured = process.env.NEXT_PUBLIC_DATABASE_CHECK === "true";
+  const isDbConfigured = process.env.NEXT_PUBLIC_DATABASE_CHECK === "true"
 
   // Redirect to /db-error if DB is not configured and we're not already there
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const currentPath = window.location.pathname;
+      const currentPath = window.location.pathname
       if (!isDbConfigured && currentPath !== "/db-error") {
-        Router.replace("/db-error");
+        Router.replace("/db-error")
       }
     }
-  }, [isDbConfigured]);
+  }, [isDbConfigured])
+
+  // Initialize localStorage with the default theme if it doesn't exist
+  useEffect(() => {
+    if (typeof window !== "undefined" && !localStorage.getItem("orbit-theme-color")) {
+      localStorage.setItem("orbit-theme-color", "bg-pink-500")
+    }
+  }, [])
 
   return (
     <RecoilRoot>
@@ -110,7 +179,7 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
         </div>
       )}
     </RecoilRoot>
-  );
+  )
 }
 
-export default MyApp;
+export default MyApp
