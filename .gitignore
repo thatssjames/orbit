@@ -40,3 +40,4 @@ next-env.d.ts
 .planetary
 .cl-run-featureflags
 .planetary-instanceconfig
+.env.example

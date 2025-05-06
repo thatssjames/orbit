@@ -91,19 +91,21 @@ const Home: NextPage = () => {
       }
     }
 
-    const checkOwnerStatus = async () => {
-      try {
-        const response = await axios.get("/api/auth/checkOwner")
-        if (response.data.success) {
-          setIsOwner(response.data.isOwner)
-        }
-      } catch (error) {
-        console.error("Failed to check owner status:", error)
-      }
-    }
+	const checkOwnerStatus = async () => {
+	  try {
+		const response = await axios.get("/api/auth/checkOwner")
+		if (response.data.success) {
+		  setIsOwner(response.data.isOwner)
+		}
+	  } catch (error: any) {
+		if (error.response?.status !== 401) {
+		  console.error("Failed to check owner status:", error)
+		}
+	  }
+	}
 
-    checkLogin()
-    checkOwnerStatus()
+	checkLogin()
+	checkOwnerStatus()
   }, [])
 
   const checkRoles = async () => {
