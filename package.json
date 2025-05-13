@@ -61,6 +61,10 @@
     "ts-node": "^10.9.1",
     "uuid": "^3.4.0",
     "zxcvbn": "^4.4.2"
+    "@types/sanitize-html": "2.16.0",
+    "is-svg": "^4.2.1",
+    "sanitize-html": "^2.7.0"
+
   },
   "devDependencies": {
     "@types/node": "18.7.16",
