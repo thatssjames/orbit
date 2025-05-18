@@ -13,9 +13,6 @@ COPY prisma ./prisma/
 # Generate Prisma client for the specific platform
 RUN npx prisma generate
 
-# Prisma Sync
-RUN npx prisma db push
-
 # Bundle app source
 COPY . .
 
