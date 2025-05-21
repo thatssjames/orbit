@@ -44,7 +44,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     const { userid, verificationCode } = verification;
 
     // Get user info
-    const user = await noblox.getPlayerInfo(userid);
+    const user = await noblox.getPlayerInfo(Number(userid));
     if (!user) {
       return res
         .status(400)
@@ -52,12 +52,12 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     }
 
     // Verify code in blurb
-    if (!user.blurb.includes(verificationCode)) {
+    if (!user || !user.blurb || !user.blurb.includes(verificationCode)) {
       return res.status(400).json({
         success: false,
         error: "Invalid verification code",
         code: 400,
-        debug: { blurb: user.blurb, code: verificationCode },
+        debug: { blurb: user?.blurb, code: verificationCode },
       });
     }
 
