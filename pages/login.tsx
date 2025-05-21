@@ -7,6 +7,8 @@ import Button from "@/components/button";
 import Router from "next/router";
 import axios from "axios";
 import Input from "@/components/input";
+import Link from "next/link";
+
 
 type form = {
 	username: string;
@@ -61,6 +63,9 @@ const Login: NextPage = ({ }) => {
 						<form className="mt-2 mb-8" onSubmit={handleSubmit(onSubmit)}>
 							<Input label="Username" placeholder="Username" id="username" {...register("username", { required: { value: true, message: "This field is required" } })} />
 							<Input label="Password" placeholder="Password" type="password" id="password" {...register("password", { required: { value: true, message: "This field is required" } })} />
+							<div className="mt-2 text-left">
+								<Link href="/forgot-password" className="text-sm text-blue-500 hover:underline">Forgot password?</Link>
+							</div>
 							<input type="submit" className="hidden" />
 						</form>
 					</FormProvider>

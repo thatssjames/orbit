@@ -35,7 +35,7 @@ export default function StickyNoteAnnouncement() {
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-0"> </p>
         <div className="text-gray-800 dark:text-gray-300 text-sm space-y-2">
           <p>
-            👋 <strong>Welcome to Orbit!</strong>
+            👋 <strong>Welcome to Orbit V2.0.4!</strong> — Now with Markdown, Password Resets & More!
             <br />
             We're excited to have you on board 🎉
           </p>
@@ -44,23 +44,29 @@ export default function StickyNoteAnnouncement() {
           <p>
             🚧 <strong>Note:</strong> Orbit is currently in <em>beta</em>, which means you may encounter the occasional
             bug or unfinished feature.
+			<br />
           </p>
-          <p> We're working hard to improve the experience — and your feedback helps us do that!</p>
-          <p> </p>
-          <p> </p>
+          <p>  </p>
           <p>
-            🛠️ <strong>Spotted an issue or have a suggestion?</strong>
-            <br />
-            Let us know through <strong>Github</strong> — we're actively listening.
+            🆕 <strong>What's New?</strong>
           </p>
-          <p>
-            ❗ <strong>Group-specific questions?</strong>
+		  <p> </p>
+		  <p> <strong>Markdown Support</strong> </p>
+          <p>You can now use <strong>Markdown</strong> in wall posts — perfect for stylised announcements, updates, or formatting information exactly how you want.
             <br />
-            Orbit supports multiple groups. For rules, roles, or rank queries, contact your group's leadership directly.
           </p>
-          <p> </p>
-          <p> </p>
-          <p>Thanks for being part of the journey 🚀</p>
+          <p>💡 Try things like:</p>
+          <p>- "**bold text**"</p>
+          <p>- "# Headings"</p>
+		  <p>- "[Links](https://your-url.com)"</p>
+		  <p className="mt-4 font-semibold">🔐 Password Reset</p>
+		  <p>
+		    Locked out? No problem — users can now reset their password securely through the new reset flow.
+		  </p>
+		  <p className="mt-4 font-semibold">🗑️ Post Deletion</p>
+		  <p>
+		    Admins and post authors can now delete wall posts — keeping your group wall clean and relevant.
+		  </p>
         </div>
       </div>
 

@@ -26,6 +26,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 		'View all activity': 'view_entire_groups_activity',
 		"Manage activity & members": "manage_activity",
 		"Post on wall": "post_on_wall",
+		"Manage wall": "manage_wall",
 		"View members": "view_members",
 		'Manage alliances': 'manage_alliances',
 		'Represent alliance': 'represent_alliance',

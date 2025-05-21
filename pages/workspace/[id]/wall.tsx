@@ -22,6 +22,9 @@ import {
 } from "@tabler/icons";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import sanitizeHtml from "sanitize-html";
+import ReactMarkdown from "react-markdown";
+import rehypeSanitize from "rehype-sanitize";
+
 
 // Client-side sanitization options
 const SANITIZE_OPTIONS = {
@@ -93,6 +96,21 @@ const Wall: pageWithLayout<pageProps> = (props) => {
     }
   }, [props.posts]);
 
+  const handleDelete = async (postId: number) => {
+    const confirmed = window.confirm("Are you sure you want to delete this post?");
+    if (!confirmed) return;
+
+    try {
+      await axios.delete(`/api/workspace/${id}/wall/${postId}/delete`);
+      setPosts((prev) => prev.filter((p) => p.id !== postId));
+      toast.success("Post deleted");
+    } catch (e: any) {
+      console.error(e);
+      toast.error("Failed to delete post");
+    }
+  };
+
+  
   function sendPost() {
     setLoading(true);
     axios
@@ -310,10 +328,12 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                         )}
                       </p>
                     </div>
+					{(post.authorId === login.userId || workspace.yourPermission.includes("manage_wall") || login.canMakeWorkspace) && (
+                      <button onClick={() => handleDelete(post.id)} className="text-sm text-red-500 hover:underline mt-2">Delete</button>)}
                   </div>
-                  <p className="mt-3 text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap">
-                    {post.content}
-                  </p>
+                  <div className="prose text-gray-800 dark:text-gray-200 dark:prose-invert max-w-none mt-3">
+                    <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{post.content}</ReactMarkdown>
+                  </div>
                   {post.image && (
                     <div className="mt-4">
                       <img
