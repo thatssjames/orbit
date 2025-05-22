@@ -43,7 +43,7 @@ model instanceConfig {
 model user {
   userid            BigInt             @id @unique
   isOwner           Boolean?
-  registered		Boolean?
+  registered        Boolean?
   picture           String?
   username          String?
   activitySessions  ActivitySession[]
