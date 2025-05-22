@@ -80,6 +80,8 @@ const Wall: pageWithLayout<pageProps> = (props) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<number | null>(null);
 
   // Sanitize posts on client-side as an extra layer of security
   useEffect(() => {
@@ -96,20 +98,21 @@ const Wall: pageWithLayout<pageProps> = (props) => {
     }
   }, [props.posts]);
 
-  const handleDelete = async (postId: number) => {
-    const confirmed = window.confirm("Are you sure you want to delete this post?");
-    if (!confirmed) return;
+  const confirmDelete = async () => {
+    if (!postToDelete) return;
 
     try {
-      await axios.delete(`/api/workspace/${id}/wall/${postId}/delete`);
-      setPosts((prev) => prev.filter((p) => p.id !== postId));
+      await axios.delete(`/api/workspace/${id}/wall/${postToDelete}/delete`);
+      setPosts((prev) => prev.filter((p) => p.id !== postToDelete));
       toast.success("Post deleted");
     } catch (e: any) {
       console.error(e);
       toast.error("Failed to delete post");
+    } finally {
+      setShowDeleteModal(false);
+      setPostToDelete(null);
     }
   };
-
   
   function sendPost() {
     setLoading(true);
@@ -329,7 +332,7 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                       </p>
                     </div>
 					{(post.authorId === login.userId || workspace.yourPermission.includes("manage_wall") || login.canMakeWorkspace) && (
-                      <button onClick={() => handleDelete(post.id)} className="text-sm text-red-500 hover:underline mt-2">Delete</button>)}
+                      <button onClick={() => { setPostToDelete(post.id); setShowDeleteModal(true); }} className="text-sm text-red-500 hover:underline mt-2">Delete</button>)}
                   </div>
                   <div className="prose text-gray-800 dark:text-gray-200 dark:prose-invert max-w-none mt-3">
                     <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{post.content}</ReactMarkdown>
@@ -353,6 +356,22 @@ const Wall: pageWithLayout<pageProps> = (props) => {
           ))
         )}
       </div>
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Confirm Deletion
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+              Are you sure you want to delete this post? This action cannot be undone.
+            </p>
+            <div className="flex justify-center gap-4">
+              <button onClick={() => setShowDeleteModal(false)} className="px-4 py-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-white">Cancel</button>
+              <button onClick={confirmDelete} className="px-4 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
