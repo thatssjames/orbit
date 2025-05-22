@@ -74,7 +74,10 @@
       Don't know how to install? –– <a href="https://guide.tovy.relatio.cc/guides">Visit our documentation!</a>
     </li>
     <li>
-      🐛 Bugs? ✨ Suggestions? –– <a href="https://discord.gg/planetorbit">Get support and let us know here!</a>
+      🐛 Bugs? –– <a href="https://discord.gg/planetorbit">Get support and let us know here!</a>
+    </li>
+    <li>
+      ✨ Suggestions? –– <a href="https://feedback.planetaryapp.cloud/">View our Upcoming Features and Suggest your own!</a>
     </li>
   </ul>
 
