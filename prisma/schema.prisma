@@ -20,6 +20,7 @@ model workspace {
   roles             role[]
   userBook          userBook[]
   wallposts         wallPost[]
+  apiKey            apiKey[]
 }
 
 model config {
@@ -58,7 +59,8 @@ model user {
   wallPosts         wallPost[]
   Ally              Ally[]
   roles             role[]
-  allyVisits		allyVisit[]
+  allyVisits        allyVisit[]
+  apiKey            apiKey[]
 }
 
 model userInfo {
@@ -69,8 +71,8 @@ model userInfo {
 }
 
 model QuotaRole {
-  quotaId  String @db.Uuid
-  roleId   String @db.Uuid
+  quotaId String @db.Uuid
+  roleId  String @db.Uuid
 
   quota Quota @relation(fields: [quotaId], references: [id])
   role  role  @relation(fields: [roleId], references: [id])
@@ -86,7 +88,7 @@ model role {
   name             String
   groupRoles       Int[]
   workspace        workspace     @relation(fields: [workspaceGroupId], references: [groupId])
-  quotaRoles QuotaRole[]
+  quotaRoles       QuotaRole[]
   SessionType      SessionType[]
   documents        document[]
   members          user[]
@@ -172,19 +174,21 @@ model ActivitySession {
   user             user      @relation(fields: [userId], references: [userid])
   workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
 }
-model apiKey {
-	id               String    @id @unique
-	name             String
-	key              String    @unique
-	lastUsed         DateTime?
-	createdAt        DateTime  @default(now())
-	expiresAt        DateTime?
-	workspaceGroupId Int
-	createdById      BigInt
 
-	workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
-	createdBy        user      @relation(fields: [createdById], references: [userid])
+model apiKey {
+  id               String    @id @unique
+  name             String
+  key              String    @unique
+  lastUsed         DateTime?
+  createdAt        DateTime  @default(now())
+  expiresAt        DateTime?
+  workspaceGroupId Int
+  createdById      BigInt
+
+  workspace workspace @relation(fields: [workspaceGroupId], references: [groupId])
+  createdBy user      @relation(fields: [createdById], references: [userid])
 }
+
 model inactivityNotice {
   id               String    @id @unique @default(uuid()) @db.Uuid
   userId           BigInt
@@ -193,7 +197,7 @@ model inactivityNotice {
   reason           String
   approved         Boolean?  @default(false)
   reviewed         Boolean?  @default(false)
-  revoked          Boolean?  @default(false) 
+  revoked          Boolean?  @default(false)
   workspaceGroupId Int
   user             user      @relation(fields: [userId], references: [userid])
   workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
@@ -237,12 +241,12 @@ model rank {
 }
 
 model Quota {
-  id               String       @id @default(uuid()) @db.Uuid
+  id               String      @id @default(uuid()) @db.Uuid
   type             String
   value            Int
   workspaceGroupId Int
   name             String
-  workspace        workspace    @relation(fields: [workspaceGroupId], references: [groupId])
+  workspace        workspace   @relation(fields: [workspaceGroupId], references: [groupId])
   quotaRoles       QuotaRole[]
 }
 
@@ -252,18 +256,18 @@ model Ally {
   icon             String
   groupId          String
   notes            String[]
-  id               String    @id @unique @default(uuid()) @db.Uuid
-  workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
+  id               String      @id @unique @default(uuid()) @db.Uuid
+  workspace        workspace   @relation(fields: [workspaceGroupId], references: [groupId])
   reps             user[]
-  allyVisits	   allyVisit[]
+  allyVisits       allyVisit[]
 }
 
 model allyVisit {
-	id		String 		@id @unique @default(uuid()) @db.Uuid
-	ally	Ally 		@relation(fields: [allyId], references: [id])
-	allyId	String 		@db.Uuid
-	host	user 		@relation(fields: [hostId], references: [userid])
-	hostId  BigInt
-	time	DateTime
-	name	String
+  id     String   @id @unique @default(uuid()) @db.Uuid
+  ally   Ally     @relation(fields: [allyId], references: [id])
+  allyId String   @db.Uuid
+  host   user     @relation(fields: [hostId], references: [userid])
+  hostId BigInt
+  time   DateTime
+  name   String
 }
