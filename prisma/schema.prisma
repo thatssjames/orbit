@@ -172,7 +172,19 @@ model ActivitySession {
   user             user      @relation(fields: [userId], references: [userid])
   workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
 }
+model apiKey {
+	id               String    @id @unique
+	name             String
+	key              String    @unique
+	lastUsed         DateTime?
+	createdAt        DateTime  @default(now())
+	expiresAt        DateTime?
+	workspaceGroupId Int
+	createdById      BigInt
 
+	workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
+	createdBy        user      @relation(fields: [createdById], references: [userid])
+}
 model inactivityNotice {
   id               String    @id @unique @default(uuid()) @db.Uuid
   userId           BigInt
