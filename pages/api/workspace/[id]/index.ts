@@ -92,4 +92,4 @@ export async function handler(
 			widgets: (await getConfig('home', workspace.groupId))?.widgets || []
 		}
 	} })
-} 
+}

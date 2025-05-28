@@ -259,4 +259,4 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
 
 Home.layout = Workspace;
 
-export default Home; 
+export default Home;
