@@ -5,7 +5,7 @@ import { useRecoilState } from "recoil";
 import SwitchComponenet from "@/components/switch";
 import { workspacestate } from "@/state";
 import { FC } from '@/types/settingsComponent'
-import { IconFileText } from "@tabler/icons";
+import { IconBuildingCommunity } from "@tabler/icons";
 
 type props = {
 	triggerToast: typeof toast;
@@ -34,7 +34,7 @@ const Guide: FC<props> = (props) => {
 			<div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
 				<div className="flex items-center gap-3">
 					<div className="p-2 bg-primary/10 rounded-lg">
-						<IconFileText size={20} className="text-primary" />
+						<IconBuildingCommunity size={20} className="text-primary" />
 					</div>
 					<div>
 						<p className="text-sm font-medium text-gray-900 dark:text-white">Alliances</p>
