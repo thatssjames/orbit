@@ -44,6 +44,7 @@ const workspacestate = atom({
 		settings: {
 			guidesEnabled: false,
 			sessionsEnabled: false,
+			alliesEnabled: false,
 			noticesEnabled: false,
 			widgets: [] as string[]
 		}

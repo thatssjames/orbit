@@ -44,7 +44,7 @@ const Guide: FC<props> = (props) => {
 				<SwitchComponenet 
 					checked={workspace.settings?.sessionsEnabled} 
 					onChange={updateColor} 
-					label="Enable Sessions" 
+					label="" 
 					classoverride="mt-0"
 				/>
 			</div>

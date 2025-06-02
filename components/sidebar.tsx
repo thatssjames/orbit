@@ -41,6 +41,9 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [showChangelog, setShowChangelog] = useState(false);
   const [changelog, setChangelog] = useState<{ title: string, link: string, pubDate: string, content: string }[]>([]);
+  const [docsEnabled, setDocsEnabled] = useState(false);
+  const [alliesEnabled, setAlliesEnabled] = useState(false);
+  const [sessionsEnabled, setSessionsEnabled] = useState(false);
   const router = useRouter()
 
   // Add body class to prevent scrolling when mobile menu is open
@@ -64,25 +67,30 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       icon: IconClipboardList,
       accessible: workspace.yourPermission.includes("view_entire_groups_activity"),
     },
-    { name: "Allies", href: "/workspace/[id]/allies", icon: IconBuildingCommunity },
-    {
+    ...(alliesEnabled ? [{
+      name: "Allies",
+      href: "/workspace/[id]/allies",
+      icon: IconBuildingCommunity,
+      accessible: true, // or add your permission check
+    }] : []),
+    ...(sessionsEnabled ? [{
       name: "Sessions",
       href: "/workspace/[id]/sessions",
       icon: IconSpeakerphone,
       accessible: workspace.yourPermission.includes("manage_sessions"),
-    },
+    }] : []),
     {
       name: "Staff",
       href: "/workspace/[id]/views",
       icon: IconUsers,
       accessible: workspace.yourPermission.includes("view_members"),
     },
-    {
+    ...(docsEnabled ? [{
       name: "Docs",
       href: "/workspace/[id]/docs",
       icon: IconFileText,
       accessible: workspace.yourPermission.includes("manage_docs"),
-    },
+    }] : []),
     {
       name: "Settings",
       href: "/workspace/[id]/settings",
@@ -125,6 +133,65 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         .then(items => setChangelog(items));
     }
   }, [showChangelog, changelog.length]);
+
+  useEffect(() => {
+    // Fetch the config for docs/guides
+    fetch(`/api/workspace/${workspace.groupId}/settings/general/guides`)
+      .then(res => res.json())
+      .then(data => {
+        let enabled = false;
+        let val = data.value ?? data;
+        if (typeof val === "string") {
+          try {
+            val = JSON.parse(val);
+          } catch {
+            val = {};
+          }
+        }
+        enabled =
+          typeof val === "object" && val !== null && "enabled" in val
+            ? (val as { enabled?: boolean }).enabled ?? false
+            : false;
+        setDocsEnabled(enabled);
+      })
+      .catch(() => setDocsEnabled(false));
+  }, [workspace.groupId]);
+
+  useEffect(() => {
+    fetch(`/api/workspace/${workspace.groupId}/settings/general/ally`)
+      .then(res => res.json())
+      .then(data => {
+        let enabled = false;
+        let val = data.value ?? data;
+        if (typeof val === "string") {
+          try { val = JSON.parse(val); } catch { val = {}; }
+        }
+        enabled =
+          typeof val === "object" && val !== null && "enabled" in val
+            ? (val as { enabled?: boolean }).enabled ?? false
+            : false;
+        setAlliesEnabled(enabled);
+      })
+      .catch(() => setAlliesEnabled(false));
+  }, [workspace.groupId]);
+
+  useEffect(() => {
+    fetch(`/api/workspace/${workspace.groupId}/settings/general/sessions`)
+      .then(res => res.json())
+      .then(data => {
+        let enabled = false;
+        let val = data.value ?? data;
+        if (typeof val === "string") {
+          try { val = JSON.parse(val); } catch { val = {}; }
+        }
+        enabled =
+          typeof val === "object" && val !== null && "enabled" in val
+            ? (val as { enabled?: boolean }).enabled ?? false
+            : false;
+        setSessionsEnabled(enabled);
+      })
+      .catch(() => setSessionsEnabled(false));
+  }, [workspace.groupId]);
 
   return (
     <>
