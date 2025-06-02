@@ -861,7 +861,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 											<th
 												key={header.id}
 												scope="col"
-												className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+												className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
 												onClick={header.column.getToggleSortingHandler()}
 											>
 												{header.isPlaceholder ? null : (

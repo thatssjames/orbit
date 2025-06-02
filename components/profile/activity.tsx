@@ -235,7 +235,7 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 															onClick={() => fetchSession(item.id)}
 															className="p-4 bg-gray-50 dark:bg-gray-500 rounded-lg border border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors"
 														>
-															<div className="flex justify-between items-center mb-1 dark:bg-gray-600">
+															<div className="flex justify-between items-center mb-1 dark:bg-gray-500">
 																<p className="text-sm font-medium text-gray-900 dark:text-white">Activity Session</p>
 																<time className="text-xs text-gray-500 dark:text-white">
 																	{moment(item.startTime).format("HH:mm")} - {moment(item.endTime).format("HH:mm")} on {moment(item.startTime).format("DD MMM YYYY")}
@@ -298,15 +298,15 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 									<div className="bg-primary/10 p-2 rounded-lg">
 										<IconChartBar className="w-5 h-5 text-primary" />
 									</div>
-									<h2 className="text-lg font-medium text-gray-900">Activity Quotas</h2>
+									<h2 className="text-lg font-medium dark:text-white text-gray-900">Activity Quotas</h2>
 								</div>
 								<div className="p-4">
 									<div className="grid gap-4">
 										{quotas.map((quota: any) => (
-											<div key={quota.id} className="bg-gray-50 rounded-lg p-4">
+											<div key={quota.id} className="bg-gray-50 dark:bg-gray-500 rounded-lg p-4">
 												<div className="flex justify-between items-center mb-2">
-													<h3 className="text-sm font-medium text-gray-900">{quota.name}</h3>
-													<p className="text-xs text-gray-500">{getQuotaProgress(quota)}</p>
+													<h3 className="text-sm font-medium dark:text-white text-gray-900">{quota.name}</h3>
+													<p className="text-xs text-gray-500 dark:text-white">{getQuotaProgress(quota)}</p>
 												</div>
 												<Tooltip orientation="top" tooltipText={getQuotaProgress(quota)}>
 													<div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
