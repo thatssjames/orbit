@@ -35,7 +35,7 @@ export default function StickyNoteAnnouncement() {
 		<p className="text-sm text-gray-500 dark:text-gray-400 mt-0"> </p>
 		<div className="text-gray-800 dark:text-gray-300 text-sm space-y-2">
 			<p>
-				👋 <strong>Welcome to Orbit V2.0.7!</strong> — Stability, Visual Improvements & Quality-of-Life Updates!
+				👋 <strong>Welcome to Orbit V2.0.8!</strong> — Stability, Visual Improvements & Quality-of-Life Updates!
 				<br />
 				We’re excited to have you with us 🚀
 			</p>
