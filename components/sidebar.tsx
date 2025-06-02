@@ -24,6 +24,9 @@ import {
 } from "@tabler/icons"
 import axios from "axios"
 import clsx from "clsx"
+import Parser from "rss-parser"
+import ReactMarkdown from "react-markdown";
+import packageJson from "../package.json"; // Adjust path if needed
 
 interface SidebarProps {
   isCollapsed: boolean
@@ -36,6 +39,8 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [theme, setTheme] = useRecoilState(themeState)
   const [showCopyright, setShowCopyright] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [showChangelog, setShowChangelog] = useState(false);
+  const [changelog, setChangelog] = useState<{ title: string, link: string, pubDate: string, content: string }[]>([]);
   const router = useRouter()
 
   // Add body class to prevent scrolling when mobile menu is open
@@ -112,6 +117,14 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       localStorage.setItem("theme", newTheme)
     }
   }
+
+  useEffect(() => {
+    if (showChangelog && changelog.length === 0) {
+      fetch('/api/changelog')
+        .then(res => res.json())
+        .then(items => setChangelog(items));
+    }
+  }, [showChangelog, changelog.length]);
 
   return (
     <>
@@ -302,12 +315,18 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               </Menu>
 
               {!isCollapsed && (
-                <button 
-                  onClick={() => setShowCopyright(true)} 
-                  className="mt-4 text-left text-xs text-gray-500 hover:text-primary"
-                >
-                  © Copyright Notices
-                </button>
+                <>
+                  <button 
+                    onClick={() => setShowCopyright(true)} 
+                    className="mt-4 text-left text-xs text-gray-500 hover:text-primary"
+                  >
+                    © Copyright Notices
+                  </button>
+
+                  <div className="mt-2 text-xs text-gray-500">
+                    v{packageJson.version} - <button onClick={() => setShowChangelog(true)} className="mt-2 text-left text-xs text-gray-500 hover:text-primary">Changelog</button>
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -351,6 +370,43 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       Copyright © 2022 Tovy. All rights reserved.
                     </p>
                   </div>
+                </div>
+              </Dialog.Panel>
+            </div>
+          </Dialog>
+
+          <Dialog
+            open={showChangelog}
+            onClose={() => setShowChangelog(false)}
+            className="relative z-50"
+          >
+            <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+            <div className="fixed inset-0 flex items-center justify-center p-4">
+              <Dialog.Panel className="mx-auto max-w-lg rounded-lg bg-white dark:bg-gray-800 p-6 shadow-xl">
+                <div className="flex items-center justify-between mb-4">
+                  <Dialog.Title className="text-lg font-medium text-gray-900 dark:text-white">
+                    Changelog
+                  </Dialog.Title>
+                  <button
+                    onClick={() => setShowChangelog(false)}
+                    className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    <IconX className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {changelog.length === 0 && <p className="text-sm text-gray-500">Loading...</p>}
+                  {changelog.map((entry, idx) => (
+                    <div key={idx}>
+                      <a href={entry.link} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">
+                        {entry.title}
+                      </a>
+                      <div className="text-xs text-gray-400">{entry.pubDate}</div>
+                      <div className="text-sm text-gray-700 dark:text-gray-300">
+                        <ReactMarkdown>{entry.content}</ReactMarkdown>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </Dialog.Panel>
             </div>
