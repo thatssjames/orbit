@@ -26,7 +26,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
           id: true,
           name: true,
           key: true,
-          lastUsedAt: true,
+          lastUsed: true,
           createdAt: true,
           expiresAt: true,
         },
@@ -38,7 +38,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         id: string
         name: string
         key: string
-        lastUsedAt: Date | null
+        lastUsed: Date | null
         createdAt: Date
         expiresAt: Date | null
         createdBy?: { userid: string }

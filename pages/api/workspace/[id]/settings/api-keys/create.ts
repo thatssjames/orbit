@@ -55,12 +55,14 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 		}
 
 		const apiKey = await prisma.apiKey.create({
-			data: {
-				name,
-				key: apiKeyValue,
-				expiresAt,
-				workspaceGroupId: workspaceId,
-			},
+		data: {
+			id: crypto.randomUUID(),
+			name,
+			key: apiKeyValue,
+			expiresAt,
+			workspaceGroupId: workspaceId,
+			createdById: req.session.userid,
+		},
 		})
 
 		return res.status(200).json({

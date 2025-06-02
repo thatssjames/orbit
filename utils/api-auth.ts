@@ -23,7 +23,7 @@ export async function validateApiKey(apiKey: string, workspaceId: string) {
   // Update last used timestamp
   await prisma.apiKey.update({
     where: { id: key.id },
-    data: { lastUsedAt: new Date() },
+    data: { lastUsed: new Date() },
   })
 
   return key

@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Update last used timestamp
     await prisma.apiKey.update({
       where: { id: key.id },
-      data: { lastUsedAt: new Date() },
+      data: { lastUsed: new Date() },
     })
 
     // Fetch members
