@@ -32,44 +32,39 @@ export default function StickyNoteAnnouncement() {
           Planetary
         </h3>
 
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0"> </p>
-        <div className="text-gray-800 dark:text-gray-300 text-sm space-y-2">
-          <p>
-            👋 <strong>Welcome to Orbit V2.0.4!</strong> — Now with Markdown, Password Resets & More!
-            <br />
-            We're excited to have you on board 🎉
-          </p>
-          <p> </p>
-          <p> </p>
-          <p>
-            🚧 <strong>Note:</strong> Orbit is currently in <em>beta</em>, which means you may encounter the occasional
-            bug or unfinished feature.
-			<br />
-          </p>
-          <p>  </p>
-          <p>
-            🆕 <strong>What's New?</strong>
-          </p>
-		  <p> </p>
-		  <p> <strong>Markdown Support</strong> </p>
-          <p>You can now use <strong>Markdown</strong> in wall posts — perfect for stylised announcements, updates, or formatting information exactly how you want.
-            <br />
-          </p>
-          <p>💡 Try things like:</p>
-          <p>- "**bold text**"</p>
-          <p>- "# Headings"</p>
-		  <p>- "[Links](https://your-url.com)"</p>
-		  <p className="mt-4 font-semibold">🔐 Password Reset</p>
-		  <p>
-		    Locked out? No problem — users can now reset their password securely through the new reset flow.
-		  </p>
-		  <p className="mt-4 font-semibold">🗑️ Post Deletion</p>
-		  <p>
-		    Admins and post authors can now delete wall posts — keeping your group wall clean and relevant.
-		  </p>
-        </div>
-      </div>
+		<p className="text-sm text-gray-500 dark:text-gray-400 mt-0"> </p>
+		<div className="text-gray-800 dark:text-gray-300 text-sm space-y-2">
+			<p>
+				👋 <strong>Welcome to Orbit V2.0.7!</strong> — Stability, Visual Improvements & Quality-of-Life Updates!
+				<br />
+				We’re excited to have you with us 🚀
+			</p>
 
+			<p className="mt-4 font-semibold">🛠️ API Update Stability</p>
+			<p>
+				We’ve resolved API failures and improved the reliability of key endpoints like staff activity and session data retrieval.
+			</p>
+
+			<p className="mt-4 font-semibold">🧱 Instance Creation Fixes</p>
+			<p>
+				Workspace/system creation bugs are now resolved — no more errors when launching new groups or teams.
+			</p>
+
+			<p className="mt-4 font-semibold">📄 Visible Changelogs & Versioning</p>
+			<p>
+				You’ll now see changelogs and version info inside the app, helping you track what’s new with every release.
+			</p>
+
+			<p className="mt-4 font-semibold">🎨 Visual & Dark Mode Improvements</p>
+			<p>
+				We've fixed low-contrast text, improved component styling, and made the dark theme more consistent across pages like Activity, Sessions, and Modals.
+			</p>
+
+			<p className="mt-4 text-xs text-gray-500 dark:text-gray-400">
+				Orbit is still in <em>beta</em> — we’re squashing bugs and improving things fast. Thanks for being part of the journey!
+			</p>
+		</div>
+      </div>
       <button
         onClick={handleDismiss}
         className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
