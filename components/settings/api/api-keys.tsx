@@ -143,7 +143,7 @@ const createApiKey = async () => {
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <h4 className="font-medium text-gray-900 dark:text-white">{key.name}</h4>
-                  <code className="text-sm bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">{key.key}</code>
+                  <code className="text-sm bg-gray-200 dark:bg-gray-700 dark:text-gray-300 px-2 py-1 rounded">{key.key}</code>
                 </div>
                 <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                   <span className="flex items-center gap-1">
@@ -197,7 +197,7 @@ const createApiKey = async () => {
                     Make sure to copy your API key now. You won't be able to see it again!
                   </p>
                   <div className="flex items-center gap-2">
-                    <code className="flex-1 bg-white dark:bg-gray-900 p-2 rounded text-sm break-all">
+                    <code className="flex-1 bg-white dark:bg-gray-900 dark:text-white p-2 rounded text-sm break-all">
                       {createdKey.key}
                     </code>
                     <button

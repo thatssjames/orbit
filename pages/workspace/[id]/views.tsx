@@ -304,7 +304,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 				return (
 					<div className="flex flex-row cursor-pointer" onClick={() => router.push(`/workspace/${router.query.id}/profile/${row.getValue().userId}`)}>
 						<img src={row.getValue().picture!} className="w-10 h-10 rounded-full bg-primary " alt="profile image" />
-						<p className="leading-5 my-auto px-2 font-semibold">
+						<p className="leading-5 my-auto px-2 font-semibold dark:text-white">
 							{row.getValue().username} <br />
 						</p>
 					</div>
@@ -315,7 +315,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 			header: 'Sessions claimed',
 			cell: (row) => {
 				return (
-					<p>{row.getValue().length}</p>
+					<p className="dark:text-white">{row.getValue().length}</p>
 				);
 			}
 		}),
@@ -323,7 +323,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 			header: 'Sessions hosted',
 			cell: (row) => {
 				return (
-					<p>{row.getValue().length}</p>
+					<p className="dark:text-white">{row.getValue().length}</p>
 				);
 			}
 		}),
@@ -331,7 +331,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 			header: 'Warnings',
 			cell: (row) => {
 				return (
-					<p>{row.getValue().filter(x => x.type == "warning").length}</p>
+					<p className="dark:text-white">{row.getValue().filter(x => x.type == "warning").length}</p>
 				);
 			}
 		}),
@@ -339,7 +339,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 			header: 'Wall Posts',
 			cell: (row) => {
 				return (
-					<p>{row.getValue().length}</p>
+					<p className="dark:text-white">{row.getValue().length}</p>
 				);
 			}
 		}),
@@ -347,7 +347,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 			header: 'Rank',
 			cell: (row) => {
 				return (
-					<p>{ranks.find(x => x.rank == row.getValue())?.name || "N/A"}</p>
+					<p className="dark:text-white">{ranks.find(x => x.rank == row.getValue())?.name || "N/A"}</p>
 				);
 			}
 		}),
@@ -355,7 +355,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 			header: 'Inactivity Notices',
 			cell: (row) => {
 				return (
-					<p>{row.getValue().length}</p>
+					<p className="dark:text-white">{row.getValue().length}</p>
 				);
 			}
 		}),
@@ -363,7 +363,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 			header: 'Minutes',
 			cell: (row) => {
 				return (
-					<p>{row.getValue()}</p>
+					<p className="dark:text-white">{row.getValue()}</p>
 				);
 			}
 		}),
@@ -371,7 +371,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 			header: 'Idle minutes',
 			cell: (row) => {
 				return (
-					<p>{row.getValue()}</p>
+					<p className="dark:text-white">{row.getValue()}</p>
 				);
 			}
 		}),
@@ -379,7 +379,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 			header: 'Messages',
 			cell: (row) => {
 				return (
-					<p>{row.getValue()}</p>
+					<p className="dark:text-white">{row.getValue()}</p>
 				);
 			}
 		}),
@@ -861,11 +861,11 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 											<th
 												key={header.id}
 												scope="col"
-												className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+												className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider cursor-pointer hover:bg-gray-100"
 												onClick={header.column.getToggleSortingHandler()}
 											>
 												{header.isPlaceholder ? null : (
-													<div className="flex items-center space-x-1">
+													<div className="flex items-center space-x-1 dark:text-gray-300">
 														<span>{flexRender(header.column.columnDef.header, header.getContext())}</span>
 													</div>
 												)}

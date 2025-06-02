@@ -86,7 +86,7 @@ const Activity: pageWithLayout = () => {
 								<div className="bg-primary/10 p-2 rounded-lg">
 									<Icon className="w-5 h-5 text-primary" />
 								</div>
-								<p className="text-sm font-medium text-gray-600 dark:text-gray-300">{label}</p>
+								<p className="text-sm font-medium text-gray-600 dark:text-white">{label}</p>
 							</div>
 							<p className="text-3xl font-semibold text-gray-900 dark:text-white">{value}</p>
 						</div>
