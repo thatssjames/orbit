@@ -426,34 +426,6 @@ export const ApiDocumentation = ({ triggerToast }: { triggerToast: any }) => {
         </div>
 
         <div className="space-y-4">
-          {/* Authentication */}
-          <div className="bg-white dark:bg-gray-700 rounded-xl shadow-sm overflow-hidden">
-            <div className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-gray-600">
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <IconApi className="w-5 h-5 text-primary" />
-              </div>
-              <h2 className="text-lg font-medium text-gray-900 dark:text-white">Authentication</h2>
-            </div>
-            <div className="p-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                All API requests must include your API key in the Authorization header:
-              </p>
-              <div className="relative">
-                <pre className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg text-sm overflow-x-auto">
-                  <code className="text-gray-700 dark:text-gray-300">
-                    Authorization: Bearer orbit_your_api_key_here
-                  </code>
-                </pre>
-                <button
-                  onClick={() => copyToClipboard("Authorization: Bearer orbit_your_api_key_here")}
-                  className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  <IconCopy size={16} />
-                </button>
-              </div>
-            </div>
-          </div>
-
           {/* Base URL */}
           <div className="bg-white dark:bg-gray-700 rounded-xl shadow-sm overflow-hidden">
             <div className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-gray-600">
@@ -474,130 +446,17 @@ export const ApiDocumentation = ({ triggerToast }: { triggerToast: any }) => {
                   <IconCopy size={16} />
                 </button>
               </div>
-            </div>
-          </div>
-
-          {/* Endpoints */}
-          <div className="bg-white dark:bg-gray-700 rounded-xl shadow-sm overflow-hidden">
-            <div className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-gray-600">
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <IconApi className="w-5 h-5 text-primary" />
-              </div>
-              <h2 className="text-lg font-medium text-gray-900 dark:text-white">Available Endpoints</h2>
-            </div>
-            <div className="p-4 space-y-3">
-              {/* General */}
-              <div className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
-                <button
-                  className="w-full flex items-center justify-between p-4 text-left bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  onClick={() => toggleCategory("general")}
+              {/* Documentation link */}
+              <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">
+                📚 Looking for usage examples or endpoint details? Check out the{" "}
+                <a
+                  href="https://docs.planetaryapp.cloud/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline hover:opacity-80"
                 >
-                  <span className="font-medium text-gray-900 dark:text-white">General</span>
-                  {expandedCategories.general ? (
-                    <IconChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                  ) : (
-                    <IconChevronRight className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                  )}
-                </button>
-                {expandedCategories.general && (
-                  <div className="p-4 border-t border-gray-200 dark:border-gray-600">
-                    {renderEndpointList(endpoints.general)}
-                  </div>
-                )}
-              </div>
-
-              {/* Activity */}
-              <div className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
-                <button
-                  className="w-full flex items-center justify-between p-4 text-left bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  onClick={() => toggleCategory("activity")}
-                >
-                  <span className="font-medium text-gray-900 dark:text-white">Activity</span>
-                  {expandedCategories.activity ? (
-                    <IconChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                  ) : (
-                    <IconChevronRight className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                  )}
-                </button>
-                {expandedCategories.activity && (
-                  <div className="p-4 border-t border-gray-200 dark:border-gray-600">
-                    {renderEndpointList(endpoints.activity)}
-                  </div>
-                )}
-              </div>
-
-              {/* Sessions */}
-              <div className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
-                <button
-                  className="w-full flex items-center justify-between p-4 text-left bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  onClick={() => toggleCategory("sessions")}
-                >
-                  <span className="font-medium text-gray-900 dark:text-white">Sessions</span>
-                  {expandedCategories.sessions ? (
-                    <IconChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                  ) : (
-                    <IconChevronRight className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                  )}
-                </button>
-                {expandedCategories.sessions && (
-                  <div className="p-4 border-t border-gray-200 dark:border-gray-600">
-                    {renderEndpointList(endpoints.sessions)}
-                  </div>
-                )}
-              </div>
-
-              {/* Content */}
-              <div className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
-                <button
-                  className="w-full flex items-center justify-between p-4 text-left bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  onClick={() => toggleCategory("content")}
-                >
-                  <span className="font-medium text-gray-900 dark:text-white">Content</span>
-                  {expandedCategories.content ? (
-                    <IconChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                  ) : (
-                    <IconChevronRight className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                  )}
-                </button>
-                {expandedCategories.content && (
-                  <div className="p-4 border-t border-gray-200 dark:border-gray-600">
-                    {renderEndpointList(endpoints.content)}
-                  </div>
-                )}
-              </div>
-
-              {/* Allies */}
-              <div className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
-                <button
-                  className="w-full flex items-center justify-between p-4 text-left bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  onClick={() => toggleCategory("allies")}
-                >
-                  <span className="font-medium text-gray-900 dark:text-white">Allies</span>
-                  {expandedCategories.allies ? (
-                    <IconChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                  ) : (
-                    <IconChevronRight className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                  )}
-                </button>
-                {expandedCategories.allies && (
-                  <div className="p-4 border-t border-gray-200 dark:border-gray-600">
-                    {renderEndpointList(endpoints.allies)}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Rate Limits */}
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-6">
-            <div className="flex items-start gap-3">
-              <IconInfoCircle className="w-5 h-5 text-amber-800 dark:text-amber-400 mt-0.5" />
-              <div>
-                <h4 className="font-medium text-amber-800 dark:text-amber-200 mb-1">Rate Limits</h4>
-                <p className="text-sm text-amber-700 dark:text-amber-300">
-                  API requests are limited to 100 requests per minute per API key. Exceeding this limit will result in a
-                  429 Too Many Requests response.
-                </p>
+                  Orbit API Documentation
+                </a>.
               </div>
             </div>
           </div>
