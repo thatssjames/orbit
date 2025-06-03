@@ -39,6 +39,7 @@ const Home: pageWithLayout = () => {
   const [isLoadingTitle, setIsLoadingTitle] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [titleVisible, setTitleVisible] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   const widgets: Record<string, WidgetConfig> = {
     wall: {
@@ -76,6 +77,18 @@ const Home: pageWithLayout = () => {
 
     return () => clearTimeout(timer)
   }, [])
+
+  useEffect(() => {
+    // Only set loading to false if workspace is loaded and has a valid groupId
+    if (
+      workspace &&
+      workspace.groupId && // <-- Only set loading to false if groupId is present
+      workspace.settings &&
+      Array.isArray(workspace.settings.widgets)
+    ) {
+      setLoading(false)
+    }
+  }, [workspace])
 
   const handleRefresh = () => {
     setRefreshing(true)
@@ -134,7 +147,27 @@ const Home: pageWithLayout = () => {
           <StickyNoteAnnouncement />
         </div>
 
-        {workspace.settings.widgets.length > 0 ? (
+        {loading ? (
+          // Show loading spinner/message
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-12 text-center border border-gray-100 dark:border-gray-700">
+            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center">
+              <IconHome className="w-12 h-12 text-primary" />
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                Hold on... your workspace is still loading or we're pushing an update 😋
+              </h3>
+              <div className="flex justify-center">
+                <div className="animate-pulse flex space-x-2">
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : workspace.settings.widgets.length > 0 ? (
+          // Show widgets grid
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {workspace.settings.widgets.map((widget, index) => {
               const widgetConfig = widgets[widget]
@@ -169,42 +202,25 @@ const Home: pageWithLayout = () => {
             })}
           </div>
         ) : (
+          // Show empty dashboard message
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-12 text-center border border-gray-100 dark:border-gray-700">
             <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center">
               <IconHome className="w-12 h-12 text-primary" />
             </div>
-
-            {isLoadingTitle ? (
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                  Hold on... your workspace is still loading or we're pushing an update 😋
-                </h3>
-                <div className="flex justify-center">
-                  <div className="animate-pulse flex space-x-2">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300">
-                  Your dashboard is empty
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto">
-                  Add widgets to your workspace to see important information at a glance
-                </p>
-                <button
-                  onClick={() => (window.location.href = `/workspace/${workspace.groupId}/settings`)}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all duration-300 shadow-sm hover:shadow group"
-                >
-                  <IconPlus className="w-5 h-5" />
-                  <span>Configure Dashboard</span>
-                  <IconChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                </button>
-              </>
-            )}
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300">
+              Your dashboard is empty
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto">
+              Add widgets to your workspace to see important information at a glance
+            </p>
+            <button
+              onClick={() => (window.location.href = `/workspace/${workspace.groupId}/settings`)}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all duration-300 shadow-sm hover:shadow group"
+            >
+              <IconPlus className="w-5 h-5" />
+              <span>Configure Dashboard</span>
+              <IconChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+            </button>
           </div>
         )}
 
