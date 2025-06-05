@@ -450,7 +450,7 @@ export const ApiDocumentation = ({ triggerToast }: { triggerToast: any }) => {
               <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">
                 📚 Looking for usage examples or endpoint details? Check out the{" "}
                 <a
-                  href="https://docs.planetaryapp.cloud/"
+                  href="https://docs.planetaryapp.cloud/api-references/introduction"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary underline hover:opacity-80"

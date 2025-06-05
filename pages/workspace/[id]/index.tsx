@@ -79,10 +79,9 @@ const Home: pageWithLayout = () => {
   }, [])
 
   useEffect(() => {
-    // Only set loading to false if workspace is loaded and has a valid groupId
     if (
       workspace &&
-      workspace.groupId && // <-- Only set loading to false if groupId is present
+      workspace.groupId &&
       workspace.settings &&
       Array.isArray(workspace.settings.widgets)
     ) {
@@ -92,7 +91,6 @@ const Home: pageWithLayout = () => {
 
   const handleRefresh = () => {
     setRefreshing(true)
-    // Simulate refresh - in a real app, you'd refetch data here
     setTimeout(() => {
       setRefreshing(false)
     }, 1000)
