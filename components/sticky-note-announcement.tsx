@@ -20,7 +20,7 @@ export default function StickyNoteAnnouncement() {
   if (!isVisible) return null
 
   return (
-    <div className="z-0 bg-gray-200 dark:bg-gray-800 rounded-xl shadow-sm p-4 flex items-start space-x-4 mb-6 relative">
+    <div className="z-0 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 flex items-start space-x-4 mb-6 relative">
       <img
         src="/favicon-32x32.png"
         alt="Orbit"
