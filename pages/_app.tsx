@@ -43,67 +43,38 @@ function ThemeHandler() {
 }
 
 function ColorThemeHandler() {
-  const [workspace, setWorkspace] = useRecoilState(workspacestate)
+  const [workspace] = useRecoilState(workspacestate)
 
   useEffect(() => {
-    // Set a default color if workspace is not loaded yet or groupTheme is invalid
-    const defaultColor = "236, 72, 153" // pink-500
+    const defaultColor = "236, 72, 153"
 
-    // First check localStorage for the most up-to-date color
-    const savedTheme = localStorage.getItem("orbit-theme-color")
-
-    if (savedTheme) {
-      // If we have a saved theme in localStorage, use it
-      const rgbValue = getRGBFromTailwindColor(savedTheme)
-      document.documentElement.style.setProperty("--group-theme", rgbValue)
-
-      // Also update the workspace state if it's different
-      // This prevents the server data from overriding the localStorage value
-      if (workspace && workspace.groupTheme !== savedTheme) {
-        setWorkspace((prev) => ({
-          ...prev,
-          groupTheme: savedTheme,
-        }))
-      }
-    } else if (workspace && workspace.groupTheme && typeof workspace.groupTheme === "string") {
-      // If no localStorage value but we have a valid workspace theme, use it
+    if (workspace && workspace.groupTheme && typeof workspace.groupTheme === "string") {
       const rgbValue = getRGBFromTailwindColor(workspace.groupTheme)
       document.documentElement.style.setProperty("--group-theme", rgbValue)
-
-      // Also save to localStorage for future use
-      localStorage.setItem("orbit-theme-color", workspace.groupTheme)
     } else {
-      // If no saved theme and no valid workspace theme, use default
       document.documentElement.style.setProperty("--group-theme", defaultColor)
     }
-  }, [workspace, setWorkspace])
+  }, [workspace])
 
   return null
 }
 
-// Add this helper function after the ColorThemeHandler function
 function getRGBFromTailwindColor(tw: any): string {
-  // Default fallback color (pink)
   const fallback = "236, 72, 153" // pink-500
 
-  // Check if tw is a valid string
   if (!tw || typeof tw !== "string") {
-    // Don't log warnings for null/undefined as these are expected during initialization
     if (tw !== null && tw !== undefined) {
       console.warn("Invalid color value:", tw)
     }
     return fallback
   }
 
-  // Extract the color name from the bg-{color} class
   const colorName = tw.replace("bg-", "")
 
-  // Handle special case for orbit color
   if (colorName === "orbit") {
-    return "0, 112, 240" // Custom orbit blue color
+    return "0, 112, 240"
   }
 
-  // Handle common colors with hardcoded RGB values
   const colorMap: Record<string, string> = {
     "blue-500": "59, 130, 246",
     "red-500": "239, 68, 68",
@@ -136,13 +107,6 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
       }
     }
   }, [isDbConfigured])
-
-  // Initialize localStorage with the default theme if it doesn't exist
-  useEffect(() => {
-    if (typeof window !== "undefined" && !localStorage.getItem("orbit-theme-color")) {
-      localStorage.setItem("orbit-theme-color", "bg-pink-500")
-    }
-  }, [])
 
   return (
     <RecoilRoot>
