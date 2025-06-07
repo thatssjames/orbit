@@ -413,78 +413,77 @@ const Home: pageWithLayout<{
 
 									<div className="space-y-4 max-h-96 overflow-y-auto">
 									{selectedSession?.sessionType.slots.map((slot: any, index: number) => {
-  if (typeof slot !== 'object') return null;
-  const slotData = JSON.parse(JSON.stringify(slot));
-  const session = Array.isArray(selectedSession?.sessions)
-    ? selectedSession.sessions.find(s =>
-        new Date(s.date).getUTCDate() === selectedDate.getUTCDate()
-      )
-    : undefined;
+										if (typeof slot !== 'object') return null;
+										const slotData = JSON.parse(JSON.stringify(slot));
+										const session = Array.isArray(selectedSession?.sessions)
+											? selectedSession.sessions.find(s =>
+												new Date(s.date).getUTCDate() === selectedDate.getUTCDate()
+											)
+											: undefined;
 
-  const user = session?.users.find(u =>
-    u.roleID === slotData.id && u.slot === index
-  );
+										const user = session?.users.find(u =>
+											u.roleID === slotData.id && u.slot === index
+										);
 
-  return (
-    <div key={index} className="bg-gray-50 rounded-lg p-4">
-      <h4 className="text-sm font-medium text-gray-900 mb-3">
-        {slotData.name}
-      </h4>
-      <div className="space-y-2">
-        {Array.from(Array(slotData.slots)).map((_, i) => {
-          const matchedUser = session?.users.find(u =>
-            u.roleID === slotData.id && u.slot === i
-          );
+										return (
+											<div key={index} className="bg-gray-50 rounded-lg p-4">
+											<h4 className="text-sm font-medium text-gray-900 mb-3">
+												{slotData.name}
+											</h4>
+											<div className="space-y-2">
+												{Array.from(Array(slotData.slots)).map((_, i) => {
+												const matchedUser = session?.users.find(u =>
+													u.roleID === slotData.id && u.slot === i
+												);
 
-          return (
-            <div key={i} className="flex items-center justify-between bg-white rounded-md p-2">
-              <div className="flex items-center gap-2">
-                <img
-                  src={matchedUser?.user?.picture || '/default-avatar.png'}
-                  alt={matchedUser?.user?.username || ''}
-                  className="w-6 h-6 rounded-full"
-                />
-                <span className="text-sm text-gray-600">
-                  {slotData.name} #{i + 1}
-                </span>
-              </div>
-              {matchedUser ? (
-                <div className="flex items-center gap-2">
-                  <img
-                    src={matchedUser.user.picture || '/default-avatar.png'}
-                    alt={matchedUser.user.username || ''}
-                    className="w-6 h-6 rounded-full"
-                  />
-                  <span className="text-sm font-medium">
-                    {matchedUser.user.username}
-                  </span>
-                  {matchedUser.user.userid === BigInt(login.userId) && (
-                    <button
-                      onClick={() => unclaimSessionSlot(selectedSession, slotData.id, i)}
-                      disabled={isLoading}
-                      className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                    >
-                      <IconX className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <Button
-                  onPress={() => claimSessionSlot(selectedSession, slotData.id, i)}
-                  classoverride="text-sm px-3 py-1"
-                  loading={isLoading}
-                >
-                  Claim
-                </Button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-})}
-
+												return (
+													<div key={i} className="flex items-center justify-between bg-white rounded-md p-2">
+													<div className="flex items-center gap-2">
+														<img
+														src={matchedUser?.user?.picture || '/default-avatar.png'}
+														alt={matchedUser?.user?.username || ''}
+														className="w-6 h-6 rounded-full"
+														/>
+														<span className="text-sm text-gray-600">
+														{slotData.name} #{i + 1}
+														</span>
+													</div>
+													{matchedUser ? (
+														<div className="flex items-center gap-2">
+														<img
+															src={matchedUser.user.picture || '/default-avatar.png'}
+															alt={matchedUser.user.username || ''}
+															className="w-6 h-6 rounded-full"
+														/>
+														<span className="text-sm font-medium">
+															{matchedUser.user.username}
+														</span>
+														{matchedUser.user.userid === BigInt(login.userId) && (
+															<button
+															onClick={() => unclaimSessionSlot(selectedSession, slotData.id, i)}
+															disabled={isLoading}
+															className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+															>
+															<IconX className="w-4 h-4" />
+															</button>
+														)}
+														</div>
+													) : (
+														<Button
+														onPress={() => claimSessionSlot(selectedSession, slotData.id, i)}
+														classoverride="text-sm px-3 py-1"
+														loading={isLoading}
+														>
+														Claim
+														</Button>
+													)}
+													</div>
+												);
+												})}
+											</div>
+											</div>
+										);
+										})}
 									</div>
 								</Dialog.Panel>
 							</Transition.Child>

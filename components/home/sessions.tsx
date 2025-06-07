@@ -68,9 +68,6 @@ const Sessions: React.FC = () => {
 											<p className="text-sm text-white/90">
 												Hosted by {session.owner.username}
 											</p>
-											<span className="px-2 py-0.5 rounded-full bg-red-500/20 text-red-200 text-xs font-medium">
-												Locked
-											</span>
 										</div>
 									</div>
 								</div>

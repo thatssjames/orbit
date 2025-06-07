@@ -68,6 +68,18 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         .json({ success: false, error: "Password is required", code: 400 });
     }
 
+    // Password strength check
+    if (
+      password.length < 7 ||
+      !/[0-9!@#$%^&*]/.test(password)
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: "Password must be at least 7 characters and contain a number or special character.",
+        code: 400,
+      });
+    }
+
     // Handle session - create a new session instead of destroying and recreating
     req.session.userid = userid;
     await req.session.save();

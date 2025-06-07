@@ -6,61 +6,129 @@ body {
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* Links */
 a {
   color: inherit;
   text-decoration: none;
 }
 
+/* Box sizing reset */
 * {
   box-sizing: border-box;
 }
-/*
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-  body {
-    color: white;
-    background: black;
-  }
-}*/
 
+/* Tailwind layers */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer components { 
-	.cardBtn {
-		@apply px-5 py-4 bg-white rounded-md mt-3 w-full outline-1 cursor-pointer outline-gray-300 outline text-left hover:bg-gray-200 focus-visible:bg-gray-200 transition;
-	}
+@layer components {
+  .cardBtn {
+    @apply px-5 py-4 bg-white rounded-md mt-3 w-full outline-1 cursor-pointer outline-gray-300 outline text-left hover:bg-gray-200 focus-visible:bg-gray-200 transition;
+  }
 
-	.pagePadding {
-		@apply 2xl:px-48 lg:px-32 md:px-20 sm:px-14 px-8 py-20;
-	}
+  .pagePadding {
+    @apply 2xl:px-48 lg:px-32 md:px-20 sm:px-14 px-8 py-20;
+  }
 
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
 }
 
-ul[data-type="taskList"] {
-	list-style: none;
-	padding: 0;
-  
-	p {
-	  margin: 0;
-	}
-  
-	li {
-	  display: flex;
-  
-	  > label {
-		flex: 0 0 auto;
-		margin-right: 0.5rem;
-		user-select: none;
-	  }
-  
-	  > div {
-		flex: 1 1 auto;
-	  }
-	}
+/* Fade-in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
   }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Subtle pulsing blur animation */
+@keyframes subtlePulse {
+  0%, 100% {
+    filter: blur(80px) brightness(1);
+  }
+  50% {
+    filter: blur(100px) brightness(1.05);
+  }
+}
+
+/* Gradient canvas config */
+#gradient-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -10;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  filter: blur(80px);
+  transform: scale(1.1);
+  transition: filter 0.3s ease;
+  will-change: transform, filter;
+  animation: subtlePulse 8s ease-in-out infinite;
+}
+
+/* Define gradient color variables */
+:root {
+  --gradient-color-1: #00d0bc;
+  --gradient-color-2: #005253;
+  --gradient-color-3: #6529ff;
+  --gradient-color-4: #822eff;
+}
+
+/* Optional dark theme fallback for native elements */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
+
+/* Task list styling (e.g., for TipTap editor) */
+ul[data-type="taskList"] {
+  list-style: none;
+  padding: 0;
+
+  p {
+    margin: 0;
+  }
+
+  li {
+    display: flex;
+
+    > label {
+      flex: 0 0 auto;
+      margin-right: 0.5rem;
+      user-select: none;
+    }
+
+    > div {
+      flex: 1 1 auto;
+    }
+  }
+}
+
+
+@keyframes orbit-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+.orbit-pulse {
+  animation: orbit-pulse 1.6s ease-in-out infinite;
+}

@@ -118,7 +118,7 @@ export const getServerSideProps = withPermissionCheckSsr(async ({ params }: GetS
 		computedUsers.push({
 			info: {
 				userId: Number(user.userid),
-				picture: user.picture || '',
+				picture: await getThumbnail(user.userid),
 				username: user.username,
 			},
 			book: user.book,
@@ -250,20 +250,20 @@ type pageProps = {
 
 }
 const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
-	const [login, setLogin] = useRecoilState(loginState);
-	const router = useRouter();
-	const [sorting, setSorting] = useState<SortingState>([])
-	const [rowSelection, setRowSelection] = useState({});
-	const [isOpen, setIsOpen] = useState(false);
-	const [message, setMessage] = useState("");
-	const [type, setType] = useState("");
-	const [minutes, setMinutes] = useState(0);
-	const [users, setUsers] = useState(usersInGroup);
-	const [isLoading, setIsLoading] = useState(false);
-	const [searchOpen, setSearchOpen] = useState(false);
-	const [searchQuery, setSearchQuery] = useState('');
-	const [searchResults, setSearchResults] = useState([]);
-	const [colFilters, setColFilters] = useState<{
+  const [login, setLogin] = useRecoilState(loginState);
+  const router = useRouter();
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [rowSelection, setRowSelection] = useState({});
+  const [isOpen, setIsOpen] = useState(false);
+  const [message, setMessage] = useState("");
+  const [type, setType] = useState("");
+  const [minutes, setMinutes] = useState(0);
+  const [users, setUsers] = useState(usersInGroup);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [colFilters, setColFilters] = useState<{
 		id: string
 		column: string
 		filter: string
