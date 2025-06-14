@@ -98,11 +98,6 @@ const EditDoc: pageWithLayout<any> = ({ roles, document }) => {
 		});
 	}
 
-	const confirmDelete = async () => {
-		await axios.delete(`/api/workspace/${workspace.groupId}/guides/${document.id}/delete`);
-		router.push(`/workspace/${workspace.groupId}/docs`);
-	}
-
 	const buttons = {
 		heading: [
 			{
