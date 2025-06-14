@@ -32,33 +32,27 @@ export default function StickyNoteAnnouncement() {
           Planetary
         </h3>
 
-		<p className="text-sm text-gray-500 dark:text-gray-400 mt-0"> </p>
+		<p className="text-sm text-gray-500 dark:text-gray-400 mt-0"></p>
 		<div className="text-gray-800 dark:text-gray-300 text-sm space-y-2">
 			<p>
-				👋 <strong>Welcome to Orbit V2.0.8!</strong> — Stability, Visual Improvements & Quality-of-Life Updates!
+				👋 <strong>Welcome to Orbit V2.0.9b6!</strong> — Now with Birthdays Support! 🎉
 				<br />
 				We’re excited to have you with us 🚀
 			</p>
 
-			<p className="mt-4 font-semibold">🛠️ API Update Stability</p>
+			<p className="mt-4 font-semibold">🎂 New: Birthdays Feature</p>
 			<p>
-				We’ve resolved API failures and improved the reliability of key endpoints like staff activity and session data retrieval.
+				You can now set your birthday in your profile. Orbit will remind your team when birthdays are coming up - never miss a celebration again!
 			</p>
 
-			<p className="mt-4 font-semibold">🧱 Instance Creation Fixes</p>
-			<p>
-				Workspace/system creation bugs are now resolved — no more errors when launching new groups or teams.
-			</p>
-
-			<p className="mt-4 font-semibold">📄 Visible Changelogs & Versioning</p>
-			<p>
-				You’ll now see changelogs and version info inside the app, helping you track what’s new with every release.
-			</p>
-
-			<p className="mt-4 font-semibold">🎨 Visual & Dark Mode Improvements</p>
-			<p>
-				We've fixed low-contrast text, improved component styling, and made the dark theme more consistent across pages like Activity, Sessions, and Modals.
-			</p>
+			<p className="mt-4 font-semibold">✨ Other Improvements</p>
+			<ul className="list-disc list-inside space-y-1">
+				<li>We’ve launched a brand new login UI — it’s cleaner and faster. (Thanks @s3ntrical and @e)</li>
+				<li>You’ll now be required to set a secure password when signing up, helping protect your data even further.</li>
+				<li>User avatars are now cached for up to 3 days, improving performance across workspaces.</li>
+				<li>Fixed multiple minor UI bugs across the board, improving consistency and experience.</li>
+				<li>Workspace colors, links, and visuals have all received polish to better match your themes and improve legibility.</li>
+			</ul>
 
 			<p className="mt-4 text-xs text-gray-500 dark:text-gray-400">
 				Orbit is still in <em>beta</em> — we’re squashing bugs and improving things fast. Thanks for being part of the journey!

@@ -25,8 +25,6 @@ import sanitizeHtml from "sanitize-html";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
 
-
-// Client-side sanitization options
 const SANITIZE_OPTIONS = {
   allowedTags: [],
   allowedAttributes: {},
@@ -170,7 +168,6 @@ const Wall: pageWithLayout<pageProps> = (props) => {
 
     const reader = new FileReader();
     reader.onloadend = () => {
-      // Validate that the result is actually an image data URL
       const result = reader.result as string;
       if (typeof result === "string" && result.startsWith("data:image/")) {
         setSelectedImage(result);
@@ -191,6 +188,26 @@ const Wall: pageWithLayout<pageProps> = (props) => {
     }
   };
 
+  const BG_COLORS = [
+    "bg-red-200",
+    "bg-green-200",
+    "bg-blue-200",
+    "bg-yellow-200",
+    "bg-pink-200",
+    "bg-indigo-200",
+    "bg-teal-200",
+    "bg-orange-200",
+  ];
+
+  function getRandomBg(userid: string | number) {
+    const str = String(userid);
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return BG_COLORS[Math.abs(hash) % BG_COLORS.length];
+  }
+
   return (
     <div className="pagePadding">
       <Toaster position="bottom-center" />
@@ -208,11 +225,14 @@ const Wall: pageWithLayout<pageProps> = (props) => {
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 mb-8">
         <div className="flex items-start gap-4">
-          <img
-            src={login.thumbnail}
-            alt="Your avatar"
-            className="w-10 h-10 rounded-full bg-primary flex-shrink-0"
-          />
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(login.userId)}`}>
+            <img
+              src={login.thumbnail}
+              alt="Your avatar"
+              className="w-10 h-10 rounded-full object-cover border-2 border-white"
+              style={{ background: "transparent" }}
+            />
+          </div>
           <div className="flex-1">
             <textarea
               className="w-full border-0 focus:ring-0 resize-none bg-transparent placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white"
@@ -314,11 +334,14 @@ const Wall: pageWithLayout<pageProps> = (props) => {
               className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow"
             >
               <div className="flex items-start gap-4">
-                <img
-                  alt="avatar headshot"
-                  src={post.author.picture}
-                  className="w-12 h-12 rounded-full bg-primary flex-shrink-0"
-                />
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${getRandomBg(post.authorId)}`}>
+                  <img
+                    alt="avatar headshot"
+                    src={post.author.picture}
+                    className="w-12 h-12 rounded-full object-cover border-2 border-white"
+                    style={{ background: "transparent" }}
+                  />
+                </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <div>

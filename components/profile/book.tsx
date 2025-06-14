@@ -70,7 +70,7 @@ const Book: FC<Props> = ({ userBook, onRefetch }) => {
 				<div className="p-6">
 					<h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Add New Note</h2>
 					<div className="space-y-4">
-						<div className="bg-gray-100 dark:bg-gray-600 p-4 rounded-lg">
+						<div className="bg-white dark:bg-gray-600 p-4 rounded-lg">
 							<label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
 								Type
 							</label>

@@ -61,6 +61,8 @@ model user {
   roles             role[]
   allyVisits        allyVisit[]
   apiKey            apiKey[]
+  birthdayDay       Int?
+  birthdayMonth     Int?
 }
 
 model userInfo {

@@ -9,6 +9,7 @@ import Docs from "@/components/home/docs"
 import randomText from "@/utils/randomText"
 import wall from "@/components/home/wall"
 import StickyNoteAnnouncement from "@/components/sticky-note-announcement"
+import Birthdays from "@/components/birthdays"
 import { useRecoilState } from "recoil"
 import { useMemo, useEffect, useState } from "react"
 import {
@@ -21,6 +22,7 @@ import {
   IconPlus,
   IconRefresh,
   IconArrowRight,
+  IconGift,
 } from "@tabler/icons"
 import clsx from "clsx"
 
@@ -139,8 +141,9 @@ const Home: pageWithLayout = () => {
            
           </div>
         </div>
-
-        {/* Sticky Note Announcement */}
+        <div className="mb-8 z-0 relative">
+          <Birthdays />
+        </div>
         <div className="mb-8 z-0 relative">
           <StickyNoteAnnouncement />
         </div>
