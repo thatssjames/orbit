@@ -49,7 +49,7 @@ const monthNames = [
   "July", "August", "September", "October", "November", "December"
 ];
 
-export default function Birthdays() {
+export default function Birthdays({ days = 7 }: { days?: number } = {}) {
   const [birthdays, setBirthdays] = useState<BirthdayUser[]>([]);
   const [showConfetti, setShowConfetti] = useState(false);
   const router = useRouter();
@@ -59,7 +59,7 @@ export default function Birthdays() {
 
   useEffect(() => {
     if (!workspaceId) return;
-    axios.get(`/api/workspace/${workspaceId}/home/upcoming?days=7`).then(res => {
+    axios.get(`/api/workspace/${workspaceId}/home/upcoming`).then(res => {
       if (res.status === 200) {
         setBirthdays(res.data.birthdays);
       }
@@ -85,7 +85,7 @@ export default function Birthdays() {
       ...user,
       daysAway: getDaysUntilBirthday(user.birthdayDay, user.birthdayMonth),
     }))
-    .filter(user => user.daysAway >= 0 && user.daysAway <= 7)
+    .filter(user => user.daysAway >= 0 && user.daysAway <= days)
     .sort((a, b) => a.daysAway - b.daysAway);
 
   if (usersWithDays.length === 0) return null;
