@@ -123,13 +123,15 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
         return udate.getUTCDay()
       })
 
+      const time24 = form.getValues().time || "00:00";
+
       const session = await axios.post(`/api/workspace/${workspace.groupId}/sessions/manage/new`, {
         name: form.getValues().name,
         gameId: fallbackToManual ? form.getValues().gameId : selectedGame,
         schedule: {
           enabled,
           days: days2,
-          time: `${date.getUTCHours()}:${date.getUTCMinutes()}`,
+          time: time24,
           allowUnscheduled,
         },
         slots,
