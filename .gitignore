@@ -47,4 +47,5 @@ orbitbackground-light.png
 /public/avatars
 
 # build
-.deploy.sh
+deploy.sh
+deploy.sh
