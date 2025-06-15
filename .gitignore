@@ -45,3 +45,6 @@ next-env.d.ts
 Frame_5_3.png
 orbitbackground-light.png
 /public/avatars
+
+# build
+.deploy.sh
