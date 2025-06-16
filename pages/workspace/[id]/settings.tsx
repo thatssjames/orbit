@@ -14,7 +14,7 @@ import * as noblox from "noblox.js"
 import { withPermissionCheckSsr } from "@/utils/permissionsManager"
 import prisma from "@/utils/database"
 import { getUsername, getDisplayName } from "@/utils/userinfoEngine"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import clsx from "clsx"
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(async ({ params, res }) => {
@@ -23,7 +23,6 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(asy
     return { props: {} }
   }
 
-  //find users with a role that isnt admin
   const grouproles = await noblox.getRoles(Number(params.id))
   const users = await prisma.user.findMany({
     where: {
@@ -130,6 +129,11 @@ const SECTIONS = {
 const Settings: pageWithLayout<Props> = ({ users, roles, grouproles }) => {
   const [activeSection, setActiveSection] = useState("general")
   const [isSidebarExpanded] = useState(true)
+
+  // Only fetch on mount
+  useEffect(() => {
+    // For updates, update local state directly, or provide a manual refresh button
+  }, []) // Empty dependency array: only on mount
 
   const renderContent = () => {
     if (activeSection === "permissions") {
