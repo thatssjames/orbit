@@ -8,464 +8,825 @@ import { v4 as uuidv4 } from "uuid";
 import { useRecoilState } from "recoil";
 import { useEffect, useState } from "react";
 import { Listbox } from "@headlessui/react";
-import { IconCheck, IconChevronDown } from "@tabler/icons";
+import {
+  IconCheck,
+  IconChevronDown,
+  IconPlus,
+  IconTrash,
+  IconInfoCircle,
+  IconAlertCircle,
+  IconCalendarEvent,
+  IconUsers,
+  IconBrandDiscord,
+  IconClipboardList,
+  IconUserPlus,
+  IconArrowLeft,
+  IconDeviceFloppy,
+} from "@tabler/icons";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
 import * as noblox from "noblox.js";
 import { useRouter } from "next/router";
-
 import axios from "axios";
 import prisma from "@/utils/database";
 import Switchcomponenet from "@/components/switch";
-
 import { useForm, FormProvider } from "react-hook-form";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(async (context) => {
-	const { id, sid } = context.query;
-	let games: { name: string; id: number }[] = [];
-	let fallbackToManual = false;
-	
-	try {
-		const fetchedGames = await noblox.getGroupGames(Number(id));
-		games = fetchedGames.map(game => ({
-			name: game.name,
-			id: game.id,
-		}));
-	} catch (err) {
-		console.error("Failed to fetch games from noblox:", err);
-		fallbackToManual = true;
-	
-	}
-	const session = await prisma.sessionType.findUnique({
-		where: {
-			id: (sid as string)
-		},
-		include: {
-			hostingRoles: true
-		}
-	});
-	if (!session) {
-		return {
-			notFound: true
-		}
-	}
+  const { id, sid } = context.query;
+  let games: { name: string; id: number }[] = [];
+  let fallbackToManual = false;
 
-	const roles = await prisma.role.findMany({
-		where: {
-			workspaceGroupId: Number(id),
-			isOwnerRole: false
-		},
-	});
+  try {
+    const fetchedGames = await noblox.getGroupGames(Number(id));
+    games = fetchedGames.map(game => ({
+      name: game.name,
+      id: game.id,
+    }));
+  } catch (err) {
+    console.error("Failed to fetch games from noblox:", err);
+    fallbackToManual = true;
+  }
+  const session = await prisma.sessionType.findUnique({
+    where: {
+      id: (sid as string)
+    },
+    include: {
+      hostingRoles: true
+    }
+  });
+  if (!session) {
+    return {
+      notFound: true
+    }
+  }
 
+  const roles = await prisma.role.findMany({
+    where: {
+      workspaceGroupId: Number(id),
+      isOwnerRole: false
+    },
+  });
 
-	return {
-		props: {
-			games,
-			roles,
-			session: JSON.parse(JSON.stringify(session, (key, value) => (typeof value === 'bigint' ? value.toString() : value))),
-			fallbackToManual
-		},
-	};
-
-
+  return {
+    props: {
+      games,
+      roles,
+      session: JSON.parse(JSON.stringify(session, (key, value) => (typeof value === 'bigint' ? value.toString() : value))),
+      fallbackToManual
+    },
+  };
 }, 'manage_sessions')
 
+type StatusType = {
+  id: string;
+  name: string;
+  timeAfter: number;
+  color: string;
+};
+
+type SlotType = {
+  id: string;
+  name: string;
+  slots: number;
+};
+
 const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({ games, roles, session, fallbackToManual }) => {
-	const [login, setLogin] = useRecoilState(loginState);
-	const [enabled, setEnabled] = useState(false);
-	const [days, setDays] = useState<string[]>([])
-	const [statues, setStatues] = useState<{
-		name: string;
-		timeAfter: number;
-		color: string;
-		id: string;
-	}[]>(session.statues?.length ? session.statues : [])
-	const [slots, setSlots] = useState<{
-		name: string;
-		slots: number;
-		id: string;
-	}[]>(session.slots || [{
-		name: 'Co-Host',
+  const [login, setLogin] = useRecoilState(loginState);
+  const [activeTab, setActiveTab] = useState("basic");
+  const [enabled, setEnabled] = useState(session.schedule?.enabled ?? false);
+  const [days, setDays] = useState<string[]>(session.schedule?.days || []);
+  const [statues, setStatues] = useState(session.statues?.length ? session.statues : []);
+  const [slots, setSlots] = useState(session.slots?.length ? session.slots : [{
+    name: 'Co-Host',
+    slots: 1,
+    id: uuidv4()
+  }]);
+  const form = useForm({
+    defaultValues: {
+      name: session.name,
+      webhooksEnabled: session.webhookEnabled,
+      webhookUrl: session.webhookUrl,
+      webhookTitle: session.webhookTitle,
+      webhookBody: session.webhookBody,
+      webhookPing: session.webhookPing,
+      gameId: session.gameId ?? "",
+      time: session.schedule?.time || "",
+    }
+  });
+  const [workspace] = useRecoilState(workspacestate);
+  const [allowUnscheduled, setAllowUnscheduled] = useState(session.allowUnscheduled ?? false);
+  const [webhooksEnabled, setWebhooksEnabled] = useState(session.webhookEnabled ?? false);
+  const [selectedGame, setSelectedGame] = useState(session.gameId?.toString() ?? "");
+  const [selectedRoles, setSelectedRoles] = useState<string[]>(session.hostingRoles.map((role: any) => role.id));
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
+  const router = useRouter();
+
+  // Tab navigation
+  const tabs = [
+    { id: "basic", label: "Basic Info", icon: <IconInfoCircle size={18} /> },
+    { id: "permissions", label: "Permissions", icon: <IconUsers size={18} /> },
+    { id: "webhooks", label: "Discord", icon: <IconBrandDiscord size={18} /> },
+    { id: "statuses", label: "Statuses", icon: <IconClipboardList size={18} /> },
+    { id: "slots", label: "Slots", icon: <IconUserPlus size={18} /> },
+  ];
+
+  // Role toggle
+  const toggleRole = (role: string) => {
+    setSelectedRoles((prev) => (prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]));
+  };
+
+  // Day toggle
+  const toggleDay = (day: string) => {
+    setDays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]));
+  };
+
+  // Statuses
+  const newStatus = () => {
+	setStatues((prev: StatusType[]) => [
+	  ...prev,
+	  {
+		name: "New status",
+		timeAfter: 0,
+		color: "green",
+		id: uuidv4(),
+	  } as StatusType,
+	]);
+  };
+  const deleteStatus = (id: string) => {
+	setStatues((prev: StatusType[]) => prev.filter((status: StatusType) => status.id !== id));
+  };
+  const updateStatus = (id: string, name: string, color: string, timeafter: number) => {
+	setStatues((prev: StatusType[]) =>
+	  prev.map((status: StatusType) => (status.id === id ? { ...status, name, color, timeAfter: timeafter } : status)),
+	);
+  };
+
+  // Slots
+  const newSlot = () => {
+	setSlots((prev: SlotType[]) => [
+	  ...prev,
+	  {
+		name: "Co-Host",
 		slots: 1,
-		id: uuidv4()
-	}])
-	const form = useForm({
-		defaultValues: {
-			name: session.name,
-			webhooksEnabled: session.webhookEnabled,
-			webhookUrl: session.webhookUrl,
-			webhookTitle: session.webhookTitle,
-			webhookBody: session.webhookBody,
-			webhookPing: session.webhookPing,
-			gameId: session.gameId ?? ""
-		}
-	});
-	const [workspace] = useRecoilState(workspacestate);
-	const [allowUnscheduled, setAllowUnscheduled] = useState(session.allowUnscheduled);
-	const [webhooksEnabled, setWebhooksEnabled] = useState(session.webhookEnabled);
-	const [selectedGame, setSelectedGame] = useState(parseInt(session.gameId))
-	const [selectedRoles, setSelectedRoles] = useState<string[]>(session.hostingRoles.map((role: any) => role.id))
-	const router = useRouter();
+		id: uuidv4(),
+	  } as SlotType,
+	]);
+  };
+  const deleteSlot = (id: string) => {
+	setSlots((prev: SlotType[]) => prev.filter((slot: SlotType) => slot.id !== id));
+  };
+  const updateSlot = (id: string, name: string, slotsAvailble: number) => {
+	setSlots((prev: SlotType[]) => prev.map((slot: SlotType) => (slot.id === id ? { ...slot, slots: slotsAvailble, name } : slot)));
+  };
 
-	const toggleRole = async (role: string) => {
-		const roles = selectedRoles;
-		if (roles.includes(role)) {
-			roles.splice(roles.indexOf(role), 1);
-		}
-		else {
-			roles.push(role);
-		}
-		setSelectedRoles(roles);
-	}
+  // Form validation
+  const isFormValid = () => {
+    if (!form.getValues().name) return false;
+    if (fallbackToManual && !form.getValues().gameId) return false;
+    if (enabled && !form.getValues().time) return false;
+    if (
+      webhooksEnabled &&
+      (!form.getValues().webhookUrl || !form.getValues().webhookTitle || !form.getValues().webhookBody)
+    )
+      return false;
+    return true;
+  };
 
-	const updateSession = async () => {
-		const data = form.getValues();
-		const res = axios.post(`/api/workspace/${workspace.groupId}/sessions/manage/${session.id}/edit`, {
-			webhook: {
-				enabled: webhooksEnabled,
-				url: data.webhookUrl,
-				title: data.webhookTitle,
-				body: data.webhookBody,
-				ping: data.webhookPing
-			},
-			statues,
-			name: data.name,
-			slots,
-			gameId: selectedGame,
-			permissions: selectedRoles
-		});
-		toast.promise(res, {
-			loading: 'Updating session',
-			success: 'Session updated',
-			error: 'Failed to update session'
-		}).then(() => {
-			router.push(`/workspace/${workspace.groupId}/sessions/schedules`);
-		})
+  // Update session
+  const updateSession = async () => {
+    setIsSubmitting(true);
+    setFormError("");
+    try {
+      const time24 = form.getValues().time || "00:00";
+      await axios.post(`/api/workspace/${workspace.groupId}/sessions/manage/${session.id}/edit`, {
+        name: form.getValues().name,
+        gameId: fallbackToManual ? form.getValues().gameId : selectedGame,
+        schedule: {
+          enabled,
+          days,
+          time: time24,
+          allowUnscheduled,
+        },
+        slots,
+        statues,
+        webhook: {
+          enabled: webhooksEnabled,
+          url: form.getValues().webhookUrl,
+          title: form.getValues().webhookTitle,
+          body: form.getValues().webhookBody,
+          ping: form.getValues().webhookPing,
+        },
+        permissions: selectedRoles,
+      });
+      toast.success("Session updated");
+      router.push(`/workspace/${workspace.groupId}/sessions/schedules`);
+    } catch (err: any) {
+      setFormError(err?.response?.data?.error || "Failed to update session. Please try again.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-	}
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold dark:text-white">Edit Session Type</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Update your session type settings</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            onPress={() => router.back()}
+            classoverride="bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 flex items-center gap-1"
+          >
+            <IconArrowLeft size={16} /> Back
+          </Button>
+          <Button
+            onPress={form.handleSubmit(updateSession)}
+            disabled={isSubmitting || !isFormValid()}
+            classoverride={`flex items-center gap-1 ${
+              isFormValid()
+                ? "bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400"
+            }`}
+          >
+            <IconDeviceFloppy size={16} /> {isSubmitting ? "Updating..." : "Update Session"}
+          </Button>
+        </div>
+      </div>
 
-	
+      {/* Error message */}
+      {formError && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 dark:bg-red-900/20 dark:border-red-800">
+          <IconAlertCircle className="text-red-500 mt-0.5 flex-shrink-0" size={18} />
+          <div>
+            <h3 className="font-medium text-red-800 dark:text-red-400">Error</h3>
+            <p className="text-red-600 dark:text-red-300 text-sm">{formError}</p>
+          </div>
+        </div>
+      )}
 
+      {/* Navigation Tabs */}
+      <div className="mb-6 overflow-x-auto">
+        <div className="flex space-x-1 min-w-max border-b border-gray-200 dark:border-gray-700">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-3 flex items-center gap-2 text-sm font-medium transition-all border-b-2 -mb-px ${
+                activeTab === tab.id
+                  ? "border-primary text-primary dark:border-primary dark:text-primary"
+                  : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+              }`}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
-	useEffect(() => { }, [days]);
+      <FormProvider {...form}>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+          {/* Basic Info */}
+          {activeTab === "basic" && (
+            <div className="p-6">
+              <div className="flex items-start mb-6">
+                <div className="bg-primary/10 p-2 rounded-lg mr-4">
+                  <IconInfoCircle className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold dark:text-white">Basic Information</h2>
+                  <p className="text-gray-500 dark:text-gray-400 mt-1">
+                    Edit the essential details about your session type
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-6 max-w-2xl">
+                <div>
+                  <Input
+                    {...form.register("name", {
+                      required: { value: true, message: "Session name is required" },
+                    })}
+                    label="Session Type Name"
+                    placeholder="Weekly Session"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Choose a descriptive name for your session type
+                  </p>
+                  {form.formState.errors.name && (
+                    <p className="mt-1 text-sm text-red-500">{form.formState.errors.name.message as string}</p>
+                  )}
+                </div>
+                {games.length > 0 && !fallbackToManual ? (
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Game</label>
+                    <Listbox as="div" className="relative">
+                      <Listbox.Button className="flex items-center justify-between w-full px-4 py-2.5 text-left bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm">
+                        <span className="block truncate text-gray-700 dark:text-white">
+                          {games?.find((game: { name: string; id: number }) => game.id === Number(selectedGame))
+                            ?.name || "Select a game"}
+                        </span>
+                        <IconChevronDown size={18} className="text-gray-500 dark:text-gray-400" />
+                      </Listbox.Button>
+                      <Listbox.Options className="absolute z-10 w-full mt-1 overflow-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none">
+                        {games.map((game: { name: string; id: number }) => (
+                          <Listbox.Option
+                            key={game.id}
+                            value={game.id}
+                            onClick={() => setSelectedGame(game.id.toString())}
+                            className={({ active }) =>
+                              `${
+                                active ? "bg-primary/10 text-primary" : "text-gray-900 dark:text-white"
+                              } cursor-pointer select-none relative py-2.5 pl-10 pr-4`
+                            }
+                          >
+                            {({ selected, active }) => (
+                              <>
+                                <span className={`${selected ? "font-medium" : "font-normal"} block truncate`}>
+                                  {game.name}
+                                </span>
+                                {selectedGame === game.id.toString() && (
+                                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-primary">
+                                    <IconCheck size={18} aria-hidden="true" />
+                                  </span>
+                                )}
+                              </>
+                            )}
+                          </Listbox.Option>
+                        ))}
+                        <div className="h-[1px] rounded-xl w-full px-3 bg-gray-200 dark:bg-gray-700" />
+                        <Listbox.Option
+                          value="None"
+                          onClick={() => setSelectedGame("")}
+                          className={({ active }) =>
+                            `${
+                              active ? "bg-primary/10 text-primary" : "text-gray-900 dark:text-white"
+                            } cursor-pointer select-none relative py-2.5 pl-10 pr-4`
+                          }
+                        >
+                          {({ selected, active }) => (
+                            <>
+                              <span className={`${selected ? "font-medium" : "font-normal"} block truncate`}>None</span>
+                              {selectedGame === "" && (
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-primary">
+                                  <IconCheck size={18} aria-hidden="true" />
+                                </span>
+                              )}
+                            </>
+                          )}
+                        </Listbox.Option>
+                      </Listbox.Options>
+                    </Listbox>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Select the game where this session will repeat
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <Input
+                      {...form.register("gameId", {
+                        required: { value: true, message: "Game ID is required when games cannot be fetched" },
+                        pattern: {
+                          value: /^[0-9]+$/,
+                          message: "Invalid Game ID format",
+                        },
+                      })}
+                      label="Game ID"
+                      placeholder="Enter your game ID manually"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Enter the Roblox game ID where this session will take place
+                    </p>
+                    {form.formState.errors.gameId && (
+                      <p className="mt-1 text-sm text-red-500">{form.formState.errors.gameId.message as string}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
-	const newStatus = () => {
-		setStatues([...statues, {
-			name: 'New status',
-			timeAfter: 0,
-			color: 'green',
-			id: uuidv4()
-		}])
-	}
+          {/* Permissions */}
+          {activeTab === "permissions" && (
+            <div className="p-6">
+              <div className="flex items-start mb-6">
+                <div className="bg-primary/10 p-2 rounded-lg mr-4">
+                  <IconUsers className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold dark:text-white">Permissions</h2>
+                  <p className="text-gray-500 dark:text-gray-400 mt-1">
+                    Control which roles can host and claim these sessions
+                  </p>
+                </div>
+              </div>
+              <div className="max-w-2xl">
+                <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <h3 className="text-md font-medium dark:text-white mb-3">Roles that can host/claim sessions</h3>
+                  {roles.length > 0 ? (
+                    <div className="space-y-2 max-h-60 overflow-y-auto p-2">
+                      {roles.map((role: any) => (
+                        <div
+                          key={role.id}
+                          className={`flex items-center p-2 rounded-md ${
+                            selectedRoles.includes(role.id)
+                              ? "bg-primary/10 border border-primary/30"
+                              : "hover:bg-gray-50 dark:hover:bg-gray-700"
+                          }`}
+                        >
+                          <input
+                            id={`role-${role.id}`}
+                            type="checkbox"
+                            checked={selectedRoles.includes(role.id)}
+                            onChange={() => toggleRole(role.id)}
+                            className="w-4 h-4 text-primary bg-gray-100 rounded border-gray-300 focus:ring-primary dark:focus:ring-primary dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                          />
+                          <label
+                            htmlFor={`role-${role.id}`}
+                            className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300 cursor-pointer w-full"
+                          >
+                            {role.name}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+                      <p className="text-gray-500 dark:text-gray-400">No roles available</p>
+                      <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                        Create roles in your workspace settings first
+                      </p>
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
+                    {selectedRoles.length === 0
+                      ? "No roles selected. Only workspace owners will be able to host sessions."
+                      : `${selectedRoles.length} role(s) selected`}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
-	const deleteStatus = (index: number) => {
-		const newStatues = statues;
-		newStatues.splice(index, 1);
-		setStatues([...newStatues]);
-	}
+          {/* Discord Webhooks */}
+          {activeTab === "webhooks" && (
+            <div className="p-6">
+              <div className="flex items-start mb-6">
+                <div className="bg-primary/10 p-2 rounded-lg mr-4">
+                  <IconBrandDiscord className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold dark:text-white">Discord Notifications</h2>
+                  <p className="text-gray-500 dark:text-gray-400 mt-1">
+                    Set up Discord webhook notifications for your sessions
+                  </p>
+                </div>
+              </div>
+              <div className="max-w-2xl">
+                <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <Switchcomponenet
+                    label="Enable Discord notifications"
+                    checked={webhooksEnabled}
+                    onChange={() => setWebhooksEnabled(!webhooksEnabled)}
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 ml-10 mt-1">
+                    Send notifications to Discord when sessions are scheduled
+                  </p>
+                  {webhooksEnabled && (
+                    <div className="space-y-4 pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                      <div>
+                        <Input
+                          {...form.register("webhookUrl", {
+                            required: {
+                              value: webhooksEnabled,
+                              message: "Webhook URL is required",
+                            },
+                            pattern: {
+                              value: /^https?:\/\/(?:www\.)?discord(?:app)?\.com\/api\/webhooks\/(\d+)\/([\w-]+)$/,
+                              message: "Invalid Discord webhook URL",
+                            },
+                          })}
+                          label="Webhook URL"
+                          placeholder="https://discord.com/api/webhooks/..."
+                        />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          The Discord webhook URL to send notifications to
+                        </p>
+                        {form.formState.errors.webhookUrl && (
+                          <p className="mt-1 text-sm text-red-500">
+                            {form.formState.errors.webhookUrl.message as string}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <Input
+                          {...form.register("webhookPing", {
+                            required: {
+                              value: webhooksEnabled,
+                              message: "Webhook ping is required",
+                            },
+                          })}
+                          label="Role/User to Ping"
+                          placeholder="@everyone or <@&role_id>"
+                        />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          Who should be notified when a session is scheduled
+                        </p>
+                        {form.formState.errors.webhookPing && (
+                          <p className="mt-1 text-sm text-red-500">
+                            {form.formState.errors.webhookPing.message as string}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <Input
+                          {...form.register("webhookTitle", {
+                            required: {
+                              value: webhooksEnabled,
+                              message: "Webhook title is required",
+                            },
+                          })}
+                          label="Notification Title"
+                          placeholder="New Session"
+                        />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">The title of the Discord embed</p>
+                        {form.formState.errors.webhookTitle && (
+                          <p className="mt-1 text-sm text-red-500">
+                            {form.formState.errors.webhookTitle.message as string}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <Input
+                          {...form.register("webhookBody", {
+                            required: {
+                              value: webhooksEnabled,
+                              message: "Webhook message is required",
+                            },
+                          })}
+                          label="Notification Message"
+                          textarea
+                          placeholder="Join us for our weekly session!"
+                        />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          The main content of the Discord notification
+                        </p>
+                        {form.formState.errors.webhookBody && (
+                          <p className="mt-1 text-sm text-red-500">
+                            {form.formState.errors.webhookBody.message as string}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
-	const updateStatus = (id: string, name: string, color: string, timeafter: number) => {
-		const newStatues = statues;
-		const index = newStatues.findIndex((status) => status.id === id);
-		newStatues[index] = {
-			...newStatues[index],
-			name,
-			color,
-			timeAfter: timeafter
-		};
-		setStatues([...newStatues]);
-	}
+          {/* Statuses */}
+          {activeTab === "statuses" && (
+            <div className="p-6">
+              <div className="flex items-start mb-6">
+                <div className="bg-primary/10 p-2 rounded-lg mr-4">
+                  <IconClipboardList className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold dark:text-white">Session Statuses</h2>
+                  <p className="text-gray-500 dark:text-gray-400 mt-1">
+                    Define status updates that occur during a session
+                  </p>
+                </div>
+              </div>
+              <div className="max-w-2xl">
+                <div className="flex justify-between items-center mb-4">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Statuses automatically update after the specified time has passed
+                  </p>
+                  <Button
+                    onPress={newStatus}
+                    compact
+                    classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90 flex items-center gap-1"
+                  >
+                    <IconPlus size={16} /> Add Status
+                  </Button>
+                </div>
+                {statues.length === 0 ? (
+                  <div className="text-center py-10 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
+                    <IconClipboardList className="mx-auto text-gray-400 dark:text-gray-500" size={32} />
+                    <p className="text-gray-500 dark:text-gray-400 mt-2">No statuses added yet</p>
+                    <p className="text-sm text-gray-400 dark:text-gray-500 mt-1 max-w-xs mx-auto">
+                      Add statuses to track session progress (e.g., "Starting Soon", "In Progress", "Completed")
+                    </p>
+                    <Button
+                      onPress={newStatus}
+                      classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90 mt-4 flex items-center gap-1 mx-auto"
+                    >
+                      <IconPlus size={16} /> Add Your First Status
+                    </Button>
+                  </div>
+        ) : (
+          <div className="space-y-4">
+            {statues.map((status: StatusType, index: number) => (
+              <div
+                key={status.id}
+                className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800 shadow-sm"
+              >
+                <Status
+                  updateStatus={(value: string, mins: number, color: string) => updateStatus(status.id, value, color, mins)}
+                  deleteStatus={() => deleteStatus(status.id)}
+                  data={status}
+                  index={index + 1}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+              </div>
+            </div>
+          )}
 
-	const newSlot = () => {
-		setSlots([...slots, {
-			name: 'Co-Host',
-			slots: 1,
-			id: uuidv4()
-		}])
-	}
-
-	const deleteSlot = (index: number) => {
-		const newSlots = slots;
-		newSlots.splice(index, 1);
-		setSlots([...newSlots]);
-	}
-
-	const updateSlot = (id: string, name: string, slotsAvailble: number) => {
-		const newSlots = slots;
-		const index = slots.findIndex((slot) => slot.id === id);
-		newSlots[index] = {
-			...newSlots[index],
-			slots: slotsAvailble,
-			name
-		};
-		setSlots([...newSlots]);
-	}
-
-	return <div className="pagePadding">
-	<p className="text-4xl font-bold dark:text-white">Edit session type</p>
-	<FormProvider {...form}>
-		<div className="pt-5 grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-3 gap-y-2">
-			<div className="bg-white dark:bg-gray-800 p-4 border border-1 border-gray-300 dark:border-gray-700 rounded-md">
-				<p className="text-2xl font-bold dark:text-white">Info</p>
-				<Input
-					{...form.register('name', {
-						required: { value: true, message: "This field is required" }
-					})}
-					label="Name of session type"
-				/>
-
-				{!fallbackToManual ? (
-					<Listbox as="div" className="relative inline-block text-left w-full">
-						<Listbox.Button className="ml-auto bg-gray-100 px-3 py-2 w-full rounded-md font-medium text-gray-600 flex">
-							<p className="my-auto">
-								{games?.find((game: { id: number; name: string }) => game.id === Number(selectedGame))?.name || 'No game selected'}
-							</p>
-							<IconChevronDown size={20} className="text-gray-500 my-auto ml-auto" />
-						</Listbox.Button>
-						<Listbox.Options className="absolute right-0 z-40 mt-2 w-56 origin-top-left rounded-md bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-							<div>
-								{games.map((game: any) => (
-									<Listbox.Option
-										key={game.id}
-										value={game.id}
-										onClick={() => setSelectedGame(game.id)}
-										className={({ active }) =>
-											`${active ? 'text-white bg-indigo-600' : 'text-gray-900'} relative cursor-pointer select-none py-2 pl-3 pr-9`
-										}
-									>
-										{({ selected, active }) => (
-											<>
-												<div className="flex items-center">
-													<span className={`${selected ? 'font-semibold' : 'font-normal'} ml-3 block truncate`}>
-														{game.name}
-													</span>
-												</div>
-												{selected && (
-													<span className={`${active ? 'text-white' : 'text-indigo-600'} absolute inset-y-0 right-0 flex items-center pr-4`}>
-														<IconCheck className="h-5 w-5" aria-hidden="true" />
-													</span>
-												)}
-											</>
-										)}
-									</Listbox.Option>
-								))}
-							</div>
-							<div className="h-[1px] rounded-xl w-full px-3 bg-gray-300" />
-							<Listbox.Option
-								value={'None'}
-								onClick={() => setSelectedGame(0)}
-								className={({ active }) =>
-									`${active ? 'text-white bg-indigo-600' : 'text-gray-900'} relative cursor-pointer select-none py-2 pl-3 pr-9`
-								}
-							>
-								{({ selected, active }) => (
-									<>
-										<div className="flex items-center">
-											<span className={`${selected ? 'font-semibold' : 'font-normal'} ml-3 block truncate`}>
-												None
-											</span>
-										</div>
-										{selected && (
-											<span className={`${active ? 'text-white' : 'text-indigo-600'} absolute inset-y-0 right-0 flex items-center pr-4`}>
-												<IconCheck className="h-5 w-5" aria-hidden="true" />
-											</span>
-										)}
-									</>
-								)}
-							</Listbox.Option>
-						</Listbox.Options>
-					</Listbox>
-				) : (
-					<Input
-						label="Game ID"
-						placeholder="Enter game ID manually"
-						{...form.register("gameId", {
-							required: { value: true, message: "Game ID is required" },
-							pattern: {
-								value: /^[0-9]+$/,
-								message: "Game ID must be a number"
-							}
-						})}
-					/>
-				)}
-			</div>
-				<div className="bg-white dark:bg-gray-800 p-4 border border-1 border-gray-300 dark:border-gray-700  rounded-md">
-					<p className="text-2xl font-bold mb-2 dark:text-white">Permissions </p>
-					<p className="text-1xl font-bold mb-2 dark:text-white">Hosting/Claiming</p>
-					{roles.map((role: any) => (
-						<div
-							className="flex items-center"
-							key={role.id}
-						>
-							<input
-								type="checkbox"
-								checked={selectedRoles.includes(role.id)}
-								onChange={() => toggleRole(role.id)}
-
-								className="rounded-sm mr-2 w-4 h-4 transform transition dark:text-white text-primary bg-slate-100 border-gray-300 dark:border-gray-700 hover:bg-gray-300 focus-visible:bg-gray-300 checked:hover:bg-primary/75 checked:focus-visible:bg-primary/75 focus:ring-0"
-							/>
-							<p>{role.name}</p>
-						</div>
-					))}
-				</div>
-				<div className="bg-white dark:bg-gray-800 p-4 border border-1 border-gray-300 dark:border-gray-700  rounded-md">
-					<p className="text-2xl font-bold mb-2 dark:text-white">Discord webhooks  </p>
-					<Switchcomponenet label="Enabled" classoverride="mb-2" checked={webhooksEnabled} onChange={() => setWebhooksEnabled(!webhooksEnabled)} />
-					{webhooksEnabled && (
-						<>
-							<Input {...form.register('webhookUrl', {
-								required: {
-									value: webhooksEnabled,
-									message: 'Webhook is required',
-								},
-								pattern: {
-									value: /^https?:\/\/(?:www\.)?discord(?:app)?\.com\/api\/webhooks\/(\d+)\/([\w-]+)$/,
-									message: 'Invalid webhook URL',
-								}
-							})} label="Webhook URL" type="text" />
-
-							<Input {...form.register('webhookPing', {
-								required: {
-									value: true,
-									message: 'Webhook Ping is required',
-								}
-							})} label="Ping" type="text" placeholder={`Session Ping [<@&id>]`} />
-
-							<Input {...form.register('webhookTitle', {
-								required: {
-									value: true,
-									message: 'Webhook Title is required',
-								}
-							})} label="Title" type="text" placeholder={`Embed Title / Session Name`} />
-
-							<Input {...form.register('webhookBody', {
-								required: {
-									value: true,
-									message: 'Webhook Body is required',
-								}
-							})} label="Text" type="text" textarea placeholder="This group is hosting a session/shift!" />
-						</>
-					)}
-
-
-
-
-				</div>
-
-				<div className="bg-white dark:bg-gray-800 p-4 border border-1 border-gray-300 dark:border-gray-700  rounded-md">
-					<p className="text-2xl font-bold mb-2 dark:text-white">Statuses  </p>
-					<Button onPress={() => newStatus()} classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"> New Status </Button>
-					{statues.map((status: any, i) => (
-						<div className="p-3 outline outline-gray-300 rounded-md mt-4 outline-1" key={i}><Status updateStatus={(value, mins, color) => updateStatus(status.id, value, color, mins)} deleteStatus={() => deleteStatus(status.id)} data={status} /></div>
-
-					))}
-				</div>
-
-				<div className="bg-white dark:bg-gray-800 p-4 border border-1 border-gray-300 dark:border-gray-700  rounded-md">
-					<p className="text-2xl font-bold mb-2 dark:text-white">Slots  </p>
-					<Button onPress={() => newSlot()} classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"> New Slot </Button>
-					<div className="p-3 outline outline-gray-300 rounded-md mt-4 outline-1"><Slot updateStatus={() => {}} isPrimary deleteStatus={() => {}} data={{
-						name: 'Host',
-						slots: 1
-					}} /></div>
-					{slots.map((status: any, i) => (
-						<div className="p-3 outline outline-gray-300 rounded-md mt-4 outline-1" key={i}><Slot updateStatus={(name, openSlots) => updateSlot(status.id, name, openSlots)} deleteStatus={() => deleteSlot(status.id)} data={status} /></div>
-
-					))}
-				</div>
-			</div>
-
-		</FormProvider>
-		<div className="flex mt-2">
-			<Button classoverride="ml-0 bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90" onPress={() => router.back()}>Back</Button>
-			<Button classoverride="ml-2 bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90" onPress={form.handleSubmit(updateSession)}>Update</Button>
-		</div>
-		<Toaster />
-
-	</div>;
+          {/* Slots */}
+          {activeTab === "slots" && (
+            <div className="p-6">
+              <div className="flex items-start mb-6">
+                <div className="bg-primary/10 p-2 rounded-lg mr-4">
+                  <IconUserPlus className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold dark:text-white">Session Slots</h2>
+                  <p className="text-gray-500 dark:text-gray-400 mt-1">
+                    Define roles and how many people can claim each role
+                  </p>
+                </div>
+              </div>
+              <div className="max-w-2xl">
+                <div className="flex justify-between items-center mb-4">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Each session has one Host by default. Add additional roles below.
+                  </p>
+                  <Button
+                    onPress={newSlot}
+                    compact
+                    classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90 flex items-center gap-1"
+                  >
+                    <IconPlus size={16} /> Add Slot
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  <div className="border-2 border-primary/20 rounded-lg p-4 bg-primary/5 dark:bg-primary/10">
+                    <Slot
+                      updateStatus={() => {}}
+                      isPrimary
+                      deleteStatus={() => {}}
+                      data={{
+                        name: "Host",
+                        slots: 1,
+                      }}
+                    />
+                  </div>
+				{slots.map((slot: SlotType, index: number) => (
+					<div
+						key={slot.id}
+						className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800 shadow-sm"
+					>
+						<Slot
+							updateStatus={(name: string, openSlots: number) => updateSlot(slot.id, name, openSlots)}
+							deleteStatus={() => deleteSlot(slot.id)}
+							data={slot}
+							index={index + 1}
+						/>
+					</div>
+				))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </FormProvider>
+      <Toaster />
+    </div>
+  );
 };
 
 Home.layout = Workspace;
 
 const Status: React.FC<{
-	data: any
-	updateStatus: (value: string, minutes: number, color: string) => void
-	deleteStatus: () => void
-}> = (
-	{
-		updateStatus,
-		deleteStatus,
-		data,
-	}
-) => {
-		const methods = useForm<{
-			minutes: number,
-			value: string,
-		}>({
-			defaultValues: {
-				value: data.name,
-				minutes: data.timeAfter,
-			}
-		});
-		const { register, handleSubmit, getValues, watch } = methods;
-		useEffect(() => {
-			const subscription = methods.watch((value) => {
-				updateStatus(methods.getValues().value, Number(methods.getValues().minutes), 'green');
-			});
-			return () => subscription.unsubscribe();
-		}, [methods.watch]);
+  data: any
+  updateStatus: (value: string, minutes: number, color: string) => void
+  deleteStatus: () => void
+  index?: number
+}> = ({ updateStatus, deleteStatus, data, index }) => {
+  const methods = useForm<{
+    minutes: number
+    value: string
+  }>({
+    defaultValues: {
+      value: data.name,
+      minutes: data.timeAfter,
+    },
+  })
+  const { register, watch } = methods
 
+  useEffect(() => {
+    const subscription = methods.watch((value) => {
+      updateStatus(methods.getValues().value, Number(methods.getValues().minutes), "green")
+    })
+    return () => subscription.unsubscribe()
+  }, [methods.watch])
 
-
-		return (
-			<FormProvider {...methods}>
-				<div> <Button onPress={deleteStatus} classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90">Delete</Button> </div>
-				{<Input {...register('value')} label="Status" />}
-				{<Input {...register('minutes')} label="After" append="minutes" prepend={`${watch('value')?.replace('ed', '')}'s after`} type="number" />}
-			</FormProvider>
-		)
-	}
+  return (
+    <FormProvider {...methods}>
+      <div className="flex justify-between items-center mb-3">
+        <div className="flex items-center">
+          {index !== undefined && (
+            <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium mr-2">
+              {index}
+            </span>
+          )}
+          <h3 className="font-medium dark:text-white">{watch("value") || "New Status"}</h3>
+        </div>
+        <Button
+          onPress={deleteStatus}
+          compact
+          classoverride="bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 flex items-center gap-1"
+        >
+          <IconTrash size={16} /> Delete
+        </Button>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Input {...register("value")} label="Status Name" placeholder="In Progress" />
+        <Input {...register("minutes")} label="Time After (minutes)" type="number" placeholder="15" />
+        <p className="text-xs text-gray-500 dark:text-gray-400 md:col-span-2">
+          Status will activate {watch("minutes") || 0} minutes after session starts
+        </p>
+      </div>
+    </FormProvider>
+  )
+}
 
 const Slot: React.FC<{
-	data: any
-	updateStatus: (value: string, slots: number) => void
-	deleteStatus: () => void,
-	isPrimary?: boolean
-}> = (
-	{
-		updateStatus,
-		deleteStatus,
-		isPrimary,
-		data,
-	}
-) => {
-		const methods = useForm<{
-			slots: number,
-			value: string,
-		}>({
-			defaultValues: {
-				value: data.name,
-				slots: data.slots,
-			}
-		});
-		const { register, handleSubmit, getValues, watch } = methods;
-		useEffect(() => {
-			const subscription = methods.watch((value) => {
-				updateStatus(methods.getValues().value, Number(methods.getValues().slots));
-			});
-			return () => subscription.unsubscribe();
-		}, [methods.watch]);
+  data: any
+  updateStatus: (value: string, slots: number) => void
+  deleteStatus: () => void
+  isPrimary?: boolean
+  index?: number
+}> = ({ updateStatus, deleteStatus, isPrimary, data, index }) => {
+  const methods = useForm<{
+    slots: number
+    value: string
+  }>({
+    defaultValues: {
+      value: data.name,
+      slots: data.slots,
+    },
+  })
+  const { register, watch } = methods
 
+  useEffect(() => {
+    const subscription = methods.watch((value) => {
+      updateStatus(methods.getValues().value, Number(methods.getValues().slots))
+    })
+    return () => subscription.unsubscribe()
+  }, [methods.watch])
 
-
-		return (
-			<FormProvider {...methods}>
-				<div> <Button onClick={deleteStatus} disabled={isPrimary} classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90 disabled:opacity-5">Delete</Button> </div>
-				{<Input {...register('value')} disabled={isPrimary} label="Name" />}
-				{<Input {...register('slots')} disabled={isPrimary} append="people can claim" type="number" />}
-			</FormProvider>
-		)
-	}
-
+  return (
+    <FormProvider {...methods}>
+      <div className="flex justify-between items-center mb-3">
+        <div className="flex items-center">
+          {index !== undefined && !isPrimary && (
+            <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium mr-2">
+              {index}
+            </span>
+          )}
+          <h3 className="font-medium dark:text-white">{isPrimary ? "Host (Primary)" : watch("value") || "New Slot"}</h3>
+        </div>
+        {!isPrimary && (
+          <Button
+            onPress={deleteStatus}
+            compact
+            classoverride="bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 flex items-center gap-1"
+          >
+            <IconTrash size={16} /> Delete
+          </Button>
+        )}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Input {...register("value")} disabled={isPrimary} label="Role Name" placeholder="Co-Host" />
+        <Input {...register("slots")} disabled={isPrimary} label="Available Slots" type="number" placeholder="2" />
+        <p className="text-xs text-gray-500 dark:text-gray-400 md:col-span-2">
+          {isPrimary
+            ? "Primary host role cannot be changed"
+            : `Number of people who can claim this role: ${watch("slots") || 0}`}
+        </p>
+      </div>
+    </FormProvider>
+  )
+}
 
 export default Home;
