@@ -1,6 +1,6 @@
 import React, { FC } from "react";
 import { Disclosure, Transition, Listbox } from "@headlessui/react";
-import { IconCheck, IconChevronDown, IconPlus, IconUser } from "@tabler/icons";
+import { IconCheck, IconChevronDown, IconPlus, IconUser } from "@tabler/icons-react";
 import { workspacestate } from "@/state";
 import { useForm, FormProvider } from "react-hook-form";
 import { role } from "@/utils/database";

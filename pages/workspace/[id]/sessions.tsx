@@ -2,7 +2,7 @@ import type { pageWithLayout } from "@/layoutTypes";
 import { loginState } from "@/state";
 import Button from "@/components/button";
 import Workspace from "@/layouts/workspace";
-import { IconChevronRight, IconCalendarEvent, IconClipboardList, IconUsers, IconPlus, IconTrash, IconArrowLeft } from "@tabler/icons";
+import { IconChevronRight, IconCalendarEvent, IconClipboardList, IconUsers, IconPlus, IconTrash, IconArrowLeft } from "@tabler/icons-react";
 import prisma, { Session, user, SessionType } from "@/utils/database";
 import { useRecoilState } from "recoil";
 import { GetServerSideProps } from "next";

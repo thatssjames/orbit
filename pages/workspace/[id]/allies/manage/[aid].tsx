@@ -21,7 +21,7 @@ import { getUsername, getThumbnail } from "@/utils/userinfoEngine";
 import Image from 'next/image'
 import Checkbox from "@/components/checkbox";
 import Tooltip from "@/components/tooltip";
-import { IconUsers, IconPlus, IconTrash, IconPencil, IconCalendar, IconClipboardList, IconArrowLeft } from "@tabler/icons";
+import { IconUsers, IconPlus, IconTrash, IconPencil, IconCalendar, IconClipboardList, IconArrowLeft } from "@tabler/icons-react";
 
 
 export const getServerSideProps = withPermissionCheckSsr(

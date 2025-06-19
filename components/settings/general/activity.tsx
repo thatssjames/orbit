@@ -5,8 +5,7 @@ import { useRecoilState } from "recoil";
 import SwitchComponenet from "@/components/switch";
 import { workspacestate } from "@/state";
 import { Listbox, Transition } from "@headlessui/react";
-import { IconCheck } from "@tabler/icons";
-import { IconChevronDown } from "@tabler/icons";
+import { IconCheck, IconChevronDown } from "@tabler/icons-react";
 import Button from "@/components/button";
 import { useRouter } from "next/router";
 

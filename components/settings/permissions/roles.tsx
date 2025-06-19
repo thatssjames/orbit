@@ -1,6 +1,6 @@
 import React, { FC } from "react";
 import { Disclosure, Transition } from "@headlessui/react";
-import { IconChevronDown, IconPlus, IconRefresh, IconTrash } from "@tabler/icons";
+import { IconChevronDown, IconPlus, IconRefresh, IconTrash } from "@tabler/icons-react";
 import Btn from "@/components/button";
 import { workspacestate } from "@/state";
 import { Role } from "noblox.js";

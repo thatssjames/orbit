@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { IconClipboard, IconPencil, IconUser, IconId, IconHash, IconCheck, IconX, IconCalendar } from "@tabler/icons";
+import { IconClipboard, IconPencil, IconUser, IconId, IconHash, IconCheck, IconX, IconCalendar } from "@tabler/icons-react";
 import axios from "axios";
 import Confetti from "react-confetti";
 

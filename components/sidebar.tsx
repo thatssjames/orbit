@@ -21,7 +21,7 @@ import {
   IconSun,
   IconMoon,
   IconX,
-} from "@tabler/icons"
+} from "@tabler/icons-react"
 import axios from "axios"
 import clsx from "clsx"
 import Parser from "rss-parser"

@@ -14,7 +14,7 @@ import { GetServerSideProps } from "next";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
 import moment from "moment";
 import toast, { Toaster } from 'react-hot-toast';
-import { IconArrowLeft, IconCalendarEvent, IconPlus, IconUserCircle, IconUsers, IconX } from "@tabler/icons";
+import { IconArrowLeft, IconCalendarEvent, IconPlus, IconUserCircle, IconUsers, IconX } from "@tabler/icons-react";
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(async ({ query }) => {
 	const sessions = await prisma.schedule.findMany({

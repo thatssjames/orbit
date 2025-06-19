@@ -19,7 +19,7 @@ import {
   IconMoodSmile,
   IconX,
   IconTrash,
-} from "@tabler/icons";
+} from "@tabler/icons-react";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import sanitizeHtml from "sanitize-html";
 import ReactMarkdown from "react-markdown";

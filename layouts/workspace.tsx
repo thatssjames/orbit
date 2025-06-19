@@ -6,14 +6,13 @@ import Sidebar from "@/components/sidebar";
 import type { LayoutProps } from "@/layoutTypes";
 import axios from "axios";
 import { Transition } from "@headlessui/react";
-import { IconMenu2 } from "@tabler/icons";
 import { useRecoilState } from "recoil";
 import { workspacestate } from "@/state";
 import { useRouter } from "next/router";
 import hexRgb from "hex-rgb";
 import * as colors from "tailwindcss/colors";
 import { useEffect, useState } from "react";
-import { IconChevronLeft, IconChevronRight } from "@tabler/icons";
+import { IconChevronLeft, IconChevronRight, IconMenu2 } from "@tabler/icons-react";
 import clsx from 'clsx';
 
 

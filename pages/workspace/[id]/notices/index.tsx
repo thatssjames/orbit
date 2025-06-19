@@ -15,7 +15,7 @@ import { withPermissionCheckSsr } from "@/utils/permissionsManager";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import Input from "@/components/input";
 import prisma, { inactivityNotice } from "@/utils/database";
-import { IconCalendarTime, IconPlus, IconCheck, IconX, IconClock, IconClipboardList, IconArrowLeft } from "@tabler/icons";
+import { IconCalendarTime, IconPlus, IconCheck, IconX, IconClock, IconClipboardList, IconArrowLeft } from "@tabler/icons-react";
 
 type Form = {
 	startTime: string;

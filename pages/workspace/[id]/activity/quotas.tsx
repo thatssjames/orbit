@@ -15,7 +15,7 @@ import { withPermissionCheckSsr } from "@/utils/permissionsManager";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import Input from "@/components/input";
 import prisma, { inactivityNotice } from "@/utils/database";
-import { IconChartBar, IconPlus, IconTrash, IconUsers, IconClipboardList, IconArrowLeft } from "@tabler/icons";
+import { IconChartBar, IconPlus, IconTrash, IconUsers, IconClipboardList, IconArrowLeft } from "@tabler/icons-react";
 
 type Form = {
 	type: string;

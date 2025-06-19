@@ -6,7 +6,7 @@ import Router from "next/router";
 import Input from "@/components/input";
 import Button from "@/components/button";
 import { Dialog } from "@headlessui/react";
-import { IconX } from "@tabler/icons";
+import { IconX } from "@tabler/icons-react";
 
 type FormData = {
 	username: string;

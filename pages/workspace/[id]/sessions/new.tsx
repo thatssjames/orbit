@@ -24,7 +24,7 @@ import {
   IconUserPlus,
   IconArrowLeft,
   IconDeviceFloppy,
-} from "@tabler/icons"
+} from "@tabler/icons-react"
 import { withPermissionCheckSsr } from "@/utils/permissionsManager"
 import * as noblox from "noblox.js"
 import { useRouter } from "next/router"

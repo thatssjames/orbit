@@ -7,7 +7,7 @@ import moment from "moment";
 import Button from "@/components/button";
 import type { wallPost, user } from "@/utils/database";
 import { useRouter } from "next/router";
-import { IconChevronRight, IconMessage } from '@tabler/icons'
+import { IconChevronRight, IconMessage } from '@tabler/icons-react'
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
 

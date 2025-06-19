@@ -13,7 +13,7 @@ import Input from "@/components/input"
 import { useForm, FormProvider } from "react-hook-form"
 import { useRecoilState } from "recoil"
 import { toast } from "react-hot-toast"
-import { IconPlus, IconRefresh, IconChevronRight, IconBuildingSkyscraper } from "@tabler/icons"
+import { IconPlus, IconRefresh, IconChevronRight, IconBuildingSkyscraper } from "@tabler/icons-react"
 
 const Home: NextPage = () => {
   const [login, setLogin] = useRecoilState(loginState)

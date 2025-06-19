@@ -16,7 +16,7 @@ import {
   IconCheck,
   IconX,
   IconArrowLeft,
-} from "@tabler/icons";
+} from "@tabler/icons-react";
 
 type NoticeWithUser = inactivityNotice & { user: user };
 

@@ -5,7 +5,7 @@ import { useRecoilState } from "recoil";
 import SwitchComponenet from "@/components/switch";
 import { workspacestate } from "@/state";
 import { FC } from '@/types/settingsComponent'
-import { IconBuildingCommunity } from "@tabler/icons";
+import { IconBuildingCommunity } from "@tabler/icons-react";
 
 type props = {
 	triggerToast: typeof toast;

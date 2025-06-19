@@ -14,7 +14,7 @@ import prisma from "@/utils/database";
 import moment from "moment";
 import { InferGetServerSidePropsType } from "next";
 import { useRecoilState } from "recoil";
-import { IconUserCircle, IconHistory, IconBell, IconBook, IconClipboard } from "@tabler/icons";
+import { IconUserCircle, IconHistory, IconBell, IconBook, IconClipboard } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -185,7 +185,7 @@ export const getServerSideProps = withPermissionCheckSsr(
 					displayName: await getDisplayName(Number(query?.uid as string)),
 					avatar: await getThumbnail(Number(query?.uid as string))
 				},
-				isUser: req.session.userid === Number(query?.uid as string),
+				isUser: (req as any)?.session?.userid === Number(query?.uid as string),
 				isAdmin,
 				sessisonsHosted: sessisonsHosted.length,
 				sessionsAttended: sessionsAttended.length,

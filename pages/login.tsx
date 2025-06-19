@@ -11,7 +11,7 @@ import Link from "next/link";
 import { useTheme } from "next-themes";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Dialog } from "@headlessui/react";
-import { IconX } from "@tabler/icons";
+import { IconX } from "@tabler/icons-react";
 
 type LoginForm = { username: string; password: string };
 type SignupForm = { username: string; password: string; verifypassword: string };

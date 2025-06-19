@@ -2,7 +2,7 @@
 
 import type { pageWithLayout } from "@/layoutTypes"
 import { loginState } from "@/state"
-import { IconChevronRight, IconHome, IconLock, IconFlag, IconKey } from "@tabler/icons"
+import { IconChevronRight, IconHome, IconLock, IconFlag, IconKey } from "@tabler/icons-react"
 import Permissions from "@/components/settings/permissions"
 import Workspace from "@/layouts/workspace"
 import { useRecoilState } from "recoil"
@@ -129,11 +129,6 @@ const SECTIONS = {
 const Settings: pageWithLayout<Props> = ({ users, roles, grouproles }) => {
   const [activeSection, setActiveSection] = useState("general")
   const [isSidebarExpanded] = useState(true)
-
-  // Only fetch on mount
-  useEffect(() => {
-    // For updates, update local state directly, or provide a manual refresh button
-  }, []) // Empty dependency array: only on mount
 
   const renderContent = () => {
     if (activeSection === "permissions") {

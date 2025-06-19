@@ -1,7 +1,7 @@
 import React from "react";
 import { FC } from '@/types/settingsComponent'
 import moment from "moment";
-import { IconCheck, IconX, IconClock } from "@tabler/icons";
+import { IconCheck, IconX, IconClock } from "@tabler/icons-react";
 
 interface Props {
 	notices: any[];

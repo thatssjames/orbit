@@ -6,7 +6,7 @@ import { workspacestate } from "@/state";
 import Button from "@/components/button";
 import type { document, user } from "@/utils/database";
 import { useRouter } from "next/router";
-import { IconChevronRight, IconFileText } from '@tabler/icons'
+import { IconChevronRight, IconFileText } from '@tabler/icons-react'
 
 const Docs: React.FC = () => {
 	const [docs, setDocs] = useState<(document & {

@@ -4,7 +4,7 @@ import type toast from "react-hot-toast";
 import { useRecoilState } from "recoil";
 import { workspacestate } from "@/state";
 import { FC } from '@/types/settingsComponent'
-import { IconCheck } from "@tabler/icons";
+import { IconCheck } from "@tabler/icons-react";
 import clsx from 'clsx';
 
 type props = {

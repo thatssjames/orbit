@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FC } from '@/types/settingsComponent'
 import { useRecoilState } from "recoil";
 import { workspacestate } from "@/state";
-import { IconPencil, IconCheck, IconX, IconAlertTriangle, IconStar, IconShieldCheck, IconClipboardList } from "@tabler/icons";
+import { IconPencil, IconCheck, IconX, IconAlertTriangle, IconStar, IconShieldCheck, IconClipboardList } from "@tabler/icons-react";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";

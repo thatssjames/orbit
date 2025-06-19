@@ -5,7 +5,7 @@ import { useRecoilState } from "recoil";
 import SwitchComponenet from "@/components/switch";
 import { workspacestate } from "@/state";
 import { FC } from '@/types/settingsComponent'
-import { IconSpeakerphone } from "@tabler/icons";
+import { IconSpeakerphone } from "@tabler/icons-react";
 
 type props = {
 	triggerToast: typeof toast;

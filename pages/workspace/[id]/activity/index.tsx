@@ -15,7 +15,7 @@ import {
 	IconUserCircle,
 	IconMessageCircle2,
 	IconArrowLeft,
-} from "@tabler/icons";
+} from "@tabler/icons-react";
 import Tooltip from "@/components/tooltip";
 import randomText from "@/utils/randomText";
 import toast, { Toaster } from "react-hot-toast";

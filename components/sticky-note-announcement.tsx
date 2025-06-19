@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { IconX, IconPin } from "@tabler/icons"
+import { IconX, IconPin } from "@tabler/icons-react"
 
 export default function StickyNoteAnnouncement() {
   const [isVisible, setIsVisible] = useState(false)

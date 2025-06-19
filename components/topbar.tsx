@@ -3,10 +3,10 @@ import { loginState } from "../state";
 import { useRecoilState } from "recoil";
 import { Menu, Transition } from "@headlessui/react";
 import { useRouter } from "next/router";
-import { IconLogout, IconChevronDown } from "@tabler/icons";
+import { IconLogout, IconChevronDown } from "@tabler/icons-react";
 import axios from "axios";
 import { Fragment } from "react";
-import ThemeToggle from "./ThemeToggle"; // 🌙 toggle button component
+import ThemeToggle from "./ThemeToggle";
 
 const Topbar: NextPage = () => {
 	const [login, setLogin] = useRecoilState(loginState);

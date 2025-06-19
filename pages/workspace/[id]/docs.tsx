@@ -8,7 +8,7 @@ import prisma, { document } from "@/utils/database";
 import { GetServerSideProps } from "next";
 import randomText from "@/utils/randomText";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
-import { IconFileText, IconPlus, IconClock, IconUser, IconArrowLeft } from "@tabler/icons";
+import { IconFileText, IconPlus, IconClock, IconUser, IconArrowLeft } from "@tabler/icons-react";
 import clsx from 'clsx';
 import { Toaster } from 'react-hot-toast';
 

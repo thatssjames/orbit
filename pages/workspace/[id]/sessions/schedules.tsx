@@ -13,7 +13,7 @@ import prisma, { schedule, SessionType, Session, user, role } from "@/utils/data
 import { GetServerSideProps } from "next";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
 import moment from "moment";
-import { IconArrowLeft, IconCalendarEvent, IconPlus, IconEdit, IconTrash, IconFilter } from "@tabler/icons";
+import { IconArrowLeft, IconCalendarEvent, IconPlus, IconEdit, IconTrash, IconFilter } from "@tabler/icons-react";
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(async ({ query }) => {
 	const sessions = await prisma.schedule.findMany({

@@ -10,7 +10,7 @@ import Tooltip from "@/components/tooltip";
 import moment from "moment";
 import { Dialog, Transition } from "@headlessui/react";
 import Button from "../button";
-import { IconMessages, IconMoon, IconPlayerPlay, IconWalk, IconCalendarTime, IconChartBar, IconUsers, IconClipboardList } from "@tabler/icons";
+import { IconMessages, IconMoon, IconPlayerPlay, IconWalk, IconCalendarTime, IconChartBar, IconUsers, IconClipboardList } from "@tabler/icons-react";
 import axios from "axios";
 import { Toaster, toast } from "react-hot-toast";
 import { useRouter } from "next/router";

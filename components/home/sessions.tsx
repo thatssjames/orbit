@@ -6,7 +6,7 @@ import { workspacestate } from "@/state";
 import Button from "@/components/button";
 import type { Session, user } from "@/utils/database";
 import { useRouter } from "next/router";
-import { IconChevronRight, IconSpeakerphone } from '@tabler/icons'
+import { IconChevronRight, IconSpeakerphone } from '@tabler/icons-react'
 import { getThumbnail } from "@/utils/userinfoEngine";
 
 const Sessions: React.FC = () => {

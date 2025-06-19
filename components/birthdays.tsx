@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import Confetti from "react-confetti";
 import { useRouter } from "next/router";
-import { IconGift } from "@tabler/icons";
+import { IconGift } from "@tabler/icons-react";
 import axios from "axios";
 
 type BirthdayUser = {

@@ -29,7 +29,7 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import moment from "moment";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
-import { IconArrowLeft, IconFilter, IconPlus, IconSearch, IconUsers, IconX } from "@tabler/icons";
+import { IconArrowLeft, IconFilter, IconPlus, IconSearch, IconUsers, IconX } from "@tabler/icons-react";
 
 type User = {
 	info: {

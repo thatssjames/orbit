@@ -7,7 +7,7 @@ import { useRecoilState } from "recoil";
 import { useState, useEffect } from "react";
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import { IconCheck, IconChevronDown, IconH1, IconH2, IconH3, IconH4, IconBold, IconItalic, IconListDetails, IconArrowLeft, IconLock, IconTrash } from "@tabler/icons";
+import { IconCheck, IconChevronDown, IconH1, IconH2, IconH3, IconH4, IconBold, IconItalic, IconListDetails, IconArrowLeft, IconLock, IconTrash } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
 import axios from "axios";

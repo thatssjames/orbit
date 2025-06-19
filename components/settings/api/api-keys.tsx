@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { IconKey, IconTrash, IconCopy, IconPlus, IconCalendar, IconClock } from "@tabler/icons"
+import { IconKey, IconTrash, IconCopy, IconPlus, IconCalendar, IconClock } from "@tabler/icons-react"
 import axios from "axios"
 import { useRouter } from "next/router"
 import { Dialog } from "@headlessui/react"

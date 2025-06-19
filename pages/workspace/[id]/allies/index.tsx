@@ -17,7 +17,7 @@ import prisma from "@/utils/database";
 import { getUsername, getThumbnail } from "@/utils/userinfoEngine";
 import Checkbox from "@/components/checkbox";
 import Tooltip from "@/components/tooltip";
-import { IconUsers, IconPlus, IconTrash, IconClipboardList, IconArrowLeft } from "@tabler/icons";
+import { IconUsers, IconPlus, IconTrash, IconClipboardList, IconArrowLeft } from "@tabler/icons-react";
 
 type Form = {
 	group: string;

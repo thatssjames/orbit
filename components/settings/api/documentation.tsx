@@ -1,6 +1,6 @@
 "use client"
 
-import { IconCopy, IconInfoCircle, IconApi, IconChevronDown, IconChevronRight } from "@tabler/icons"
+import { IconCopy, IconInfoCircle, IconApi, IconChevronDown, IconChevronRight } from "@tabler/icons-react"
 import { useRouter } from "next/router"
 import { Fragment, useState } from "react"
 import { Dialog, Transition } from "@headlessui/react"

@@ -23,7 +23,7 @@ import {
   IconRefresh,
   IconArrowRight,
   IconGift,
-} from "@tabler/icons"
+} from "@tabler/icons-react"
 import clsx from "clsx"
 
 interface WidgetConfig {

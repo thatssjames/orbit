@@ -11,7 +11,7 @@ import { withPermissionCheckSsr } from "@/utils/permissionsManager";
 import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 import { generateHTML } from '@tiptap/html'
-import { IconArrowLeft, IconTrash, IconClock, IconUser, IconEdit } from "@tabler/icons";
+import { IconArrowLeft, IconTrash, IconClock, IconUser, IconEdit } from "@tabler/icons-react";
 import clsx from 'clsx';
 
 
@@ -22,9 +22,11 @@ type Props = {
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(async (context) => {
 	const { gid } = context.query;
 	if (!gid) return { notFound: true };
+	const userid = context.req.cookies['userid'];
+	if (!userid) return { notFound: true };
 	const user = await prisma.user.findUnique({
 		where: {
-			userid: BigInt(context.req.session.userid)
+			userid: BigInt(userid)
 		},
 		include: {
 			roles: {

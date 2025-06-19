@@ -5,13 +5,13 @@ import type toast from "react-hot-toast"
 import { useRecoilState } from "recoil"
 import { workspacestate } from "@/state"
 import type { FC } from "@/types/settingsComponent"
-import { IconCheck } from "@tabler/icons"
+import { IconCheck } from "@tabler/icons-react"
 import clsx from "clsx"
 import { useEffect, useState } from "react"
 
 type props = {
   triggerToast: typeof toast
-  isSidebarExpanded: boolean // Add a prop to track sidebar state
+  isSidebarExpanded: boolean
 }
 
 const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
