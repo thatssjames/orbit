@@ -22,11 +22,9 @@ type Props = {
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(async (context) => {
 	const { gid } = context.query;
 	if (!gid) return { notFound: true };
-	const userid = context.req.cookies['userid'];
-	if (!userid) return { notFound: true };
 	const user = await prisma.user.findUnique({
 		where: {
-			userid: BigInt(userid)
+			userid: BigInt(context.req.session.userid)
 		},
 		include: {
 			roles: {
