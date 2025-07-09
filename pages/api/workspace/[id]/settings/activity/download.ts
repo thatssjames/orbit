@@ -71,6 +71,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       .replace("<url>", escapeXml(currentUrl.origin));
       
     res.setHeader("Content-Type", "application/rbxmx");
+    res.setHeader("Content-Disposition", "attachment; filename=\"Orbitb5-activity.rbxmx\"");
     res.status(200).end(xx);
     
   } catch (error) {
