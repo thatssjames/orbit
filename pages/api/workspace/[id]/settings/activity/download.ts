@@ -29,12 +29,6 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     setConfig("activity", activityconfig, parseInt(req.query.id as string));
   }
 
-  let xml_string = fs.readFileSync(path.join("Orbitb5-activity.rbxmx"), "utf8");
-  res.setHeader(
-    "Content-Disposition",
-    "attachment; filename=Orbitb5-activity.rbxmx"
-  );
-
   // Fix the protocol handling to ensure it's a valid protocol string
   let protocol =
     req.headers["x-forwarded-proto"] ||
@@ -54,11 +48,36 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   const host = planetaryCloudUrl || vercelUrl || req.headers.host;
 
   let currentUrl = new URL(`${protocol}://${host}`);
-  let xx = xml_string
-    .replace("<apikey>", activityconfig.key)
-    .replace("<url>", currentUrl.origin);
-
-  //send file and set content type
-  res.setHeader("Content-Type", "application/rbxmx");
-  res.status(200).send(xx as any);
+  try {
+    let xml_string = fs.readFileSync(path.join(process.cwd(), "Orbitb5-activity.rbxmx"), "utf8");
+    if (!xml_string || xml_string.trim().length === 0) {
+      throw new Error("Template file is empty");
+    }
+    
+    function escapeXml(unsafe: string): string {
+      return unsafe.replace(/[<>&'"]/g, function (c) {
+        switch (c) {
+          case '<': return '&lt;';
+          case '>': return '&gt;';
+          case '&': return '&amp;';
+          case '\'': return '&apos;';
+          case '"': return '&quot;';
+          default: return c;
+        }
+      });
+    }
+    let xx = xml_string
+      .replace("<apikey>", escapeXml(activityconfig.key))
+      .replace("<url>", escapeXml(currentUrl.origin));
+      
+    res.setHeader("Content-Type", "application/rbxmx");
+    res.status(200).end(xx);
+    
+  } catch (error) {
+    console.error("Template processing error:", error);
+    return res.status(500).json({ 
+      success: false, 
+      error: "Failed to process template file" 
+    });
+  }
 }
