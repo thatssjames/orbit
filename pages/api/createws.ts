@@ -1,12 +1,8 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine'
-import prisma from '@/utils/database';
-
+import prisma from '@/utils/database'
 import { withSessionRoute } from '@/lib/withSession'
-import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
-import { getRegistry } from '@/utils/registryManager';
-import * as noblox from 'noblox.js'
+import crypto from 'crypto'
 
 type User = {
 	userId: number
@@ -19,79 +15,113 @@ type User = {
 type Data = {
 	success: boolean
 	error?: string
-	user?: User
-	workspaces?: { 
-		groupId: number
-		groupthumbnail: string
-		groupname: string
-	}[]
+	workspaceGroupId?: number
 }
 
-export default withSessionRoute(handler);
-
-export async function handler(
-	req: NextApiRequest,
-	res: NextApiResponse<Data>
-) {
+export default withSessionRoute(async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 	if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' })
-	const { groupId } = req.body
-	if (!req.session.userid) return res.status(401).json({ success: false, error: 'Not logged in' });
-	const dbuser = await prisma.user.findUnique({
-		where: {
-			userid: req.session.userid
-		}
-	});
+	if (!req.session.userid) return res.status(401).json({ success: false, error: 'Not logged in' })
 
-	if (!dbuser) return res.status(401).json({ success: false, error: 'Not logged in' });
-	
-	
-	if (!groupId) return res.status(400).json({ success: false, error: 'Missing groupId' })
+	// Accept groupId as number or numeric string
+	let { groupId, color } = req.body || {}
+	if (groupId === undefined || groupId === null) return res.status(400).json({ success: false, error: 'Missing groupId' })
+	if (typeof groupId === 'string') {
+		if (!/^\d+$/.test(groupId)) return res.status(400).json({ success: false, error: 'Invalid groupId' })
+		groupId = parseInt(groupId, 10)
+	}
+	if (typeof groupId !== 'number' || isNaN(groupId)) return res.status(400).json({ success: false, error: 'Invalid groupId' })
 
-	if (typeof groupId !== 'number') return res.status(400).json({ success: false, error: 'Invalid groupId' })
+	// Prevent duplicate workspace for same group
+	const existingByGroup = await prisma.workspace.findUnique({ where: { groupId } })
+	if (existingByGroup) return res.status(409).json({ success: false, error: 'Workspace already exists' })
 
-	const tryandfind = await prisma.workspace.findUnique({
-		where: {
-			groupId: groupId
-		}
+	// Enforce one workspace per owner
+	const alreadyOwns = await prisma.workspace.findFirst({ where: { ownerId: req.session.userid } })
+	if (alreadyOwns) return res.status(403).json({ success: false, error: 'You already own a workspace' })
+
+	// Ensure user exists (upsert)
+	await prisma.user.upsert({
+		where: { userid: req.session.userid },
+		update: {},
+		create: { userid: req.session.userid }
 	})
-	if (tryandfind) return res.status(400).json({ success: false, error: 'Workspace already exists' })
-	const urrole = await noblox.getRankInGroup(groupId, req.session.userid).catch(() => null)
-	if (!urrole) return res.status(400).json({ success: false, error: 'You are not a high enough rank' })
-	if (urrole < 10) return res.status(400).json({ success: false, error: 'You are not a high enough rank' })
 
-	await prisma.workspace.create({
-		data: {
-			groupId: parseInt(req.body.groupId),
-		}
-	});
+	// Generate per-workspace session secret (32 hex chars)
+	const sessionSecret = crypto.randomBytes(16).toString('hex')
 
-	await prisma.config.create({
-		data: {
-			key: "customization",
-			workspaceGroupId: parseInt(req.body.groupId),
-			value: {
-				color: req.body.color
+	// Default color fallback
+	color = 'bg-orbit'
+
+	 const workspace = await prisma.$transaction(async (tx) => {
+		const ws = await tx.workspace.create({
+			data: {
+				groupId,
+				ownerId: req.session.userid,
+				sessionSecret
 			}
-		}
-	});
-	
-	const role = await prisma.role.create({
-		data: {
-			workspaceGroupId: parseInt(req.body.groupId),
-			name: "Admin",
-			isOwnerRole: true,
-			members: {
-				connect: {
-					userid: req.session.userid
+		})
+
+		// Basic customization config (mirrors older behavior)
+		await tx.config.create({
+			data: {
+				key: 'customization',
+				workspaceGroupId: groupId,
+				value: { color }
+			}
+		})
+
+		// Create default feature flag configs
+		await tx.config.createMany({
+			data: [
+				{
+					key: 'guides',
+					workspaceGroupId: groupId,
+					value: { enabled: false }
+				},
+				{
+					key: 'allies',
+					workspaceGroupId: groupId,
+					value: { enabled: false }
+				},
+				{
+					key: 'sessions',
+					workspaceGroupId: groupId,
+					value: { enabled: false }
 				}
-			},
-			permissions: [
-				'admin',
-				'view_staff_config'
 			]
-		}
-	});
-	res.status(200).json({ success: true })
+		})
 
+		// Owner/Admin role with core permissions
+		const role = await tx.role.create({
+			data: {
+				workspaceGroupId: groupId,
+				name: 'Admin',
+				isOwnerRole: true,
+				permissions: [
+					'admin',
+					'view_staff_config',
+					'manage_sessions',
+					'manage_activity',
+					'post_on_wall',
+					'manage_wall',
+					'view_wall',
+					'view_members',
+					'manage_members',
+					'manage_docs',
+					'view_entire_groups_activity'
+				],
+				members: { connect: { userid: req.session.userid } }
+			}
+		})
 
-}
+		// Mark user as owner flag
+		await tx.user.update({
+			where: { userid: req.session.userid },
+			data: { isOwner: true }
+		})
+
+		return ws
+	})
+
+	return res.status(200).json({ success: true, workspaceGroupId: workspace.groupId })
+})
