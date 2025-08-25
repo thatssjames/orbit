@@ -445,7 +445,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 							leaveTo="opacity-0 scale-95"
 						>
 							<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
-								<Dialog.Title as="h3" className="text-lg font-medium text-gray-900 mb-4">
+								<Dialog.Title as="h3" className="text-lg font-medium dark:text-white text-gray-900 mb-4">
 									Edit Visit
 								</Dialog.Title>
 
@@ -633,7 +633,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 									{users.map((user: any) => (
 										<label
 											key={user.userid}
-											className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 cursor-pointer"
+											className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"
 										>
 											<input
 												type="checkbox"
@@ -647,7 +647,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 												className="w-8 h-8 rounded-full bg-primary" 
 												alt={user.username}
 											/>
-											<span className="text-sm text-gray-900">{user.username}</span>
+											<span className="text-sm dark:text-white text-gray-900">{user.username}</span>
 										</label>
 									))}
 								</div>
@@ -697,21 +697,21 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 						) : (
 							<div className="grid gap-4 grid-cols-1 md:grid-cols-2">
 								{visits.map((visit: any) => (
-									<div key={visit.id} className="bg-gray-50 rounded-lg p-4">
+									<div key={visit.id} className="bg-gray-50 dark:bg-gray-700rounded-lg p-4">
 										<div className="flex items-start justify-between mb-3">
 											<div>
-												<h3 className="text-sm font-medium text-gray-900">{visit.name}</h3>
+												<h3 className="text-sm font-medium dark:text-white text-gray-900">{visit.name}</h3>
 												<div className="flex items-center gap-2 mt-2">
 													<img 
 														src={visit.hostThumbnail} 
 														className="w-6 h-6 rounded-full bg-primary" 
 														alt={visit.hostUsername}
 													/>
-													<p className="text-xs text-gray-500">
+													<p className="text-xs dark:text-gray-400 text-gray-500">
 														Hosted by {visit.hostUsername}
 													</p>
 												</div>
-												<p className="text-xs text-gray-500 mt-1">
+												<p className="text-xs dark:text-gray-400 text-gray-500 mt-1">
 													{new Date(visit.time).toLocaleDateString()} at {new Date(visit.time).getHours().toString().padStart(2, '0')}:{new Date(visit.time).getMinutes().toString().padStart(2, '0')}
 												</p>
 											</div>
