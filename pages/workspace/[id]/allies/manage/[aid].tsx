@@ -174,6 +174,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 			`/api/workspace/${id}/allies/${ally.id}/notes`,
 			{ notes: notes }
 		).then(req => {
+			setEditNotes([]);
 		});
 		toast.promise(
 			axiosPromise,
@@ -579,13 +580,14 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 											</div>
 										</div>
 										<div className={editNotes.includes(index) ? "" : "hidden"}>
-											<FormProvider {...notesform}>
-												<Input 
-													textarea 
-													{...notesform.register(`note-${index}`)}
-													value={notes[index]} 
-												/>
-											</FormProvider>
+											<textarea
+												className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+												value={notes[index]}
+												onChange={(e) => handleNoteChange(e, index)}
+												onBlur={handleNoteBlur}
+												rows={3}
+												placeholder="Enter your note here..."
+											/>
 										</div>
 									</div>
 								))}
