@@ -74,7 +74,7 @@
       Don't know how to install? –– <a href="https://docs.planetaryapp.cloud">Visit our documentation!</a>
     </li>
     <li>
-      🐛 Bugs? –– <a href="https://discord.gg/planetorbit">Get support and let us know here!</a>
+      🐛 Bugs? Need help? –– <a href="https://discord.gg/planetary">Get support and let us know here!</a>
     </li>
     <li>
       ✨ Suggestions? –– <a href="https://feedback.planetaryapp.cloud/">View our Upcoming Features and Suggest your own!</a>
