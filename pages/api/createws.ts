@@ -59,59 +59,79 @@ export async function handler(
 	if (!urrole) return res.status(400).json({ success: false, error: 'You are not a high enough rank' })
 	if (urrole < 10) return res.status(400).json({ success: false, error: 'You are not a high enough rank' })
 
-	await prisma.workspace.create({
-		data: {
-			groupId: parseInt(req.body.groupId),
-		}
-	});
-
-	await prisma.config.create({
-		data: {
-			key: "customization",
-			workspaceGroupId: parseInt(req.body.groupId),
-			value: {
-				color: req.body.color
-			}
-		}
-	});
-
-	await tx.config.createMany({
-		data: [
-			{
-				key: 'guides',
-				workspaceGroupId: groupId,
-				value: { enabled: false }
-			},
-			{
-				key: 'allies',
-				workspaceGroupId: groupId,
-				value: { enabled: false }
-			},
-			{
-				key: 'sessions',
-				workspaceGroupId: groupId,
-				value: { enabled: false }
-			}
-		]
+	await prisma.user.upsert({
+		where: { userid: req.session.userid },
+		update: {},
+		create: { userid: req.session.userid }
 	})
-	
-	const role = await prisma.role.create({
-		data: {
-			workspaceGroupId: parseInt(req.body.groupId),
-			name: "Admin",
-			isOwnerRole: true,
-			members: {
-				connect: {
-					userid: req.session.userid
+
+	color = 'bg-orbit'
+
+	 const workspace = await prisma.$transaction(async (tx) => {
+		const ws = await tx.workspace.create({
+			data: {
+				groupId,
+				ownerId: req.session.userid
+			}
+		})
+
+		await tx.config.create({
+			data: {
+				key: 'customization',
+				workspaceGroupId: groupId,
+				value: { color }
+			}
+		})
+
+		await tx.config.createMany({
+			data: [
+				{
+					key: 'guides',
+					workspaceGroupId: groupId,
+					value: { enabled: false }
+				},
+				{
+					key: 'allies',
+					workspaceGroupId: groupId,
+					value: { enabled: false }
+				},
+				{
+					key: 'sessions',
+					workspaceGroupId: groupId,
+					value: { enabled: false }
 				}
-			},
-			permissions: [
-				'admin',
-				'view_staff_config'
 			]
-		}
-	});
-	res.status(200).json({ success: true })
+		})
 
+		const role = await tx.role.create({
+			data: {
+				workspaceGroupId: groupId,
+				name: 'Admin',
+				isOwnerRole: true,
+				permissions: [
+					'admin',
+					'view_staff_config',
+					'manage_sessions',
+					'manage_activity',
+					'post_on_wall',
+					'manage_wall',
+					'view_wall',
+					'view_members',
+					'manage_members',
+					'manage_docs',
+					'view_entire_groups_activity'
+				],
+				members: { connect: { userid: req.session.userid } }
+			}
+		})
 
-}
+		await tx.user.update({
+			where: { userid: req.session.userid },
+			data: { isOwner: true }
+		})
+
+		return ws
+	})
+
+	return res.status(200).json({ success: true, workspaceGroupId: workspace.groupId })
+})
