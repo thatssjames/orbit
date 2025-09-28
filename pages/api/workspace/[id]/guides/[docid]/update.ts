@@ -19,35 +19,39 @@ export async function handler(
 	
 	const { name, content, roles } = req.body;
 	if (!name || !content || !roles) return res.status(400).json({ success: false, error: 'Missing required fields' });
+	const workspaceId = parseInt(req.query.id as string);
 
-	// First, disconnect all existing roles
-	await prisma.document.update({
-		where: {
-			id: req.query.docid as string
-		},
-		data: {
-			roles: {
-				set: []
-			}
+	try {
+		const document = await prisma.$transaction(async (tx) => {
+			const found = await tx.document.findFirst({
+				where: {
+					id: req.query.docid as string,
+					workspaceGroupId: workspaceId
+				},
+				select: { id: true }
+			});
+			if (!found) throw new Error('NOT_FOUND');
+			return await tx.document.update({
+				where: { id: req.query.docid as string },
+				data: {
+					name,
+					content,
+					roles: {
+						set: [],
+						connect: roles.map((role: string) => ({ id: role }))
+					}
+				}
+			});
+		});
+
+		return res.status(200).json({
+			success: true,
+			document: JSON.parse(JSON.stringify(document, (key, value) => (typeof value === 'bigint' ? value.toString() : value)))
+		});
+	} catch (e: any) {
+		if (e && e.message === 'NOT_FOUND') {
+			return res.status(404).json({ success: false, error: 'Document not found in this workspace' });
 		}
-	});
-
-	// Then update the document with new data and connect new roles
-	const document = await prisma.document.update({
-		where: {
-			id: req.query.docid as string
-		},
-		data: {
-			name,
-			content,
-			roles: {
-				connect: roles.map((role: string) => ({ id: role }))
-			}
-		}
-	});
-
-	res.status(200).json({ 
-		success: true, 
-		document: JSON.parse(JSON.stringify(document, (key, value) => (typeof value === 'bigint' ? value.toString() : value)))
-	});
+		return res.status(500).json({ success: false, error: 'Internal server error' });
+	}
 }
