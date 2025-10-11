@@ -1,14 +1,14 @@
 >[!IMPORTANT]
->**Work-in-progress** - Planetary is currently in the process of updating this read me and creating our documentation for Orbit. We recommend you host for free with Planetary Cloud, however you can still self-host by following our <a href="https://docs.planetaryapp.cloud">Documentation</a>. Expect bugs in this beta. We've tried our best to iron out everything we could find in Tovy, but we expect there to be issues. Let us know by creating an issue, or if you're adventurous... patch it yourself and send in a PR.
+>**Work-in-progress** - Planetary is currently in the process of updating this read me and creating our documentation for Orbit. We recommend you host for free with Planetary Cloud, however you can still self-host by following our <a href="https://docs.planetaryapp.us">Documentation</a>. Expect bugs in this beta. We've tried our best to iron out everything we could find in Tovy, but we expect there to be issues. Let us know by creating an issue, or if you're adventurous... patch it yourself and send in a PR.
 
 >[!TIP]
-> The best and easiest way to get started with Orbit is our cloud hosting solution, Planetary Cloud. It's easy, secure, and supafast. See https://planetaryapp.cloud to get started. The best part? It's **FREE**!
+> The best and easiest way to get started with Orbit is our cloud hosting solution, Planetary Cloud. It's easy, secure, and supafast. See https://planetaryapp.us to get started. The best part? It's **FREE**!
 <div>
   <div align="left">
     <img height="40px" src=".github/logo.png"></img>
     <h1>Orbit by Team Planetary</h1>
   </div>
-    <img src="https://img.shields.io/badge/version-v2.1.0-purple"></img>
+    <img src="https://img.shields.io/badge/version-v2.1.0beta1-purple"></img>
   <ul>
     <li><a href="#about">About</a></li>
     <li><a href="#why-consider">Why consider</a></li>

@@ -33,7 +33,7 @@ export default function StickyNoteAnnouncement() {
     <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0"></p>
     <div className="text-zinc-800 dark:text-zinc-300 text-sm space-y-2">
       <p>
-        👋 <strong>Orbit v2.1.0 is live!</strong> — A spooky seasonal upgrade 🎃
+        👋 <strong>Orbit v2.1.0beta1 is live!</strong> — A spooky seasonal upgrade 🎃
         <br />
         Here’s what’s new since the last announcement:
       </p>
