@@ -101,11 +101,11 @@ const Notices: pageWithLayout<pageProps> = ({ initialNotices }) => {
     showCancel: boolean
   ) => (
     <div className="mb-10">
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+      <h2 className="text-xl font-semibold text-zinc-900 dark:text-white mb-4">
         {title}
       </h2>
       {list.length === 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 text-center text-gray-500 dark:text-gray-400">
+        <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm p-6 text-center text-zinc-500 dark:text-zinc-400">
           No {title.toLowerCase()}
         </div>
       ) : (
@@ -113,7 +113,7 @@ const Notices: pageWithLayout<pageProps> = ({ initialNotices }) => {
           {list.map((notice) => (
             <div
               key={notice.id}
-              className="bg-white dark:bg-gray-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-all"
+              className="bg-white dark:bg-zinc-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-all"
             >
               <div className="flex items-center gap-3 mb-3">
                 <img
@@ -122,24 +122,24 @@ const Notices: pageWithLayout<pageProps> = ({ initialNotices }) => {
                   className="w-10 h-10 rounded-full ring-2 ring-primary/10"
                 />
                 <div>
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                  <h3 className="text-sm font-medium text-zinc-900 dark:text-white">
                     {notice.user?.username}
                   </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
                     {title} period
                   </p>
                 </div>
               </div>
 
-              <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-3 mb-3">
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 mb-1">
+              <div className="bg-zinc-50 dark:bg-zinc-600 rounded-lg p-3 mb-3">
+                <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300 mb-1">
                   <IconCalendarTime className="w-4 h-4" />
                   <span>
                     {moment(notice.startTime!).format("MMM Do")} -{" "}
                     {moment(notice.endTime!).format("MMM Do YYYY")}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
+                <p className="text-sm text-zinc-600 dark:text-zinc-300">
                   {notice.reason}
                 </p>
               </div>
@@ -186,12 +186,12 @@ const Notices: pageWithLayout<pageProps> = ({ initialNotices }) => {
           <div className="flex items-center gap-3 mb-6">
             <button
               onClick={() => router.back()}
-              className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="p-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-white rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
             >
               <IconArrowLeft className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-2xl font-medium text-gray-900 dark:text-white">
+              <h1 className="text-2xl font-medium text-zinc-900 dark:text-white">
                 Notices
               </h1>
             </div>

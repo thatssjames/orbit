@@ -669,14 +669,14 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
  	}
 
 	return (
-		<div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+		<div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
 			<Toaster position="bottom-center" />
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 				{/* Header */}
 				<div className="flex items-center gap-3 mb-6">
 					<div>
-						<h1 className="text-xl font-medium text-gray-900 dark:text-white">Staff Management</h1>
-						<p className="text-sm text-gray-500">View and manage your staff members</p>
+						<h1 className="text-xl font-medium text-zinc-900 dark:text-white">Staff Management</h1>
+						<p className="text-sm text-zinc-500">View and manage your staff members</p>
 					</div>
 				</div>
 
@@ -688,8 +688,8 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 								{({ open }) => (
 									<>
 										<Popover.Button
-											className={`inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white dark:text-white dark:bg-gray-800 hover:bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${
-												open ? 'bg-gray-50 dark:bg-gray-800 ring-2 ring-primary' : ''
+											className={`inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-zinc-700 bg-white dark:text-white dark:bg-zinc-800 hover:bg-zinc-50 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${
+												open ? 'bg-zinc-50 dark:bg-zinc-800 ring-2 ring-primary' : ''
 											}`}
 										>
 											<IconFilter className="w-4 h-4 mr-1.5" />
@@ -705,7 +705,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 											leaveFrom="opacity-100 translate-y-0"
 											leaveTo="opacity-0 translate-y-1"
 										>
-											<Popover.Panel className="absolute left-0 z-10 mt-2 w-72 origin-top-left rounded-lg bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-3">
+											<Popover.Panel className="absolute left-0 z-10 mt-2 w-72 origin-top-left rounded-lg bg-white dark:bg-zinc-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-3">
 												<div className="space-y-3">
 													<button
 														onClick={newfilter}
@@ -736,8 +736,8 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 								{({ open }) => (
 									<>
 										<Popover.Button
-											className={`inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-white bg-white dark:bg-gray-800 hover:bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${
-												open ? 'bg-gray-50 dark:bg-gray-800 ring-2 ring-primary' : ''
+											className={`inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-zinc-700 dark:text-white bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${
+												open ? 'bg-zinc-50 dark:bg-zinc-800 ring-2 ring-primary' : ''
 											}`}
 										>
 											<IconUsers className="w-4 h-4 mr-1.5" />
@@ -753,7 +753,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 											leaveFrom="opacity-100 translate-y-0"
 											leaveTo="opacity-0 translate-y-1"
 										>
-											<Popover.Panel className="absolute left-0 z-10 mt-2 w-56 origin-top-left rounded-lg bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-3">
+											<Popover.Panel className="absolute left-0 z-10 mt-2 w-56 origin-top-left rounded-lg bg-white dark:bg-zinc-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-3">
 												<div className="space-y-2">
 													{table.getAllLeafColumns().map((column: any) => {
 														if (column.id !== "select" && column.id !== "info") {
@@ -763,7 +763,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 																		checked={column.getIsVisible()}
 																		onChange={column.getToggleVisibilityHandler()}
 																	/>
-																	<span className="text-sm text-gray-700 dark:text-gray-200">{getSelectionName(column.id)}</span>
+																	<span className="text-sm text-zinc-700 dark:text-zinc-200">{getSelectionName(column.id)}</span>
 																</label>
 															)
 														}
@@ -780,22 +780,22 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 						<div className="relative w-full md:w-56">
 							<div className="relative">
 								<div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-									<IconSearch className="h-4 w-4 text-gray-400" />
+									<IconSearch className="h-4 w-4 text-zinc-400" />
 								</div>
 								<input
 									type="text"
 									value={searchQuery}
 									onChange={(e) => updateSearchQuery(e.target.value)}
-									className="block w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded-md leading-5 bg-white dark:bg-gray-800 placeholder-gray-500 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+									className="block w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded-md leading-5 bg-white dark:bg-zinc-800 placeholder-gray-500 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
 									placeholder="Search username..."
 								/>
 							</div>
 
 							{searchOpen && (
-								<div className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 rounded-md shadow-lg">
+								<div className="absolute z-10 mt-1 w-full bg-white dark:bg-zinc-800 rounded-md shadow-lg">
 									<div className="py-1">
 										{searchResults.length === 0 && (
-											<div className="px-3 py-1.5 text-sm text-gray-500">
+											<div className="px-3 py-1.5 text-sm text-zinc-500">
 												No results found
 											</div>
 										)}
@@ -803,14 +803,14 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 											<button
 												key={u.username}
 												onClick={() => updateSearchFilter(u.username)}
-												className="w-full text-left px-3 py-1.5 hover:bg-gray-100 flex items-center space-x-2"
+												className="w-full text-left px-3 py-1.5 hover:bg-zinc-100 flex items-center space-x-2"
 											>
 												<img
 													src={u.thumbnail}
 													alt={u.username}
 													className="w-6 h-6 rounded-full bg-primary"
 												/>
-												<span className="text-sm font-medium text-gray-900 dark:text-white">{u.username}</span>
+												<span className="text-sm font-medium text-zinc-900 dark:text-white">{u.username}</span>
 											</button>
 										))}
 									</div>
@@ -836,7 +836,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 							</button>
 							<button
 								onClick={() => { setType("suspension"); setIsOpen(true) }}
-								className="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+								className="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-zinc-600 hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
 							>
 								Mass suspend {table.getSelectedRowModel().flatRows.length} users
 							</button>
@@ -857,21 +857,21 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 				</div>
 
 				{/* Table */}
-				<div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+				<div className="bg-white dark:bg-zinc-800 rounded-lg shadow overflow-hidden">
 					<div className="overflow-x-auto">
 						<table className="min-w-full divide-y divide-gray-200">
-							<thead className="bg-gray-50 dark:bg-gray-800">
+							<thead className="bg-zinc-50 dark:bg-zinc-800">
 								<tr>
 									{table.getHeaderGroups().map((headerGroup) => (
 										headerGroup.headers.map((header) => (
 											<th
 												key={header.id}
 												scope="col"
-												className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+												className="px-4 py-2 text-left text-xs font-medium text-zinc-500 dark:text-zinc-300 uppercase tracking-wider cursor-pointer hover:bg-zinc-100"
 												onClick={header.column.getToggleSortingHandler()}
 											>
 												{header.isPlaceholder ? null : (
-													<div className="flex items-center space-x-1 dark:text-gray-300">
+													<div className="flex items-center space-x-1 dark:text-zinc-300">
 														<span>{flexRender(header.column.columnDef.header, header.getContext())}</span>
 													</div>
 												)}
@@ -880,16 +880,16 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 									))}
 								</tr>
 							</thead>
-							<tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
+							<tbody className="bg-white dark:bg-zinc-800 divide-y divide-gray-200">
 								{table.getRowModel().rows.map((row) => (
 									<tr
 										key={row.id}
-										className="hover:bg-gray-50 dark:bg-gray-800 transition-colors"
+										className="hover:bg-zinc-50 dark:bg-zinc-800 transition-colors"
 									>
 										{row.getVisibleCells().map((cell) => (
 											<td
 												key={cell.id}
-												className="px-4 py-2 whitespace-nowrap text-sm text-gray-500"
+												className="px-4 py-2 whitespace-nowrap text-sm text-zinc-500"
 											>
 												{flexRender(cell.column.columnDef.cell, cell.getContext())}
 											</td>
@@ -901,23 +901,23 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 					</div>
 
 					{/* Pagination */}
-					<div className="bg-white dark:bg-gray-800 px-3 py-2 flex items-center justify-between border-t border-gray-200 sm:px-4">
+					<div className="bg-white dark:bg-zinc-800 px-3 py-2 flex items-center justify-between border-t border-gray-200 sm:px-4">
 						<div className="flex-1 flex justify-center">
 							<div className="flex gap-1">
 								<button
 									onClick={() => table.previousPage()}
 									disabled={!table.getCanPreviousPage()}
-									className="relative inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:bg-gray-800 dark:text-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+									className="relative inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:bg-zinc-800 dark:text-white disabled:bg-zinc-100 disabled:cursor-not-allowed"
 								>
 									Previous
 								</button>
-								<span className="relative inline-flex items-center px-3 py-1.5 border border-gray-300 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-white rounded-md">
+								<span className="relative inline-flex items-center px-3 py-1.5 border border-gray-300 bg-white dark:bg-zinc-800 text-sm font-medium text-zinc-700 dark:text-white rounded-md">
 									Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
 								</span>
 								<button
 									onClick={() => table.nextPage()}
 									disabled={!table.getCanNextPage()}
-									className="relative inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:bg-gray-800 dark:text-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+									className="relative inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:bg-zinc-800 dark:text-white disabled:bg-zinc-100 disabled:cursor-not-allowed"
 								>
 									Next
 								</button>
@@ -953,14 +953,14 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 								leaveFrom="opacity-100 scale-100"
 								leaveTo="opacity-0 scale-95"
 							>
-								<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-5 text-left align-middle shadow-xl transition-all">
+								<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-zinc-800 p-5 text-left align-middle shadow-xl transition-all">
 									<Dialog.Title as="div" className="flex items-center justify-between mb-3">
-										<h3 className="text-lg font-medium text-gray-900 dark:text-white">
+										<h3 className="text-lg font-medium text-zinc-900 dark:text-white">
 											Mass {type} {type === "add" ? "minutes" : ""}
 										</h3>
 										<button
 											onClick={() => setIsOpen(false)}
-											className="text-gray-400 hover:text-gray-500"
+											className="text-zinc-400 hover:text-zinc-500"
 										>
 											<IconX className="w-5 h-5" />
 										</button>
@@ -994,7 +994,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 									<div className="mt-5 flex justify-end gap-2">
 										<button
 											type="button"
-											className="inline-flex justify-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white dark:bg-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 dark:bg-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+											className="inline-flex justify-center px-3 py-1.5 text-sm font-medium text-zinc-700 bg-white dark:bg-zinc-800 border border-gray-300 rounded-md hover:bg-zinc-50 dark:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
 											onClick={() => setIsOpen(false)}
 										>
 											Cancel
@@ -1018,14 +1018,14 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 };
 
 const BG_COLORS = [
-  "bg-red-200",
-  "bg-green-200",
-  "bg-blue-200",
-  "bg-yellow-200",
-  "bg-pink-200",
-  "bg-indigo-200",
-  "bg-teal-200",
   "bg-orange-200",
+  "bg-amber-200",
+  "bg-lime-200",
+  "bg-purple-200",
+  "bg-violet-200",
+  "bg-fuchsia-200",
+  "bg-rose-200",
+  "bg-green-200",
 ];
 
 function getRandomBg(userid: string | number) {
@@ -1077,18 +1077,18 @@ const Filter: React.FC<{
 			<div className="space-y-4">
 				<button
 					onClick={deleteFilter}
-					className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+					className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
 				>
 					Delete Filter
 				</button>
 
 				<div className="space-y-2">
-					<label className="block text-sm font-medium text-gray-700">
+					<label className="block text-sm font-medium text-zinc-700">
 						Column
 					</label>
 					<select
 						{...register('col')}
-						className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
+						className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
 					>
 						{Object.keys(filters).map((filter) => (
 							<option value={filter} key={filter}>{filter}</option>
@@ -1097,12 +1097,12 @@ const Filter: React.FC<{
 				</div>
 
 				<div className="space-y-2">
-					<label className="block text-sm font-medium text-gray-700">
+					<label className="block text-sm font-medium text-zinc-700">
 						Operation
 					</label>
 					<select
 						{...register('op')}
-						className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
+						className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
 					>
 						{filters[methods.getValues().col].map((filter) => (
 							<option value={filter} key={filter}>{filterNames[filter]}</option>
@@ -1112,7 +1112,7 @@ const Filter: React.FC<{
 
 				{getValues('col') !== 'rank' && (
 					<div className="space-y-2">
-						<label className="block text-sm font-medium text-gray-700">
+						<label className="block text-sm font-medium text-zinc-700">
 							Value
 						</label>
 						<Input {...register('value')} />
@@ -1121,12 +1121,12 @@ const Filter: React.FC<{
 
 				{getValues('col') === 'rank' && (
 					<div className="space-y-2">
-						<label className="block text-sm font-medium text-gray-700">
+						<label className="block text-sm font-medium text-zinc-700">
 							Value
 						</label>
 						<select
 							{...register('value')}
-							className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
+							className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
 						>
 							{ranks.map((rank) => (
 								<option value={rank.rank} key={rank.id}>{rank.name}</option>
@@ -1137,12 +1137,12 @@ const Filter: React.FC<{
 
 				{getValues('col') === 'registered' && (
 					<div className="space-y-2">
-						<label className="block text-sm font-medium text-gray-700">
+						<label className="block text-sm font-medium text-zinc-700">
 							Value
 						</label>
 						<select
 							{...register('value')}
-							className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
+							className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
 						>
 							<option value="true">✅</option>
 							<option value="false">❌</option>

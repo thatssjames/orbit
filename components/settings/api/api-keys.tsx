@@ -111,8 +111,8 @@ const createApiKey = async () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">API Keys</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <h3 className="text-lg font-medium text-zinc-900 dark:text-white">API Keys</h3>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
             Manage API keys for accessing workspace data programmatically
           </p>
         </div>
@@ -126,10 +126,10 @@ const createApiKey = async () => {
       </div>
 
       {apiKeys.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-          <IconKey size={48} className="mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-500 dark:text-gray-400">No API keys created yet</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+        <div className="text-center py-12 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
+          <IconKey size={48} className="mx-auto text-zinc-400 mb-4" />
+          <p className="text-zinc-500 dark:text-zinc-400">No API keys created yet</p>
+          <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-2">
             Create an API key to start using the public API
           </p>
         </div>
@@ -138,14 +138,14 @@ const createApiKey = async () => {
           {apiKeys.map((key) => (
             <div
               key={key.id}
-              className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 flex items-center justify-between"
+              className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-4 flex items-center justify-between"
             >
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <h4 className="font-medium text-gray-900 dark:text-white">{key.name}</h4>
-                  <code className="text-sm bg-gray-200 dark:bg-gray-700 dark:text-gray-300 px-2 py-1 rounded">{key.key}</code>
+                  <h4 className="font-medium text-zinc-900 dark:text-white">{key.name}</h4>
+                  <code className="text-sm bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-300 px-2 py-1 rounded">{key.key}</code>
                 </div>
-                <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                <div className="flex items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
                   <span className="flex items-center gap-1">
                     <IconCalendar size={14} />
                     Created {formatDate(key.createdAt)}
@@ -185,8 +185,8 @@ const createApiKey = async () => {
       >
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="mx-auto max-w-md w-full rounded-lg bg-white dark:bg-gray-800 p-6 shadow-xl">
-            <Dialog.Title className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+          <Dialog.Panel className="mx-auto max-w-md w-full rounded-lg bg-white dark:bg-zinc-800 p-6 shadow-xl">
+            <Dialog.Title className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
               {createdKey ? "API Key Created" : "Create API Key"}
             </Dialog.Title>
 
@@ -197,7 +197,7 @@ const createApiKey = async () => {
                     Make sure to copy your API key now. You won't be able to see it again!
                   </p>
                   <div className="flex items-center gap-2">
-                    <code className="flex-1 bg-white dark:bg-gray-900 dark:text-white p-2 rounded text-sm break-all">
+                    <code className="flex-1 bg-white dark:bg-zinc-900 dark:text-white p-2 rounded text-sm break-all">
                       {createdKey.key}
                     </code>
                     <button
@@ -223,23 +223,23 @@ const createApiKey = async () => {
               <div>
                 <div className="space-y-4 mb-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Key Name</label>
+                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Key Name</label>
                     <input
                       type="text"
                       value={newKeyData.name}
                       onChange={(e) => setNewKeyData({ ...newKeyData, name: e.target.value })}
                       placeholder="e.g., Production API Key"
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                       Expiration
                     </label>
                     <select
                       value={newKeyData.expiresIn}
                       onChange={(e) => setNewKeyData({ ...newKeyData, expiresIn: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
                     >
                       <option value="30days">30 days</option>
                       <option value="90days">90 days</option>
@@ -251,7 +251,7 @@ const createApiKey = async () => {
                 <div className="flex gap-3">
                   <button
                     onClick={() => setIsCreateModalOpen(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700"
                   >
                     Cancel
                   </button>
@@ -262,7 +262,7 @@ const createApiKey = async () => {
                       "flex-1 px-4 py-2 rounded-lg",
                       newKeyData.name
                         ? "bg-primary text-white hover:bg-primary/90"
-                        : "bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed",
+                        : "bg-zinc-200 dark:bg-zinc-700 text-zinc-400 cursor-not-allowed",
                     )}
                   >
                     Create
@@ -278,17 +278,17 @@ const createApiKey = async () => {
       <Dialog open={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} className="relative z-50">
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="mx-auto max-w-sm rounded-lg bg-white dark:bg-gray-800 p-6 shadow-xl">
-            <Dialog.Title className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+          <Dialog.Panel className="mx-auto max-w-sm rounded-lg bg-white dark:bg-zinc-800 p-6 shadow-xl">
+            <Dialog.Title className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
               Delete API Key
             </Dialog.Title>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">
+            <p className="text-zinc-500 dark:text-zinc-400 mb-6">
               Are you sure you want to delete "{selectedKey?.name}"? This action cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setIsDeleteModalOpen(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700"
               >
                 Cancel
               </button>

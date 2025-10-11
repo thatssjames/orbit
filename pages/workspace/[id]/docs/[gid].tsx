@@ -97,16 +97,16 @@ const Settings: pageWithLayout<Props> = ({ document }) => {
 					<div className="flex items-center gap-4 mb-6">
 						<button
 							onClick={goback}
-							className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+							className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
 						>
-							<IconArrowLeft className="w-5 h-5 text-gray-500" />
+							<IconArrowLeft className="w-5 h-5 text-zinc-500" />
 						</button>
-						<h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+						<h1 className="text-4xl font-bold text-zinc-900 dark:text-white">
 							{document.name}
 						</h1>
 					</div>
 
-					<div className="flex items-center gap-6 text-sm text-gray-500">
+					<div className="flex items-center gap-6 text-sm text-zinc-500">
 						<div className="flex items-center gap-2">
 							<IconUser className="w-4 h-4" />
 							<span>Created by {document.owner.username}</span>
@@ -119,7 +119,7 @@ const Settings: pageWithLayout<Props> = ({ document }) => {
 				</div>
 
 				{/* Document Content */}
-				<div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8">
+				<div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm p-8">
 					<div 
 						className="prose dark:prose-invert max-w-none"
 						dangerouslySetInnerHTML={{ __html: output }} 
@@ -148,17 +148,17 @@ const Settings: pageWithLayout<Props> = ({ document }) => {
 			</div>
 			{showDeleteModal && (
 			<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-				<div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
-				<h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+				<div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
+				<h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">
 					Confirm Deletion
 				</h2>
-				<p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+				<p className="text-sm text-zinc-600 dark:text-zinc-300 mb-6">
 					Are you sure you want to delete this Document? This action cannot be undone.
 				</p>
 				<div className="flex justify-center gap-4">
 					<button
 					onClick={() => setShowDeleteModal(false)}
-					className="px-4 py-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-white"
+					className="px-4 py-2 rounded-md bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white"
 					>
 					Cancel
 					</button>

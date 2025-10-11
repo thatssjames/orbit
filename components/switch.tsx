@@ -17,7 +17,7 @@ const SwitchComponenet: FC<Props> = ({ disabled, onChange, label, checked }: Pro
 		<div className="flex flex-row">
 			<Switch
 				checked={checked}
-				className={`${checked ? 'bg-primary' : 'bg-gray-200'
+				className={`${checked ? 'bg-primary' : 'bg-zinc-200'
 					} relative inline-flex h-6 w-11 items-center rounded-full shadow-inner mb-2`}
 				onChange={onChange}
 			>

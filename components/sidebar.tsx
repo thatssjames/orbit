@@ -26,7 +26,7 @@ import axios from "axios"
 import clsx from "clsx"
 import Parser from "rss-parser"
 import ReactMarkdown from "react-markdown";
-import packageJson from "../package.json"; // Adjust path if needed
+import packageJson from "../package.json";
 
 interface SidebarProps {
   isCollapsed: boolean
@@ -198,9 +198,9 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       {/* Mobile menu button */}
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="lg:hidden fixed top-4 left-4 z-[999999] p-2 rounded-lg bg-white dark:bg-gray-800 shadow"
+        className="lg:hidden fixed top-4 left-4 z-[999999] p-2 rounded-lg bg-white dark:bg-zinc-800 shadow"
       >
-        <IconMenu2 className="w-6 h-6 text-gray-700 dark:text-white" />
+        <IconMenu2 className="w-6 h-6 text-zinc-700 dark:text-white" />
       </button>
 
       {/* Mobile overlay */}
@@ -215,18 +215,18 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         <aside
           className={clsx(
             "h-screen flex flex-col pointer-events-auto shadow-xl transition-all duration-300",
-            "bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700",
+            "bg-white dark:bg-zinc-800 border-r border-gray-200 dark:border-zinc-700",
             isCollapsed ? "w-[4.5rem]" : "w-64",
           )}
         >
           <div className="h-full flex flex-col p-3 overflow-y-auto">
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="grid place-content-center p-2 mb-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="grid place-content-center p-2 mb-4 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700"
             >
               <IconChevronLeft
                 className={clsx(
-                  "w-5 h-5 text-gray-500 dark:text-white transition-transform",
+                  "w-5 h-5 text-zinc-500 dark:text-white transition-transform",
                   isCollapsed && "rotate-180",
                 )}
               />
@@ -250,7 +250,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               >
                 <Listbox.Button
                   className={clsx(
-                    "w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700",
+                    "w-full flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700",
                     isCollapsed && "justify-center",
                   )}
                 >
@@ -265,14 +265,14 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     <>
                       <div className="flex-1 text-left">
                         <p className="text-sm font-medium truncate dark:text-white">{workspace.groupName}</p>
-                        <p className="text-xs text-gray-500 dark:text-white">Switch workspace</p>
+                        <p className="text-xs text-zinc-500 dark:text-white">Switch workspace</p>
                       </div>
-                      <IconChevronDown className="w-4 h-4 text-gray-400 dark:text-white flex-shrink-0" />
+                      <IconChevronDown className="w-4 h-4 text-zinc-400 dark:text-white flex-shrink-0" />
                     </>
                   )}
                 </Listbox.Button>
                 <div className={clsx("absolute top-0 z-50 w-64 mt-14", isCollapsed ? "left-full ml-2" : "left-0")}>
-                  <Listbox.Options className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 max-h-64 overflow-auto">
+                  <Listbox.Options className="bg-white dark:bg-zinc-800 rounded-lg shadow-lg border dark:border-zinc-700 max-h-64 overflow-auto">
                     {login?.workspaces?.map((ws) => (
                       <Listbox.Option
                         key={ws.groupId}
@@ -306,7 +306,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                         "w-full gap-3 px-2 py-2 rounded-lg text-sm font-medium",
                         router.asPath === page.href.replace("[id]", workspace.groupId.toString())
                           ? "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))] font-semibold"
-                          : "text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700",
+                          : "text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-700",
                         isCollapsed ? "grid place-content-center" : "flex gap-2 items-center",
                       )}
                     >
@@ -321,7 +321,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               <button
                 onClick={toggleTheme}
                 className={clsx(
-                  "mb-4 p-2 rounded-lg flex items-center gap-2 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700",
+                  "mb-4 p-2 rounded-lg flex items-center gap-2 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-700",
                   isCollapsed ? "justify-center" : "justify-start",
                 )}
               >
@@ -332,7 +332,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               <Menu as="div" className="relative">
                 <Menu.Button
                   className={clsx(
-                    "w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700",
+                    "w-full flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700",
                     isCollapsed && "justify-center",
                   )}
                 >
@@ -345,20 +345,20 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     <>
                       <div className="flex-1 text-left">
                         <p className="text-sm font-medium dark:text-white truncate">{login?.displayname}</p>
-                        <p className="text-xs text-gray-500 dark:text-white">Manage account</p>
+                        <p className="text-xs text-zinc-500 dark:text-white">Manage account</p>
                       </div>
-                      <IconChevronDown className="w-4 h-4 text-gray-400 dark:text-white" />
+                      <IconChevronDown className="w-4 h-4 text-zinc-400 dark:text-white" />
                     </>
                   )}
                 </Menu.Button>
-                <Menu.Items className="absolute bottom-14 left-0 w-full bg-white dark:bg-gray-700 rounded-lg shadow-lg z-50 py-2">
+                <Menu.Items className="absolute bottom-14 left-0 w-full bg-white dark:bg-zinc-700 rounded-lg shadow-lg z-50 py-2">
                   <Menu.Item>
                     {({ active }) => (
                       <button
                         onClick={() => router.push(`/workspace/${workspace.groupId}/profile/${login.userId}`)}
                         className={clsx(
                           "w-full text-left px-4 py-2 text-sm dark:text-white",
-                          active ? "bg-gray-100 dark:bg-gray-600 dark:text-white" : "",
+                          active ? "bg-zinc-100 dark:bg-zinc-600 dark:text-white" : "",
                         )}
                       >
                         View Profile
@@ -371,7 +371,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                         onClick={logout}
                         className={clsx(
                           "w-full text-left px-4 py-2 text-sm text-red-500",
-                          active ? "bg-gray-100 dark:bg-gray-600" : "",
+                          active ? "bg-zinc-100 dark:bg-zinc-600" : "",
                         )}
                       >
                         Logout
@@ -385,13 +385,13 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 <>
                   <button 
                     onClick={() => setShowCopyright(true)} 
-                    className="mt-4 text-left text-xs text-gray-500 hover:text-primary"
+                    className="mt-4 text-left text-xs text-zinc-500 hover:text-primary"
                   >
                     © Copyright Notices
                   </button>
 
-                  <div className="mt-2 text-xs text-gray-500">
-                    v{packageJson.version} - <button onClick={() => setShowChangelog(true)} className="mt-2 text-left text-xs text-gray-500 hover:text-primary">Changelog</button>
+                  <div className="mt-2 text-xs text-zinc-500">
+                    v{packageJson.version} - <button onClick={() => setShowChangelog(true)} className="mt-2 text-left text-xs text-zinc-500 hover:text-primary">Orbit Changelog</button>
                   </div>
                 </>
               )}
@@ -406,34 +406,34 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
 
             <div className="fixed inset-0 flex items-center justify-center p-4">
-              <Dialog.Panel className="mx-auto max-w-sm rounded-lg bg-white dark:bg-gray-800 p-6 shadow-xl">
+              <Dialog.Panel className="mx-auto max-w-sm rounded-lg bg-white dark:bg-zinc-800 p-6 shadow-xl">
                 <div className="flex items-center justify-between mb-4">
-                  <Dialog.Title className="text-lg font-medium text-gray-900 dark:text-white">
+                  <Dialog.Title className="text-lg font-medium text-zinc-900 dark:text-white">
                     Copyright Notices
                   </Dialog.Title>
                   <button
                     onClick={() => setShowCopyright(false)}
-                    className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                    className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700"
                   >
-                    <IconX className="w-5 h-5 text-gray-500" />
+                    <IconX className="w-5 h-5 text-zinc-500" />
                   </button>
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                    <h3 className="text-sm font-medium text-zinc-900 dark:text-white mb-1">
                       Orbit features, enhancements, and modifications:
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
                       Copyright © 2025 Planetary. All rights reserved.
                     </p>
                   </div>
 
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                    <h3 className="text-sm font-medium text-zinc-900 dark:text-white mb-1">
                       Original Tovy features and code:
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
                       Copyright © 2022 Tovy. All rights reserved.
                     </p>
                   </div>
@@ -449,27 +449,27 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
           >
             <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
             <div className="fixed inset-0 flex items-center justify-center p-4">
-              <Dialog.Panel className="mx-auto max-w-lg rounded-lg bg-white dark:bg-gray-800 p-6 shadow-xl">
+              <Dialog.Panel className="mx-auto max-w-lg rounded-lg bg-white dark:bg-zinc-800 p-6 shadow-xl">
                 <div className="flex items-center justify-between mb-4">
-                  <Dialog.Title className="text-lg font-medium text-gray-900 dark:text-white">
+                  <Dialog.Title className="text-lg font-medium text-zinc-900 dark:text-white">
                     Changelog
                   </Dialog.Title>
                   <button
                     onClick={() => setShowChangelog(false)}
-                    className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                    className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700"
                   >
-                    <IconX className="w-5 h-5 text-gray-500" />
+                    <IconX className="w-5 h-5 text-zinc-500" />
                   </button>
                 </div>
                 <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {changelog.length === 0 && <p className="text-sm text-gray-500">Loading...</p>}
+                  {changelog.length === 0 && <p className="text-sm text-zinc-500">Loading...</p>}
                   {changelog.map((entry, idx) => (
                     <div key={idx}>
                       <a href={entry.link} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">
                         {entry.title}
                       </a>
-                      <div className="text-xs text-gray-400">{entry.pubDate}</div>
-                      <div className="text-sm text-gray-700 dark:text-gray-300">
+                      <div className="text-xs text-zinc-400">{entry.pubDate}</div>
+                      <div className="text-sm text-zinc-700 dark:text-zinc-300">
                         <ReactMarkdown>{entry.content}</ReactMarkdown>
                       </div>
                     </div>

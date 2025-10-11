@@ -130,11 +130,11 @@ const Home: NextPage = () => {
         <meta name="description" content="Manage your Roblox workspaces with Orbit" />
       </Head>
 
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-800">
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-800">
         <Topbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-0">Your Workspaces</h1>
+            <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-4 sm:mb-0">Your Workspaces</h1>
             <div className="flex space-x-3">
               {isOwner && (
                 <Button onClick={() => setIsOpen(true)} classoverride="flex items-center">
@@ -144,7 +144,7 @@ const Home: NextPage = () => {
               )}
               <Button
                 onClick={checkRoles}
-                classoverride="flex items-center bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
+                classoverride="flex items-center bg-zinc-200 hover:bg-zinc-300 text-zinc-800 dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-white"
               >
                 <IconRefresh className="mr-2 h-5 w-5" />
                 Check Roles
@@ -157,7 +157,7 @@ const Home: NextPage = () => {
               {login.workspaces.map((workspace, i) => (
                 <div
                   key={i}
-                  className="bg-white dark:bg-gray-700 rounded-xl shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md hover:scale-[1.02] cursor-pointer"
+                  className="bg-white dark:bg-zinc-700 rounded-xl shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md hover:scale-[1.02] cursor-pointer"
                   onClick={() => gotoWorkspace(workspace.groupId)}
                 >
                   <div
@@ -165,21 +165,21 @@ const Home: NextPage = () => {
                     style={{ backgroundImage: `url(${workspace.groupThumbnail})` }}
                   />
                   <div className="p-4 flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                    <h3 className="text-lg font-semibold text-zinc-900 dark:text-white truncate">
                       {workspace.groupName}
                     </h3>
-                    <IconChevronRight className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                    <IconChevronRight className="h-5 w-5 text-zinc-500 dark:text-zinc-400" />
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="bg-white dark:bg-gray-700 rounded-xl shadow-sm p-8 flex flex-col items-center justify-center text-center">
-              <div className="bg-gray-100 dark:bg-gray-600 rounded-full p-4 mb-4">
-                <IconBuildingSkyscraper className="h-12 w-12 text-gray-400 dark:text-gray-500" />
+            <div className="bg-white dark:bg-zinc-700 rounded-xl shadow-sm p-8 flex flex-col items-center justify-center text-center">
+              <div className="bg-zinc-100 dark:bg-zinc-600 rounded-full p-4 mb-4">
+                <IconBuildingSkyscraper className="h-12 w-12 text-zinc-400 dark:text-zinc-500" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No workspaces available</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">
+              <h3 className="text-xl font-semibold text-zinc-900 dark:text-white mb-2">No workspaces available</h3>
+              <p className="text-zinc-500 dark:text-zinc-400 mb-6">
                 {isOwner ? "Create a new workspace to get started" : "You don't have permission to create workspaces"}
               </p>
               {isOwner ? (
@@ -188,7 +188,7 @@ const Home: NextPage = () => {
                   Create Workspace
                 </Button>
               ) : (
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
                   Contact an administrator if you need to create a workspace
                 </p>
               )}
@@ -220,8 +220,8 @@ const Home: NextPage = () => {
                     leaveFrom="opacity-100 scale-100"
                     leaveTo="opacity-0 scale-95"
                   >
-                    <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
-                      <Dialog.Title as="h3" className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-zinc-800 p-6 text-left align-middle shadow-xl transition-all">
+                      <Dialog.Title as="h3" className="text-2xl font-bold text-zinc-900 dark:text-white">
                         Create New Workspace
                       </Dialog.Title>
 
@@ -244,7 +244,7 @@ const Home: NextPage = () => {
                       <div className="mt-6 flex justify-end space-x-3">
                         <Button
                           onClick={() => setIsOpen(false)}
-                          classoverride="bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
+                          classoverride="bg-zinc-200 hover:bg-zinc-300 text-zinc-800 dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-white"
                         >
                           Cancel
                         </Button>

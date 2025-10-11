@@ -32,8 +32,8 @@ const Docs: React.FC = () => {
 					<div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
 						<IconFileText className="w-8 h-8 text-primary" />
 					</div>
-					<p className="text-lg font-medium text-gray-900 dark:text-white mb-1">No documents yet</p>
-					<p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Create your first document to get started</p>
+					<p className="text-lg font-medium text-zinc-900 dark:text-white mb-1">No documents yet</p>
+					<p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">Create your first document to get started</p>
 					<button
 						onClick={goToDocs}
 						className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
@@ -47,7 +47,7 @@ const Docs: React.FC = () => {
 					{docs.slice(0, 3).map((document) => (
 						<div 
 							key={document.id} 
-							className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+							className="bg-white dark:bg-zinc-800 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
 							onClick={() => router.push(`/workspace/${router.query.id}/docs/${document.id}`)}
 						>
 							<div className="flex items-start gap-3">
@@ -55,7 +55,7 @@ const Docs: React.FC = () => {
 									<IconFileText className="w-5 h-5 text-primary" />
 								</div>
 								<div className="flex-1 min-w-0">
-									<p className="font-medium text-gray-900 dark:text-white truncate">
+									<p className="font-medium text-zinc-900 dark:text-white truncate">
 										{document.name}
 									</p>
 									<div className="mt-1 flex items-center gap-2">
@@ -64,7 +64,7 @@ const Docs: React.FC = () => {
 											alt={`${document.owner?.username}'s avatar`}
 											className="rounded-lg h-6 w-6 bg-primary object-cover" 
 										/>
-										<p className="text-sm text-gray-500 dark:text-gray-400">
+										<p className="text-sm text-zinc-500 dark:text-zinc-400">
 											Created by {document.owner?.username}
 										</p>
 									</div>

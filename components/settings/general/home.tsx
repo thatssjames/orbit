@@ -44,7 +44,7 @@ const Color: FC<props> = (props) => {
 
 	return (
 		<div>
-			<p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+			<p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
 				Customize what appears on your workspace home page. Tiles will only be shown to users with the corresponding permissions.
 			</p>
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -56,7 +56,7 @@ const Color: FC<props> = (props) => {
 							'flex items-center justify-between p-3 rounded-lg border transition-colors',
 							workspace.settings.widgets.includes(toggleAble[key])
 								? 'border-primary bg-primary/5 text-primary dark:text-white'
-								: 'border-gray-200 dark:border-gray-700 dark:text-white hover:border-gray-300 dark:hover:border-gray-600'
+								: 'border-gray-200 dark:border-zinc-700 dark:text-white hover:border-gray-300 dark:hover:border-gray-600'
 						)}
 					>
 						<span className="text-sm font-medium">{key}</span>
@@ -92,8 +92,8 @@ const Color: FC<props> = (props) => {
 															: workspace.groupTheme === "bg-pink-500"
 																? "bg-pink-500 text-white hover:bg-pink-600"
 																: workspace.groupTheme === "bg-black"
-																	? "bg-black text-white hover:bg-gray-900"
-																	: "bg-gray-500 text-white hover:bg-gray-600"
+																	? "bg-black text-white hover:bg-zinc-900"
+																	: "bg-zinc-500 text-white hover:bg-zinc-600"
 					)}
 				>
 					Save Changes

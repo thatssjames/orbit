@@ -23,7 +23,7 @@ const Input = React.forwardRef<
 	return (
 		<div className="mb-3">
 			{label &&
-				<label htmlFor={id} className="text-gray-500 text-sm dark:text-gray-200">
+				<label htmlFor={id} className="text-zinc-500 text-sm dark:text-zinc-200">
 					{label}
 				</label>
 			}
@@ -44,7 +44,7 @@ const Input = React.forwardRef<
 					value={value}
 					ref={(ref as any)}
 					className={
-						`text-gray-600 dark:text-white flex-1 rounded-lg p-2 border-2 border-gray-300  dark:border-gray-500 w-full  bg-gray-50 disabled:bg-gray-200 focus-visible:outline-none dark:bg-gray-700 ${prepend ? 'rounded-l-none' : 'rounded-l-lg'} ${append ? 'rounded-r-none' : 'rounded-r-lg'} ` + classoverride + ` block w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-primary focus:border-primary transition`
+						`text-zinc-600 dark:text-white flex-1 rounded-lg p-2 border-2 border-gray-300  dark:border-zinc-500 w-full  bg-zinc-50 disabled:bg-zinc-200 focus-visible:outline-none dark:bg-zinc-700 ${prepend ? 'rounded-l-none' : 'rounded-l-lg'} ${append ? 'rounded-r-none' : 'rounded-r-lg'} ` + classoverride + ` block w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-primary focus:border-primary transition`
 					}
 				/>
 				{append && (
@@ -61,7 +61,7 @@ const Input = React.forwardRef<
 				ref={(ref as any)}
 				value={value}
 				className={
-					"text-gray-600 dark:text-white rounded-lg p-2 border-2 border-gray-300  dark:border-gray-500 w-full bg-gray-50 focus-visible:outline-none dark:bg-gray-700 " + classoverride + `${errors[name] ? " focus-visible:ring-red-500 focus-visible:border-red-500" : "focus-visible:ring-blue-500 focus-visible:border-blue-500"}`
+					"text-zinc-600 dark:text-white rounded-lg p-2 border-2 border-gray-300  dark:border-zinc-500 w-full bg-zinc-50 focus-visible:outline-none dark:bg-zinc-700 " + classoverride + `${errors[name] ? " focus-visible:ring-red-500 focus-visible:border-red-500" : "focus-visible:ring-blue-500 focus-visible:border-blue-500"}`
 				}
 			/>}
 			{errors[name] && (

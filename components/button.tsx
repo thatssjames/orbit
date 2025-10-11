@@ -32,13 +32,13 @@ const Button: FC<Props> = ({
       onClick={onPress || onClick}
       disabled={disabled}
       className={twMerge(
-        `ml-auto bg-orbit dark:bg-gray-700 ${
+        `ml-auto bg-orbit dark:bg-zinc-700 ${
           compact ? "py-2 px-4" : "py-3 px-5"
         } transition rounded-lg text-sm text-white ${
           !workspace
             ? "hover:bg-orbit/80  focus-visible:bg-orbit/80 disabled:bg-orbit/80/50"
-            : "bg-primary dark:bg-gray-700 hover:bg-primary/50 focus-visible:bg-primary/50 disabled:bg-primary/50"
-        } dark:hover:bg-gray-300 dark:focus-visible:bg-gray-300 dark:bg-white dark:disabled:bg-white/50 dark:text-black focus-visible:outline-none`,
+            : "bg-primary dark:bg-zinc-700 hover:bg-primary/50 focus-visible:bg-primary/50 disabled:bg-primary/50"
+        } dark:hover:bg-zinc-300 dark:focus-visible:bg-zinc-300 dark:bg-white dark:disabled:bg-white/50 dark:text-black focus-visible:outline-none`,
         classoverride
       )}
     >

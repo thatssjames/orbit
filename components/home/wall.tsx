@@ -35,8 +35,8 @@ const Wall: React.FC = () => {
 					<div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
 						<IconMessage className="w-8 h-8 text-primary" />
 					</div>
-					<p className="text-lg font-medium text-gray-900 dark:text-white mb-1">No posts yet</p>
-					<p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Be the first to share something with your workspace</p>
+					<p className="text-lg font-medium text-zinc-900 dark:text-white mb-1">No posts yet</p>
+					<p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">Be the first to share something with your workspace</p>
 					<button
 						onClick={goToWall}
 						className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
@@ -50,7 +50,7 @@ const Wall: React.FC = () => {
 					{posts.slice(0, 2).map((post) => (
 						<div 
 							key={post.id} 
-							className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+							className="bg-white dark:bg-zinc-800 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow"
 						>
 							<div className="flex items-start gap-3">
 								<img 
@@ -60,14 +60,14 @@ const Wall: React.FC = () => {
 								/>
 								<div className="flex-1 min-w-0">
 									<div className="flex items-center gap-2">
-										<p className="font-medium text-gray-900 dark:text-white truncate">
+										<p className="font-medium text-zinc-900 dark:text-white truncate">
 											{post.author.username}
 										</p>
-										<span className="text-sm text-gray-500 dark:text-gray-400">
+										<span className="text-sm text-zinc-500 dark:text-zinc-400">
 											{moment(post.createdAt).format("MMM D")}
 										</span>
 									</div>
-									<div className="prose text-gray-800 dark:text-gray-200 dark:prose-invert max-w-none mt-1">
+									<div className="prose text-zinc-800 dark:text-zinc-200 dark:prose-invert max-w-none mt-1">
 										<ReactMarkdown rehypePlugins={[rehypeSanitize]}>{post.content}</ReactMarkdown>
 									</div>
 									{post.image && (

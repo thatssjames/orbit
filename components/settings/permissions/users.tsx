@@ -79,7 +79,7 @@ const Button: FC<Props> = (props) => {
 	return (
 		<div className="space-y-4">
 			<div className="flex items-center justify-between">
-				<h3 className="text-lg font-medium text-gray-900 dark:text-white">Users</h3>
+				<h3 className="text-lg font-medium text-zinc-900 dark:text-white">Users</h3>
 				<div className="flex items-center space-x-3">
 					<FormProvider {...userForm}>
 						<div className="flex items-center space-x-2">
@@ -106,7 +106,7 @@ const Button: FC<Props> = (props) => {
 					<Disclosure
 						as="div"
 						key={role.id}
-						className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
+						className="bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700 shadow-sm"
 					>
 						{({ open }) => (
 							<>
@@ -115,14 +115,14 @@ const Button: FC<Props> = (props) => {
 								>
 									<div className="flex items-center justify-between">
 										<div className="flex items-center space-x-2">
-											<span className="text-sm font-medium text-gray-900 dark:text-white">{role.name}</span>
-											<span className="text-xs text-gray-500 dark:text-gray-400">
+											<span className="text-sm font-medium text-zinc-900 dark:text-white">{role.name}</span>
+											<span className="text-xs text-zinc-500 dark:text-zinc-400">
 												({users.filter((user: any) => user.roles[0].id === role.id).length} users)
 											</span>
 										</div>
 										<IconChevronDown
 											className={clsx(
-												"w-5 h-5 text-gray-500 transition-transform",
+												"w-5 h-5 text-zinc-500 transition-transform",
 												open ? "transform rotate-180" : ""
 											)}
 										/>
@@ -139,7 +139,7 @@ const Button: FC<Props> = (props) => {
 								>
 									<Disclosure.Panel className="px-4 pb-4">
 										{users.filter((user: any) => user.roles[0].id === role.id).length > 100 ? (
-											<p className="text-sm text-gray-500 dark:text-gray-400">
+											<p className="text-sm text-zinc-500 dark:text-zinc-400">
 												Too many users to display (max 100)
 											</p>
 										) : (
@@ -147,7 +147,7 @@ const Button: FC<Props> = (props) => {
 												{users.filter((user: any) => user.roles[0].id === role.id).map((user: any) => (
 													<div
 														key={user.userid}
-														className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700"
+														className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-zinc-700"
 													>
 														<div className="flex items-center space-x-3">
 															<img
@@ -156,10 +156,10 @@ const Button: FC<Props> = (props) => {
 																className="w-10 h-10 rounded-full"
 															/>
 															<div>
-																<p className="text-sm font-medium text-gray-900 dark:text-white">
+																<p className="text-sm font-medium text-zinc-900 dark:text-white">
 																	{user.displayName}
 																</p>
-																<p className="text-xs text-gray-500 dark:text-gray-400">
+																<p className="text-xs text-zinc-500 dark:text-zinc-400">
 																	@{user.username}
 																</p>
 															</div>
@@ -170,12 +170,12 @@ const Button: FC<Props> = (props) => {
 																onChange={(value) => updateRole(user.userid, value)}
 															>
 																<div className="relative">
-																	<Listbox.Button className="relative w-40 py-2 pl-3 pr-10 text-left bg-white dark:text-white dark:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50">
+																	<Listbox.Button className="relative w-40 py-2 pl-3 pr-10 text-left bg-white dark:text-white dark:bg-zinc-700 rounded-lg border border-gray-300 dark:border-zinc-600 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50">
 																		<span className="block truncate text-sm">
 																			{user.roles[0].name}
 																		</span>
 																		<span className="absolute inset-y-0 right-0 flex items-center pr-2">
-																			<IconChevronDown className="w-5 h-5 text-gray-400" />
+																			<IconChevronDown className="w-5 h-5 text-zinc-400" />
 																		</span>
 																	</Listbox.Button>
 																	<Transition
@@ -184,7 +184,7 @@ const Button: FC<Props> = (props) => {
 																		leaveFrom="opacity-100"
 																		leaveTo="opacity-0"
 																	>
-																		<Listbox.Options className="absolute z-10 w-full py-1 mt-1 overflow-auto text-base bg-white dark:bg-gray-700 rounded-md shadow-lg max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none">
+																		<Listbox.Options className="absolute z-10 w-full py-1 mt-1 overflow-auto text-base bg-white dark:bg-zinc-700 rounded-md shadow-lg max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none">
 																			{workspace.roles.map((role) => (
 																				<Listbox.Option
 																					key={role.id}
@@ -194,7 +194,7 @@ const Button: FC<Props> = (props) => {
 																							"relative cursor-pointer select-none py-2 pl-10 pr-4",
 																							active
 																								? "bg-primary/10 text-primary"
-																								: "text-gray-900 dark:text-gray-100"
+																								: "text-zinc-900 dark:text-zinc-100"
 																						)
 																					}
 																				>
@@ -238,17 +238,17 @@ const Button: FC<Props> = (props) => {
 
 			{showRemoveModal && (
 				<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-					<div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
-						<h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+					<div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
+						<h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">
 							Remove User
 						</h2>
-						<p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+						<p className="text-sm text-zinc-600 dark:text-zinc-300 mb-6">
 							Are you sure you want to remove this user? This action cannot be undone.
 						</p>
 						<div className="flex justify-center gap-4">
 							<button
 								onClick={() => setShowRemoveModal(false)}
-								className="px-4 py-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-white"
+								className="px-4 py-2 rounded-md bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white"
 							>
 								Cancel
 							</button>

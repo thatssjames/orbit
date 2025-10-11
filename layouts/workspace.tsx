@@ -11,6 +11,7 @@ import { workspacestate } from "@/state";
 import { useRouter } from "next/router";
 import hexRgb from "hex-rgb";
 import * as colors from "tailwindcss/colors";
+import WorkspaceBirthdayPrompt from '@/components/bdayprompt';
 import { useEffect, useState } from "react";
 import { IconChevronLeft, IconChevronRight, IconMenu2 } from "@tabler/icons-react";
 import clsx from 'clsx';
@@ -37,7 +38,7 @@ const workspace: LayoutProps = ({ children }) => {
 			"bg-purple-500": colors.purple[500],
 			"bg-pink-500": colors.pink[500],
 			"bg-black": colors.black,
-			"bg-gray-500": colors.gray[500],
+			"bg-zinc-500": colors.gray[500],
 		};
 		const hex = hexRgb(themes[groupTheme] || "#FF0099");
 		return `${hex.red} ${hex.green} ${hex.blue}`;
@@ -79,7 +80,7 @@ const workspace: LayoutProps = ({ children }) => {
 	}, []);
 
 	return (
-		<div className="h-screen bg-gray-50 dark:bg-gray-900">
+		<div className="h-screen bg-zinc-50 dark:bg-zinc-900">
 			<Head>
 				<title>{workspace.groupName ? `Orbit - ${workspace.groupName}` : "Loading..."}</title>
 				<link rel="icon" href={`${workspace.groupThumbnail}/isCircular`} />
@@ -106,14 +107,16 @@ const workspace: LayoutProps = ({ children }) => {
 				<Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 				
 				<main
-  					className={clsx(
-    					"flex-1 transition-all duration-300 overflow-y-auto",
-    					!isMobile && (isCollapsed ? "ml-16" : "ml-60") // margin only on desktop!
-  					)}
->
-  					<div className="relative z-10">
-    					{children}
-  					</div>
+		  			className={clsx(
+		    		"flex-1 transition-all duration-300 overflow-y-auto",
+		    		!isMobile && (isCollapsed ? "ml-16" : "ml-60")
+		  			)}>
+		  			<div className="relative z-10">
+		    		{children}
+		  			</div>
+		  			{router.query.id && (
+		  				<WorkspaceBirthdayPrompt workspaceId={router.query.id as string} />
+		  			)}
 				</main>
 			</div>
 		</div>

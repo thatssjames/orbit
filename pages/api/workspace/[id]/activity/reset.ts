@@ -28,6 +28,12 @@ export async function handler(
 			}
 		});
 
+		await prisma.activityAdjustment.deleteMany({
+			where: {
+				workspaceGroupId: Number(req.query.id as string)
+			}
+		});
+
 		await prisma.session.deleteMany({
 			where: {
 				sessionType: {

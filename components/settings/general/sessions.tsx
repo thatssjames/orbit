@@ -31,14 +31,14 @@ const Guide: FC<props> = (props) => {
 
 	return (
 		<div>
-			<div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+			<div className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
 				<div className="flex items-center gap-3">
 					<div className="p-2 bg-primary/10 rounded-lg">
 						<IconSpeakerphone size={20} className="text-primary" />
 					</div>
 					<div>
-						<p className="text-sm font-medium text-gray-900 dark:text-white">Sessions</p>
-						<p className="text-xs text-gray-500 dark:text-gray-400">Track and manage group sessions & shifts</p>
+						<p className="text-sm font-medium text-zinc-900 dark:text-white">Sessions</p>
+						<p className="text-xs text-zinc-500 dark:text-zinc-400">Track and manage group sessions & shifts</p>
 					</div>
 				</div>
 				<SwitchComponenet 

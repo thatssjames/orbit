@@ -133,30 +133,30 @@ const Home: pageWithLayout<pageProps> = ({ documents }) => {
 	}
 
 	return (
-		<div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+		<div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
 			<Toaster position="bottom-center" />
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 				{/* Header */}
 				<div className="flex items-center gap-3 mb-6">
 					<div>
-						<h1 className="text-xl font-medium text-gray-900 dark:text-white">Documents</h1>
-						<p className="text-sm text-gray-500 dark:text-gray-300">Create and manage your workspace documentation</p>
+						<h1 className="text-xl font-medium text-zinc-900 dark:text-white">Documents</h1>
+						<p className="text-sm text-zinc-500 dark:text-zinc-300">Create and manage your workspace documentation</p>
 					</div>
 				</div>
 
 				{/* New Document Button */}
 				<button 
 					onClick={() => router.push(`/workspace/${router.query.id}/docs/new`)}
-					className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-4 hover:shadow-md transition-shadow group">
+					className="w-full bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4 mb-4 hover:shadow-md transition-shadow group">
 					<div className="flex items-center gap-3">
 						<div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
 							<IconPlus className="w-5 h-5 text-primary" />
 						</div>
 						<div className="flex-1 text-left">
-							<h3 className="text-lg font-medium text-gray-900 dark:text-white">
+							<h3 className="text-lg font-medium text-zinc-900 dark:text-white">
 								New Document
 							</h3>
-							<p className="text-sm text-gray-500 dark:text-gray-300 mt-0.5">
+							<p className="text-sm text-zinc-500 dark:text-zinc-300 mt-0.5">
 								Create a new document for your workspace
 							</p>
 						</div>
@@ -170,17 +170,17 @@ const Home: pageWithLayout<pageProps> = ({ documents }) => {
 							<button
 								key={document.id}
 								onClick={() => goToGuide(document.id)}
-								className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 hover:shadow-md transition-all text-left group"
+								className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4 hover:shadow-md transition-all text-left group"
 							>
 								<div className="flex items-start gap-3">
 									<div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
 										<IconFileText className="w-5 h-5 text-primary" />
 									</div>
 									<div className="flex-1">
-										<h3 className="text-base font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors">
+										<h3 className="text-base font-medium text-zinc-900 dark:text-white group-hover:text-primary transition-colors">
 											{document.name}
 										</h3>
-										<div className="mt-3 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-300">
+										<div className="mt-3 flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-300">
 											<div className="flex items-center gap-1.5">
 												<IconUser className="w-3.5 h-3.5" />
 												<span>{document.owner?.username}</span>
@@ -196,14 +196,14 @@ const Home: pageWithLayout<pageProps> = ({ documents }) => {
 						))}
 					</div>
 				) : (
-					<div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
+					<div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-8 text-center">
 						<div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
 							<IconFileText className="w-8 h-8 text-primary" />
 						</div>
-						<h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">
+						<h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-1">
 							No documents yet
 						</h3>
-						<p className="text-sm text-gray-500 dark:text-gray-300 mb-4">
+						<p className="text-sm text-zinc-500 dark:text-zinc-300 mb-4">
 							Get started by creating your first document
 						</p>
 						<button

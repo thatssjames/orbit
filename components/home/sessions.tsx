@@ -35,8 +35,8 @@ const Sessions: React.FC = () => {
 					<div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
 						<IconSpeakerphone className="w-8 h-8 text-primary" />
 					</div>
-					<p className="text-lg font-medium text-gray-900 dark:text-white mb-1">No active sessions</p>
-					<p className="text-sm text-gray-500 dark:text-gray-400 mb-4">There are no ongoing sessions right now</p>
+					<p className="text-lg font-medium text-zinc-900 dark:text-white mb-1">No active sessions</p>
+					<p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">There are no ongoing sessions right now</p>
 					<button
 						onClick={goToSessions}
 						className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"

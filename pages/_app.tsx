@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import "@/styles/globals.scss" // Global styles should only be imported here
+import "@/styles/globals.scss"
 import type { AppProps } from "next/app"
 import { workspacestate } from "@/state"
 import { RecoilRoot, useRecoilState, useRecoilValue } from "recoil"
@@ -137,16 +137,13 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
 
       {!loading ? (
         <Layout>
-          <>
             <Component {...pageProps} />
-            {user && <BirthdayPrompt user={user} setUser={setUser} />}
-          </>
         </Layout>
       ) : (
-        <div className="flex h-screen dark:bg-gray-900">
+        <div className="flex h-screen dark:bg-zinc-900">
           <svg
             aria-hidden="true"
-            className="w-24 h-24 text-gray-200 animate-spin dark:text-gray-600 fill-orbit my-auto mx-auto"
+            className="w-24 h-24 text-zinc-200 animate-spin dark:text-zinc-600 fill-orbit my-auto mx-auto"
             viewBox="0 0 100 101"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -164,115 +161,6 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
       )}
     </RecoilRoot>
   )
-}
-
-function BirthdayPrompt({ user, setUser }: { user: any, setUser: any }) {
-  const needsBirthday =
-    user.birthdayDay === null ||
-    user.birthdayMonth === null;
-
-  const [open, setOpen] = useState(needsBirthday);
-  const [month, setMonth] = useState("");
-  const [day, setDay] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    setOpen(needsBirthday);
-  }, [needsBirthday]);
-
-  if (!open) return null;
-
-  const daysInMonth = (month: number) => {
-    if (month === 2) return 28;
-    if ([4, 6, 9, 11].includes(month)) return 30;
-    return 31;
-  };
-
-  const months = [
-    { name: "January", value: 1 },
-    { name: "February", value: 2 },
-    { name: "March", value: 3 },
-    { name: "April", value: 4 },
-    { name: "May", value: 5 },
-    { name: "June", value: 6 },
-    { name: "July", value: 7 },
-    { name: "August", value: 8 },
-    { name: "September", value: 9 },
-    { name: "October", value: 10 },
-    { name: "November", value: 11 },
-    { name: "December", value: 12 },
-  ];
-
-  const handleSave = async () => {
-    setLoading(true);
-    await axios.post("/api/user/birthday", { day: Number(day), month: Number(month) });
-    setUser({ ...user, birthdayDay: Number(day), birthdayMonth: Number(month) });
-    setOpen(false);
-    setLoading(false);
-  };
-
-  const handleSkip = async () => {
-    setLoading(true);
-    await axios.post("/api/user/birthday", { day: 0, month: 0 });
-    setUser({ ...user, birthdayDay: 0, birthdayMonth: 0 });
-    setOpen(false);
-    setLoading(false);
-  };
-
-  const days = month
-    ? Array.from({ length: daysInMonth(Number(month)) }, (_, i) => i + 1)
-    : [];
-
-  return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg min-w-[300px]">
-        <h2 className="text-lg font-bold dark:text-white mb-2">🎂 Set your birthday</h2>
-        <div className="flex gap-2 mb-4">
-          <select
-            value={month}
-            onChange={e => {
-              setMonth(e.target.value);
-              setDay("");
-            }}
-            className="border rounded px-2 py-1 w-32"
-          >
-            <option value="">Month</option>
-            {months.map(m => (
-              <option key={m.value} value={m.value}>{m.name}</option>
-            ))}
-          </select>
-          <select
-            value={day}
-            onChange={e => setDay(e.target.value)}
-            className="border rounded px-2 py-1 w-20"
-            disabled={!month}
-          >
-            <option value="">Day</option>
-            {days.map(d => (
-              <option key={d} value={d}>{d}</option>
-            ))}
-          </select>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={handleSave}
-            disabled={loading || !day || !month}
-            className="bg-orbit text-white px-4 py-2 rounded"
-          >
-            {loading ? "Saving..." : "Save"}
-          </button>
-          <button
-            onClick={handleSkip}
-            disabled={loading}
-            className="bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-4 py-2 rounded"
-            type="button"
-          >
-            Skip
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 export default MyApp

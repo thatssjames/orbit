@@ -8,7 +8,7 @@
     <img height="40px" src=".github/logo.png"></img>
     <h1>Orbit by Team Planetary</h1>
   </div>
-    <img src="https://img.shields.io/badge/version-v2.0.9_beta9-purple"></img>
+    <img src="https://img.shields.io/badge/version-v2.1.0-purple"></img>
   <ul>
     <li><a href="#about">About</a></li>
     <li><a href="#why-consider">Why consider</a></li>
@@ -71,13 +71,13 @@
   <h2>Quicklinks</h2>
   <ul>
     <li>
-      Don't know how to install? –– <a href="https://docs.planetaryapp.cloud">Visit our documentation!</a>
+      Don't know how to install? –– <a href="https://docs.planetaryapp.us">Visit our documentation!</a>
     </li>
     <li>
       🐛 Bugs? Need help? –– <a href="https://discord.gg/planetary">Get support and let us know here!</a>
     </li>
     <li>
-      ✨ Suggestions? –– <a href="https://feedback.planetaryapp.cloud/">View our Upcoming Features and Suggest your own!</a>
+      ✨ Updates –– <a href="https://changelog.planetaryapp.us/">View our Features and updates!</a>
     </li>
   </ul>
 

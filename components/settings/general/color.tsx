@@ -75,12 +75,12 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
     "bg-purple-500",
     "bg-pink-500",
     "bg-black",
-    "bg-gray-500",
+    "bg-zinc-500",
   ]
 
   return (
     <div className="ml-0">
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 text-left">
+      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4 text-left">
         Choose a color theme for your workspace
       </p>
       <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">

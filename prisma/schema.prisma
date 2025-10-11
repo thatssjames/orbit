@@ -21,6 +21,8 @@ model workspace {
   userBook          userBook[]
   wallposts         wallPost[]
   apiKey            apiKey[]
+  members           workspaceMember[]
+  adjustments       ActivityAdjustment[]
 }
 
 model config {
@@ -63,6 +65,9 @@ model user {
   apiKey            apiKey[]
   birthdayDay       Int?
   birthdayMonth     Int?
+  workspaceMemberships workspaceMember[]
+  adjustmentsReceived ActivityAdjustment[] @relation("AdjustmentUser")
+  adjustmentsMade     ActivityAdjustment[] @relation("AdjustmentActor")
 }
 
 model userInfo {
@@ -272,4 +277,32 @@ model allyVisit {
   hostId BigInt
   time   DateTime
   name   String
+}
+
+model workspaceMember {
+  workspaceGroupId Int
+  userId           BigInt
+  joinDate         DateTime? @default(now())
+  birthdayDay      Int?
+  birthdayMonth    Int?
+  workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
+  user             user      @relation(fields: [userId], references: [userid])
+  @@id([workspaceGroupId, userId])
+  @@index([userId])
+}
+
+model ActivityAdjustment {
+  id               String    @id @default(uuid()) @db.Uuid
+  userId           BigInt
+  actorId          BigInt
+  workspaceGroupId Int
+  minutes          Int       // positive = award, negative = remove
+  reason           String?
+  createdAt        DateTime  @default(now())
+  user      user      @relation("AdjustmentUser", fields: [userId], references: [userid])
+  actor     user      @relation("AdjustmentActor", fields: [actorId], references: [userid])
+  workspace workspace @relation(fields: [workspaceGroupId], references: [groupId])
+  @@index([userId])
+  @@index([actorId])
+  @@index([workspaceGroupId])
 }

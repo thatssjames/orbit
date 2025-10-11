@@ -1,9 +1,13 @@
-const randomTextFromArray = (texts: string[]) => {
-	return texts[Math.floor(Math.random() * texts.length)];
-};
+const randomTextFromArray = (texts: string[]) => texts[Math.floor(Math.random() * texts.length)];
 
 const randomText = (name: string) => {
-	const morningOnlyTexts = [
+	const now = new Date();
+	const month = now.getMonth();
+	const day = now.getDate();
+	const isHalloweenSeason = month === 9; // HW 
+	const isHalloweenDay = isHalloweenSeason && day === 31; // HW
+
+	const morningOnlyBase = [
 		`Good morning, ${name} ☀️`,
 		`Top of the morning to you, ${name}! 🥐`,
 		`Rise and shine, ${name} 🌅`,
@@ -26,7 +30,7 @@ const randomText = (name: string) => {
 		`Don't just wake up, show up — let’s go ${name} 💼`
 	];
 
-	const afternoonOnlyTexts = [
+	const afternoonOnlyBase = [
 		`Good afternoon, ${name} 🌞`,
 		`Hope your day is going well, ${name} 😊`,
 		`Hey ${name}, how’s your day so far? 🕑`,
@@ -49,7 +53,7 @@ const randomText = (name: string) => {
 		`It’s a good day to get stuff done, ${name} 🧠`
 	];
 
-	const nightOnlyTexts = [
+	const nightOnlyBase = [
 		`Good evening, ${name} 🌙`,
 		`Winding down, ${name}? 🛋️`,
 		`Hope your day went well, ${name} 🌆`,
@@ -72,7 +76,7 @@ const randomText = (name: string) => {
 		`Sending good energy for tomorrow, ${name} 🔮`
 	];
 
-	const lateNightTexts = [
+	const lateNightBase = [
 		`Still awake, ${name}? Respect 🌙`,
 		`The grind never sleeps — neither do you, huh ${name}? 😅`,
 		`Late-night coding or existential scrolling, ${name}? 💻📱`,
@@ -81,12 +85,65 @@ const randomText = (name: string) => {
 		`Hope you're doing okay, ${name}. Remember to rest soon 🫶`
 	];
 
-	const hour = new Date().getHours();
+	const morningHalloween = [
+		`Ghoul morning, ${name} 🎃`,
+		`Rise & fright, ${name}! 👻`,
+		`Witching you a productive dawn, ${name} 🧙‍♀️`,
+		`First brew of the day or potion, ${name}? 🧪☕️`,
+		`Pumpkin-powered focus today, ${name} 🎃⚡️`,
+		`Creepin’ into the day with you, ${name} 🕷️`,
+		`Boot sequence from the crypt complete, ${name} 🪦`,
+		`No tricks — just tasks to conquer, ${name} ✅`,
+		`Orbit control reports: zero haunt anomalies, ${name} 🛰️`,
+		`Let’s conjure some progress, ${name} ✨`
+	];
 
-	if (hour >= 20) return randomTextFromArray(nightOnlyTexts);
-	if (hour >= 12) return randomTextFromArray(afternoonOnlyTexts);
-	if (hour >= 4) return randomTextFromArray(morningOnlyTexts);
-	return randomTextFromArray(lateNightTexts);
+	const afternoonHalloween = [
+		`Hallow-afternoon, ${name} 🦇`,
+		`Midday spirits approve your grind, ${name} 👻`,
+		`Still brewing momentum, ${name}? 🧪`,
+		`Cauldron simmering — keep stirring those tasks, ${name} 🫕`,
+		`You’re slaying, ${name} 🗡️`,
+		`Orbit shields holding vs spectral interference, ${name} 🛡️`,
+		`Snack idea: pumpkin byte? ${name} 🎃`,
+		`Cobweb-free workflow detected, ${name} 🕸️`,
+		`Enchanting productivity aura today, ${name} ✨`,
+		`No jump scares — just commits, ${name} 💾`
+	];
+
+	const nightHalloween = [
+		`Good eeee-vening, ${name} 🦇`,
+		`Moonlit focus mode engaged, ${name} 🌕`,
+		`Shadows are long, your checklist short, ${name} ✅`,
+		`Great work — the restless spirits applaud, ${name} 👻👏`,
+		`Time to vanish into the mist soon, ${name} 🌫️`,
+		`Orbit lanterns lit for you, ${name} 🏮`,
+		`Bats returning to roost — you too soon, ${name}? 🦇`,
+		`Potion cooldown initiated, ${name} 🧪`,
+		`Haunt level dropping — rest up, ${name} 😴`,
+		`Crypt secured. Mission logged, ${name} 🪦`
+	];
+
+	const lateNightHalloween = [
+		`Past the witching hour, ${name}? 🔮`,
+		`Midnight mantling complete, ${name} 🌑`,
+		`The castle torches burn low, ${name} 🕯️`,
+		`Skeleton crew shift detected — that’s you, ${name} 💀`,
+		`Ensure your soul (and code) stays intact, ${name} 👻`,
+		`Consider resting before the pumpkins expire, ${name} 🎃`
+	];
+
+	const intensify = <T,>(arr: T[], seasonal: T[]) => (isHalloweenDay ? [...seasonal, ...arr] : seasonal);
+	const morningSet = isHalloweenSeason ? intensify(morningOnlyBase, morningHalloween) : morningOnlyBase;
+	const afternoonSet = isHalloweenSeason ? intensify(afternoonOnlyBase, afternoonHalloween) : afternoonOnlyBase;
+	const nightSet = isHalloweenSeason ? intensify(nightOnlyBase, nightHalloween) : nightOnlyBase;
+	const lateNightSet = isHalloweenSeason ? intensify(lateNightBase, lateNightHalloween) : lateNightBase;
+	const hour = now.getHours();
+
+	if (hour >= 20) return randomTextFromArray(nightSet);
+	if (hour >= 12) return randomTextFromArray(afternoonSet);
+	if (hour >= 4) return randomTextFromArray(morningSet);
+	return randomTextFromArray(lateNightSet);
 };
 
 export default randomText;

@@ -143,30 +143,30 @@ const EditDoc: pageWithLayout<any> = ({ roles, document }) => {
 	}
 
 	return (
-		<div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+		<div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
 			<Toaster position="bottom-center" />
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 				{/* Header */}
 				<div className="flex items-center gap-3 mb-6">
 					<button
 						onClick={() => router.back()}
-						className="p-2 text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+						className="p-2 text-zinc-500 dark:text-zinc-300 hover:text-zinc-700 dark:text-zinc-300 dark:hover:text-white rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
 						aria-label="Go back"
 					>
 						<IconArrowLeft className="w-5 h-5" />
 					</button>
 					<div>
-						<h1 className="text-xl font-medium text-gray-900 dark:text-white">Edit Document</h1>
-						<p className="text-sm text-gray-500 dark:text-gray-300">Update your workspace documentation</p>
+						<h1 className="text-xl font-medium text-zinc-900 dark:text-white">Edit Document</h1>
+						<p className="text-sm text-zinc-500 dark:text-zinc-300">Update your workspace documentation</p>
 					</div>
 				</div>
-				<div className="dark:bg-gray-800 rounded-lg mb-6">
+				<div className="dark:bg-zinc-800 rounded-lg mb-6">
 					<FormProvider {...form}>
 						<div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
 							{/* Document Info */}
 							<div className="lg:col-span-2">
-								<div className="bg-white dark:bg-gray-700 rounded-lg shadow-sm p-4">
-									<h2 className="text-base font-medium text-gray-900 dark:text-white mb-3">
+								<div className="bg-white dark:bg-zinc-700 rounded-lg shadow-sm p-4">
+									<h2 className="text-base font-medium text-zinc-900 dark:text-white mb-3">
 										Document Information
 									</h2>
 									<Input
@@ -180,15 +180,15 @@ const EditDoc: pageWithLayout<any> = ({ roles, document }) => {
 
 							{/* Permissions */}
 							<div className="lg:col-span-1">
-								<div className="bg-white dark:bg-gray-700 rounded-lg shadow-sm p-4">
-									<h2 className="text-base font-medium text-gray-900 dark:text-white mb-3">
+								<div className="bg-white dark:bg-zinc-700 rounded-lg shadow-sm p-4">
+									<h2 className="text-base font-medium text-zinc-900 dark:text-white mb-3">
 										Permissions
 									</h2>
 									<div className="space-y-2">
 										{roles.map((role: any) => (
 											<label
 												key={role.id}
-												className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-500 cursor-pointer transition-colors"
+												className="flex items-center gap-2 p-2 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-500 cursor-pointer transition-colors"
 											>
 												<input
 													type="checkbox"
@@ -196,7 +196,7 @@ const EditDoc: pageWithLayout<any> = ({ roles, document }) => {
 													onChange={() => toggleRole(role.id)}
 													className="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary"
 												/>
-												<span className="text-sm text-gray-700 dark:text-white">
+												<span className="text-sm text-zinc-700 dark:text-white">
 													{role.name}
 												</span>
 											</label>
@@ -207,7 +207,7 @@ const EditDoc: pageWithLayout<any> = ({ roles, document }) => {
 						</div>
 
 						{/* Editor Toolbar */}
-						<div className="bg-white dark:bg-gray-700 rounded-lg shadow-sm p-3 mb-4">
+						<div className="bg-white dark:bg-zinc-700 rounded-lg shadow-sm p-3 mb-4">
 							<div className="flex flex-wrap gap-1">
 								{Object.values(buttons).map((group, index) => (
 									<div key={index} className="flex gap-1">
@@ -219,7 +219,7 @@ const EditDoc: pageWithLayout<any> = ({ roles, document }) => {
 													'p-1.5 rounded-lg transition-colors',
 													button.active()
 														? 'bg-primary text-white'
-														: 'text-gray-500 hover:bg-gray-100'
+														: 'text-zinc-500 hover:bg-zinc-100'
 												)}
 											>
 												<button.icon className="w-4 h-4" />
@@ -231,7 +231,7 @@ const EditDoc: pageWithLayout<any> = ({ roles, document }) => {
 						</div>
 
 						{/* Editor Content */}
-						<div className="bg-white dark:bg-gray-700 rounded-lg shadow-sm p-4 mb-4">
+						<div className="bg-white dark:bg-zinc-700 rounded-lg shadow-sm p-4 mb-4">
 							<EditorContent editor={editor} />
 						</div>
 
@@ -239,7 +239,7 @@ const EditDoc: pageWithLayout<any> = ({ roles, document }) => {
 						<div className="flex items-center gap-3">
 							<button
 								onClick={goback}
-								className="px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 dark:text-white dark:bg-gray-700 dark:hover:bg-gray-600 rounded-md transition-colors">
+								className="px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-white dark:bg-zinc-700 dark:hover:bg-zinc-600 rounded-md transition-colors">
 								Cancel
 							</button>
 							<button

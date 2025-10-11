@@ -10,6 +10,7 @@ import randomText from "@/utils/randomText"
 import wall from "@/components/home/wall"
 import StickyNoteAnnouncement from "@/components/sticky-note-announcement"
 import Birthdays from "@/components/birthdays"
+import NewToTeam from "@/components/newmembers"
 import { useRecoilState } from "recoil"
 import { useMemo, useEffect, useState } from "react"
 import {
@@ -72,7 +73,6 @@ const Home: pageWithLayout = () => {
       setIsLoadingTitle(document.title.includes("Loading"))
     }
 
-    // Animate title in after a short delay
     const timer = setTimeout(() => {
       setTitleVisible(true)
     }, 300)
@@ -101,7 +101,6 @@ const Home: pageWithLayout = () => {
   return (
     <div className="pagePadding">
       <div className="max-w-7xl mx-auto">
-        {/* Enhanced Header section with improved typography */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div className="relative">
             <div className="absolute -left-3 -top-3 w-20 h-20 bg-primary/5 rounded-full blur-2xl"></div>
@@ -115,7 +114,7 @@ const Home: pageWithLayout = () => {
                 <span className="text-xs font-medium text-primary uppercase tracking-wider mb-1 block">
                   Welcome back
                 </span>
-                <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
+                <h1 className="text-4xl font-extrabold text-zinc-900 dark:text-white mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
                   {text}
                 </h1>
                 <div
@@ -124,7 +123,7 @@ const Home: pageWithLayout = () => {
                     titleVisible ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0",
                   )}
                 ></div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md">
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-md">
                   Here's what's happening in your workspace today
                 </p>
               </div>
@@ -133,7 +132,7 @@ const Home: pageWithLayout = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={handleRefresh}
-              className="p-2 rounded-full bg-white dark:bg-gray-800 shadow-sm hover:shadow transition-all duration-200 text-gray-500 dark:text-gray-300 hover:text-primary dark:hover:text-primary"
+              className="p-2 rounded-full bg-white dark:bg-zinc-800 shadow-sm hover:shadow transition-all duration-200 text-zinc-500 dark:text-zinc-300 hover:text-primary dark:hover:text-primary"
               aria-label="Refresh dashboard"
             >
               <IconRefresh className={clsx("w-5 h-5", refreshing && "animate-spin")} />
@@ -145,17 +144,19 @@ const Home: pageWithLayout = () => {
           <Birthdays />
         </div>
         <div className="mb-8 z-0 relative">
+          <NewToTeam />
+        </div>
+        <div className="mb-8 z-0 relative">
           <StickyNoteAnnouncement />
         </div>
 
         {loading ? (
-          // Show loading spinner/message
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-12 text-center border border-gray-100 dark:border-gray-700">
+          <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm p-12 text-center border border-zinc-100 dark:border-zinc-700">
             <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center">
               <IconHome className="w-12 h-12 text-primary" />
             </div>
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+              <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
                 Hold on... your workspace is still loading or we're pushing an update 😋
               </h3>
               <div className="flex justify-center">
@@ -168,7 +169,6 @@ const Home: pageWithLayout = () => {
             </div>
           </div>
         ) : workspace.settings.widgets.length > 0 ? (
-          // Show widgets grid
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {workspace.settings.widgets.map((widget, index) => {
               const widgetConfig = widgets[widget]
@@ -179,18 +179,18 @@ const Home: pageWithLayout = () => {
                 <div
                   key={widget}
                   className={clsx(
-                    "bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-700",
+                    "bg-white dark:bg-zinc-800 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-zinc-100 dark:border-zinc-700",
                     "transform hover:-translate-y-1",
                   )}
                 >
-                  <div className={`px-6 py-5 ${widgetConfig.color} border-b border-gray-100 dark:border-gray-700`}>
+                  <div className={`px-6 py-5 ${widgetConfig.color} border-b border-zinc-100 dark:border-zinc-700`}>
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm flex items-center justify-center shadow-sm">
+                      <div className="w-10 h-10 rounded-xl bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm flex items-center justify-center shadow-sm">
                         <Icon className="w-5 h-5 text-primary" />
                       </div>
                       <div>
-                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">{widgetConfig.title}</h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">{widgetConfig.description}</p>
+                        <h2 className="text-lg font-bold text-zinc-900 dark:text-white">{widgetConfig.title}</h2>
+                        <p className="text-sm text-zinc-600 dark:text-zinc-300">{widgetConfig.description}</p>
                       </div>
                     </div>
                   </div>
@@ -203,15 +203,14 @@ const Home: pageWithLayout = () => {
             })}
           </div>
         ) : (
-          // Show empty dashboard message
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-12 text-center border border-gray-100 dark:border-gray-700">
+          <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm p-12 text-center border border-zinc-100 dark:border-zinc-700">
             <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center">
               <IconHome className="w-12 h-12 text-primary" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300">
+            <h3 className="text-2xl font-bold text-zinc-900 dark:text-white mb-3 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300">
               Your dashboard is empty
             </h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto">
+            <p className="text-zinc-500 dark:text-zinc-400 mb-8 max-w-md mx-auto">
               Add widgets to your workspace to see important information at a glance
             </p>
             <button

@@ -23,15 +23,15 @@ const Notices: FC<Props> = ({ notices }) => {
 	};
   
 	return (
-	  <div className="bg-white dark:bg-gray-700 rounded-xl shadow-sm overflow-hidden">
+	  <div className="bg-white dark:bg-zinc-700 rounded-xl shadow-sm overflow-hidden">
 		<div className="p-6">
-		  <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Inactivity Notices</h2>
+		  <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-4">Inactivity Notices</h2>
 		  {notices.length === 0 ? (
-			<p className="text-sm text-gray-500 dark:text-gray-400 italic">No inactivity notices found.</p>
+			<p className="text-sm text-zinc-500 dark:text-zinc-400 italic">No inactivity notices found.</p>
 		  ) : (
 			<div className="space-y-4">
 			  {notices.map((notice: any) => (
-				<div key={notice.id} className="flex gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+				<div key={notice.id} className="flex gap-4 p-4 bg-zinc-50 dark:bg-zinc-700 rounded-lg">
 				  <div className="flex-shrink-0">
 					{getStatusIcon(notice)}
 				  </div>
@@ -44,11 +44,11 @@ const Notices: FC<Props> = ({ notices }) => {
 						}`}>
 						  {getStatusText(notice)}
 					  </span>
-					  <span className="text-xs text-gray-500 dark:text-gray-300">
+					  <span className="text-xs text-zinc-500 dark:text-zinc-300">
 						{moment(notice.startTime).format("DD MMM YYYY")} - {moment(notice.endTime).format("DD MMM YYYY")}
 					  </span>
 					</div>
-					<p className="text-sm text-gray-600 dark:text-gray-300">{notice.reason}</p>
+					<p className="text-sm text-zinc-600 dark:text-zinc-300">{notice.reason}</p>
 				  </div>
 				</div>
 			  ))}

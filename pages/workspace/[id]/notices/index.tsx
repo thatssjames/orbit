@@ -116,15 +116,15 @@ const Notices: pageWithLayout<pageProps> = (props) => {
 		<div className="pagePadding">
 			<div className="max-w-7xl mx-auto">
 				<div className="flex items-center gap-3 mb-6">
-					<button onClick={() => router.back()} className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+					<button onClick={() => router.back()} className="p-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-white rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
 						<IconArrowLeft className="w-5 h-5" />
 					</button>
 					<div>
-						<h1 className="text-2xl font-medium text-gray-900 dark:text-white">Notices</h1>
+						<h1 className="text-2xl font-medium text-zinc-900 dark:text-white">Notices</h1>
 					</div>
 				</div>
 
-				<div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden mb-6">
+				<div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden mb-6">
 					<div className="p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div className="flex items-center gap-3">
@@ -132,8 +132,8 @@ const Notices: pageWithLayout<pageProps> = (props) => {
 									<IconCalendarTime className="w-5 h-5 text-primary" />
 								</div>
 								<div>
-									<h2 className="text-lg font-medium text-gray-900 dark:text-white">Inactivity Notices</h2>
-									<p className="text-sm text-gray-500 dark:text-gray-400">Manage your inactivity periods</p>
+									<h2 className="text-lg font-medium text-zinc-900 dark:text-white">Inactivity Notices</h2>
+									<p className="text-sm text-zinc-500 dark:text-zinc-400">Manage your inactivity periods</p>
 								</div>
 							</div>
 							<button
@@ -147,12 +147,12 @@ const Notices: pageWithLayout<pageProps> = (props) => {
 
 						{notices.length === 0 ? (
 							<div className="text-center py-12">
-								<div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-8 max-w-md mx-auto">
+								<div className="bg-zinc-50 dark:bg-zinc-700 rounded-xl p-8 max-w-md mx-auto">
 									<div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
 										<IconClipboardList className="w-8 h-8 text-primary" />
 									</div>
-									<h3 className="text-lg font-medium text-gray-900 mb-1 dark:text-white">No Notices</h3>
-									<p className="text-sm text-gray-500 mb-4">You haven't submitted any inactivity notices yet</p>
+									<h3 className="text-lg font-medium text-zinc-900 mb-1 dark:text-white">No Notices</h3>
+									<p className="text-sm text-zinc-500 mb-4">You haven't submitted any inactivity notices yet</p>
 									<button
 										onClick={() => setIsOpen(true)}
 										className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
@@ -165,7 +165,7 @@ const Notices: pageWithLayout<pageProps> = (props) => {
 						) : (
 							<div className="space-y-4">
 								{notices.map((notice: any) => (
-									<div key={notice.id} className="flex gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+									<div key={notice.id} className="flex gap-4 p-4 bg-zinc-50 dark:bg-zinc-700 rounded-lg">
 										<div className="flex-shrink-0">
 											{getStatusIcon(notice.approved ? "approved" : notice.reviewed ? "declined" : "pending")}
 										</div>
@@ -179,12 +179,12 @@ const Notices: pageWithLayout<pageProps> = (props) => {
 													}`}>
 														{getStatusText(notice.approved ? "approved" : notice.reviewed ? "declined" : "pending")}
 													</span>
-													<span className="text-xs text-gray-500">
+													<span className="text-xs text-zinc-500">
 														{moment(new Date(notice.startTime)).format("MMM Do")} - {moment(new Date(notice.endTime)).format("MMM Do YYYY")}
 													</span>
 												</div>
 											</div>
-											<p className="text-sm text-gray-600 dark:text-gray-300">{notice.reason}</p>
+											<p className="text-sm text-zinc-600 dark:text-zinc-300">{notice.reason}</p>
 										</div>
 									</div>
 								))}
@@ -220,8 +220,8 @@ const Notices: pageWithLayout<pageProps> = (props) => {
 							leaveFrom="opacity-100 scale-100"
 							leaveTo="opacity-0 scale-95"
 						>
-							<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
-								<Dialog.Title as="h3" className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+							<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-zinc-800 p-6 text-left align-middle shadow-xl transition-all">
+								<Dialog.Title as="h3" className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
 									Create Inactivity Notice
 								</Dialog.Title>
 
@@ -282,7 +282,7 @@ const Notices: pageWithLayout<pageProps> = (props) => {
 								<div className="mt-6 flex gap-3">
 									<button
 										type="button"
-										className="flex-1 justify-center rounded-lg bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 px-4 py-2 text-sm font-medium text-gray-900 dark:text-white hover:bg-gray-200 transition-colors"
+										className="flex-1 justify-center rounded-lg bg-zinc-100 dark:bg-zinc-700 dark:hover:bg-zinc-600 px-4 py-2 text-sm font-medium text-zinc-900 dark:text-white hover:bg-zinc-200 transition-colors"
 										onClick={() => setIsOpen(false)}
 									>
 										Cancel

@@ -371,8 +371,8 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 							leaveFrom="opacity-100 scale-100"
 							leaveTo="opacity-0 scale-95"
 						>
-							<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
-								<Dialog.Title as="h3" className="text-lg font-medium text-gray-900 mb-4 dark:text-white">
+							<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-zinc-800 p-6 text-left align-middle shadow-xl transition-all">
+								<Dialog.Title as="h3" className="text-lg font-medium text-zinc-900 mb-4 dark:text-white">
 									Create New Visit
 								</Dialog.Title>
 
@@ -398,7 +398,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 								<div className="mt-6 flex gap-3">
 									<button
 										type="button"
-										className="flex-1 justify-center rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-200 transition-colors"
+										className="flex-1 justify-center rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-200 transition-colors"
 										onClick={() => setIsOpen(false)}
 									>
 										Cancel
@@ -444,8 +444,8 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 							leaveFrom="opacity-100 scale-100"
 							leaveTo="opacity-0 scale-95"
 						>
-							<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
-								<Dialog.Title as="h3" className="text-lg font-medium dark:text-white text-gray-900 mb-4">
+							<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-zinc-800 p-6 text-left align-middle shadow-xl transition-all">
+								<Dialog.Title as="h3" className="text-lg font-medium dark:text-white text-zinc-900 mb-4">
 									Edit Visit
 								</Dialog.Title>
 
@@ -471,7 +471,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 								<div className="mt-6 flex gap-3">
 									<button
 										type="button"
-										className="flex-1 justify-center rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-200 transition-colors"
+										className="flex-1 justify-center rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-200 transition-colors"
 										onClick={() => setEditOpen(false)}
 									>
 										Cancel
@@ -496,21 +496,21 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 				<div className="flex items-center gap-3 mb-6">
 					<button 
 						onClick={() => router.push(`/workspace/${id}/allies`)}
-						className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+						className="p-2 text-zinc-500 hover:text-zinc-700 rounded-lg hover:bg-zinc-100 transition-colors"
 					>
 						<IconArrowLeft className="w-5 h-5" />
 					</button>
-					<h1 className="text-2xl font-medium text-gray-900 dark:text-white">Alliances</h1>
+					<h1 className="text-2xl font-medium text-zinc-900 dark:text-white">Alliances</h1>
 				</div>
 
 				{/* Ally Header */}
-				<div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden mb-6">
+				<div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden mb-6">
 					<div className="p-6">
 						<div className="flex items-center gap-4">
 							<img src={ally.icon} className="w-16 h-16 rounded-full" />
 							<div>
-								<h2 className="text-xl font-medium text-gray-900 dark:text-white">{ally.name}</h2>
-								<p className="text-sm text-gray-500 mt-1">Group ID: {ally.groupId}</p>
+								<h2 className="text-xl font-medium text-zinc-900 dark:text-white">{ally.name}</h2>
+								<p className="text-sm text-zinc-500 mt-1">Group ID: {ally.groupId}</p>
 								<div className="flex flex-wrap gap-2 mt-2">
 									{ally.reps.map((rep: any) => (
 										<Tooltip key={rep.userid} orientation="top" tooltipText={rep.username}>
@@ -528,7 +528,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 				</div>
 
 				{/* Notes Section */}
-				<div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden mb-6">
+				<div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden mb-6">
 					<div className="p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div className="flex items-center gap-3">
@@ -536,8 +536,8 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 									<IconClipboardList className="w-5 h-5 text-primary" />
 								</div>
 								<div>
-									<h2 className="text-lg font-medium text-gray-900 dark:text-white">Notes</h2>
-									<p className="text-sm text-gray-500 dark:text-gray-400">Keep track of important information about this ally</p>
+									<h2 className="text-lg font-medium text-zinc-900 dark:text-white">Notes</h2>
+									<p className="text-sm text-zinc-500 dark:text-zinc-400">Keep track of important information about this ally</p>
 								</div>
 							</div>
 							<button onClick={() => createNote()} className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
@@ -548,32 +548,32 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 
 						{notes.length === 0 ? (
 							<div className="text-center py-8">
-								<div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 max-w-md mx-auto">
+								<div className="bg-zinc-50 dark:bg-zinc-700 rounded-xl p-6 max-w-md mx-auto">
 									<div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
 										<IconClipboardList className="w-6 h-6 text-primary" />
 									</div>
-									<h3 className="text-sm font-medium text-gray-900 mb-1">No Notes</h3>
-									<p className="text-sm text-gray-500 dark:text-gray-400">You haven't added any notes yet</p>
+									<h3 className="text-sm font-medium text-zinc-900 mb-1">No Notes</h3>
+									<p className="text-sm text-zinc-500 dark:text-zinc-400">You haven't added any notes yet</p>
 								</div>
 							</div>
 						) : (
 							<div className="space-y-4">
 								{notes.map((note: any, index: any) => (
-									<div key={index} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+									<div key={index} className="bg-zinc-50 dark:bg-zinc-700 rounded-lg p-4">
 										<div className="flex items-start justify-between mb-3">
-											<p className={`text-sm text-gray-700 dark:text-white ${editNotes.includes(index) ? "hidden" : null}`}>
+											<p className={`text-sm text-zinc-700 dark:text-white ${editNotes.includes(index) ? "hidden" : null}`}>
 												{notes[index]}
 											</p>
 											<div className="flex items-center gap-2">
 												<button
 													onClick={() => noteEdit(index)}
-													className="p-1 text-gray-400 hover:text-primary transition-colors"
+													className="p-1 text-zinc-400 hover:text-primary transition-colors"
 												>
 													<IconPencil className="w-4 h-4" />
 												</button>
 												<button
 													onClick={() => deleteNote(index)}
-													className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+													className="p-1 text-zinc-400 hover:text-red-500 transition-colors"
 												>
 													<IconTrash className="w-4 h-4" />
 												</button>
@@ -581,7 +581,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 										</div>
 										<div className={editNotes.includes(index) ? "" : "hidden"}>
 											<textarea
-												className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+												className="w-full p-3 border border-gray-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
 												value={notes[index]}
 												onChange={(e) => handleNoteChange(e, index)}
 												onBlur={handleNoteBlur}
@@ -603,7 +603,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 				</div>
 
 				{/* Representatives Section */}
-				<div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden mb-6">
+				<div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden mb-6">
 					<div className="p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div className="flex items-center gap-3">
@@ -611,29 +611,29 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 									<IconUsers className="w-5 h-5 text-primary" />
 								</div>
 								<div>
-									<h2 className="text-lg font-medium text-gray-900 dark:text-white">Representatives</h2>
-									<p className="text-sm text-gray-500 dark:text-gray-400">Manage who can represent this ally</p>
+									<h2 className="text-lg font-medium text-zinc-900 dark:text-white">Representatives</h2>
+									<p className="text-sm text-zinc-500 dark:text-zinc-400">Manage who can represent this ally</p>
 								</div>
 							</div>
 						</div>
 
 						{users.length < 1 ? (
 							<div className="text-center py-8">
-								<div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 max-w-md mx-auto">
+								<div className="bg-zinc-50 dark:bg-zinc-700 rounded-xl p-6 max-w-md mx-auto">
 									<div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
 										<IconUsers className="w-6 h-6 text-primary" />
 									</div>
-									<h3 className="text-sm font-medium text-gray-900 mb-1">No Representatives</h3>
-									<p className="text-sm text-gray-500 dark:text-gray-400">Nobody has the represent alliance permissions</p>
+									<h3 className="text-sm font-medium text-zinc-900 mb-1">No Representatives</h3>
+									<p className="text-sm text-zinc-500 dark:text-zinc-400">Nobody has the represent alliance permissions</p>
 								</div>
 							</div>
 						) : (
 							<div className="space-y-4">
-								<div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 max-h-64 overflow-y-auto">
+								<div className="bg-zinc-50 dark:bg-zinc-700 rounded-lg p-4 max-h-64 overflow-y-auto">
 									{users.map((user: any) => (
 										<label
 											key={user.userid}
-											className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"
+											className="flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-600 cursor-pointer"
 										>
 											<input
 												type="checkbox"
@@ -647,7 +647,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 												className="w-8 h-8 rounded-full bg-primary" 
 												alt={user.username}
 											/>
-											<span className="text-sm dark:text-white text-gray-900">{user.username}</span>
+											<span className="text-sm dark:text-white text-zinc-900">{user.username}</span>
 										</label>
 									))}
 								</div>
@@ -663,7 +663,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 				</div>
 
 				{/* Visits Section */}
-				<div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden mb-6">
+				<div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden mb-6">
 					<div className="p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div className="flex items-center gap-3">
@@ -671,8 +671,8 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 									<IconCalendar className="w-5 h-5 text-primary" />
 								</div>
 								<div>
-									<h2 className="text-lg font-medium text-gray-900 dark:text-white">Visits</h2>
-									<p className="text-sm text-gray-500 dark:text-gray-400">Schedule and manage alliance visits</p>
+									<h2 className="text-lg font-medium text-zinc-900 dark:text-white">Visits</h2>
+									<p className="text-sm text-zinc-500 dark:text-zinc-400">Schedule and manage alliance visits</p>
 								</div>
 							</div>
 							<button
@@ -686,45 +686,45 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 
 						{visits.length === 0 ? (
 							<div className="text-center py-8">
-								<div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 max-w-md mx-auto">
+								<div className="bg-zinc-50 dark:bg-zinc-700 rounded-xl p-6 max-w-md mx-auto">
 									<div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
 										<IconCalendar className="w-6 h-6 text-primary" />
 									</div>
-									<h3 className="text-sm font-medium text-gray-900 mb-1 dark:text-white">No Visits</h3>
-									<p className="text-sm text-gray-500 dark:text-gray-400">You haven't scheduled any visits yet</p>
+									<h3 className="text-sm font-medium text-zinc-900 mb-1 dark:text-white">No Visits</h3>
+									<p className="text-sm text-zinc-500 dark:text-zinc-400">You haven't scheduled any visits yet</p>
 								</div>
 							</div>
 						) : (
 							<div className="grid gap-4 grid-cols-1 md:grid-cols-2">
 								{visits.map((visit: any) => (
-									<div key={visit.id} className="bg-gray-50 dark:bg-gray-700rounded-lg p-4">
+									<div key={visit.id} className="bg-zinc-50 dark:bg-zinc-700rounded-lg p-4">
 										<div className="flex items-start justify-between mb-3">
 											<div>
-												<h3 className="text-sm font-medium dark:text-white text-gray-900">{visit.name}</h3>
+												<h3 className="text-sm font-medium dark:text-white text-zinc-900">{visit.name}</h3>
 												<div className="flex items-center gap-2 mt-2">
 													<img 
 														src={visit.hostThumbnail} 
 														className="w-6 h-6 rounded-full bg-primary" 
 														alt={visit.hostUsername}
 													/>
-													<p className="text-xs dark:text-gray-400 text-gray-500">
+													<p className="text-xs dark:text-zinc-400 text-zinc-500">
 														Hosted by {visit.hostUsername}
 													</p>
 												</div>
-												<p className="text-xs dark:text-gray-400 text-gray-500 mt-1">
+												<p className="text-xs dark:text-zinc-400 text-zinc-500 mt-1">
 													{new Date(visit.time).toLocaleDateString()} at {new Date(visit.time).getHours().toString().padStart(2, '0')}:{new Date(visit.time).getMinutes().toString().padStart(2, '0')}
 												</p>
 											</div>
 											<div className="flex items-center gap-1">
 												<button
 													onClick={() => editVisit(visit.id, visit.name)}
-													className="p-1 text-gray-400 hover:text-primary transition-colors"
+													className="p-1 text-zinc-400 hover:text-primary transition-colors"
 												>
 													<IconPencil className="w-4 h-4" />
 												</button>
 												<button
 													onClick={() => deleteVisit(visit.id)}
-													className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+													className="p-1 text-zinc-400 hover:text-red-500 transition-colors"
 												>
 													<IconTrash className="w-4 h-4" />
 												</button>

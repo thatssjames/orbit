@@ -95,7 +95,7 @@ const Login: NextPage = () => {
 		"bg-purple-500",
 		"bg-pink-500",
 		"bg-black",
-		"bg-gray-500",
+		"bg-zinc-500",
 	];
 
 	return (
@@ -106,7 +106,7 @@ const Login: NextPage = () => {
 			<Slider activeSlide={selectedSlide}>
 				<div>
 					<p className="font-bold text-2xl dark:text-white">Let's get started</p>
-					<p className="text-md -mt-1 text-gray-500 dark:text-gray-200">
+					<p className="text-md -mt-1 text-zinc-500 dark:text-zinc-200">
 						To configure your Orbit instance, we'll need some information
 					</p>
 					<FormProvider {...methods}>
@@ -133,7 +133,7 @@ const Login: NextPage = () => {
 					</FormProvider>
 
 					<div className="mt-7">
-						<label className="text-gray-500 text-sm dark:text-gray-200">Color</label>
+						<label className="text-zinc-500 text-sm dark:text-zinc-200">Color</label>
 						<div className="grid grid-cols-5 md:grid-cols-7 lg:grid-cols-11 xl:grid-cols-10 gap-y-3 mb-8 mt-2">
 							{colors.map((color, i) => (
 								<button
@@ -151,7 +151,7 @@ const Login: NextPage = () => {
 						<button 
 							type="button"
 							onClick={() => window.open("https://docs.planetaryapp.cloud/", "_blank", "noopener,noreferrer")}
-							className="border-orbit border-2 py-3 text-sm rounded-xl px-6 text-gray-600 dark:text-white font-bold hover:bg-orbit/80 dark:hover:bg-blue-400 transition"
+							className="border-orbit border-2 py-3 text-sm rounded-xl px-6 text-zinc-600 dark:text-white font-bold hover:bg-orbit/80 dark:hover:bg-blue-400 transition"
 						>
 							Documentation
 						</button>
@@ -168,7 +168,7 @@ const Login: NextPage = () => {
 					<p className="font-bold text-2xl dark:text-white" id="2">
 						Make your Orbit account
 					</p>
-					<p className="text-md -mt-1 text-gray-500 dark:text-gray-200">
+					<p className="text-md -mt-1 text-zinc-500 dark:text-zinc-200">
 						You need to create an Orbit account to continue
 					</p>
 					<FormProvider {...signupform}>

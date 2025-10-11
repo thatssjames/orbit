@@ -70,8 +70,8 @@ const Activity: pageWithLayout = () => {
 			<div className="max-w-7xl mx-auto">
 				<div className="flex items-center gap-3 mb-6">
 					<div>
-						<h1 className="text-2xl font-medium text-gray-900 dark:text-white">Activity</h1>
-						<p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Track and monitor your staff engagement, minutes, and overall group activity</p>
+						<h1 className="text-2xl font-medium text-zinc-900 dark:text-white">Activity</h1>
+						<p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Track and monitor your staff engagement, minutes, and overall group activity</p>
 					</div>
 				</div>
 
@@ -81,14 +81,14 @@ const Activity: pageWithLayout = () => {
 						{ icon: IconClock, label: "Idle Time", value: `${Math.round(idleTime)}m` },
 						{ icon: IconUsers, label: "Active Staff", value: activeUsers.length },
 					].map(({ icon: Icon, label, value }) => (
-						<div key={label} className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm">
+						<div key={label} className="bg-white dark:bg-zinc-800 rounded-xl p-5 shadow-sm">
 							<div className="flex items-center gap-3 mb-2">
 								<div className="bg-primary/10 p-2 rounded-lg">
 									<Icon className="w-5 h-5 text-primary" />
 								</div>
-								<p className="text-sm font-medium text-gray-600 dark:text-white">{label}</p>
+								<p className="text-sm font-medium text-zinc-600 dark:text-white">{label}</p>
 							</div>
-							<p className="text-3xl font-semibold text-gray-900 dark:text-white">{value}</p>
+							<p className="text-3xl font-semibold text-zinc-900 dark:text-white">{value}</p>
 						</div>
 					))}
 				</div>
@@ -112,14 +112,14 @@ const Activity: pageWithLayout = () => {
 							highlight: false,
 						},
 					].map(({ title, subtitle, users, emptyText, icon: Icon, highlight }) => (
-						<div key={title} className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm">
+						<div key={title} className="bg-white dark:bg-zinc-800 rounded-xl p-5 shadow-sm">
 							<div className="flex items-center gap-3 mb-4">
 								<div className="bg-primary/10 p-2 rounded-lg">
 									<Icon className="w-5 h-5 text-primary" />
 								</div>
 								<div>
-									<h2 className="text-base font-medium text-gray-900 dark:text-white">{title}</h2>
-									<p className="text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
+									<h2 className="text-base font-medium text-zinc-900 dark:text-white">{title}</h2>
+									<p className="text-sm text-zinc-500 dark:text-zinc-400">{subtitle}</p>
 								</div>
 							</div>
 							<div className="flex flex-wrap gap-2">
@@ -144,21 +144,21 @@ const Activity: pageWithLayout = () => {
 									</Tooltip>
 								))}
 								{users.length === 0 && (
-									<p className="text-sm text-gray-500 dark:text-gray-400 italic">{emptyText}</p>
+									<p className="text-sm text-zinc-500 dark:text-zinc-400 italic">{emptyText}</p>
 								)}
 							</div>
 						</div>
 					))}
 				</div>
 
-				<div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm mb-6">
+				<div className="bg-white dark:bg-zinc-800 rounded-xl p-5 shadow-sm mb-6">
 					<div className="flex items-center gap-3 mb-4">
 						<div className="bg-primary/10 p-2 rounded-lg">
 							<IconChartBar className="w-5 h-5 text-primary" />
 						</div>
 						<div>
-							<h2 className="text-base font-medium text-gray-900 dark:text-white">Top Staff</h2>
-							<p className="text-sm text-gray-500 dark:text-gray-400">Leading members by activity</p>
+							<h2 className="text-base font-medium text-zinc-900 dark:text-white">Top Staff</h2>
+							<p className="text-sm text-zinc-500 dark:text-zinc-400">Leading members by activity</p>
 						</div>
 					</div>
 					<div className="flex flex-wrap gap-2">
@@ -177,14 +177,14 @@ const Activity: pageWithLayout = () => {
 								</Tooltip>
 							))
 						) : (
-							<p className="text-sm text-gray-500 dark:text-gray-400 italic">
+							<p className="text-sm text-zinc-500 dark:text-zinc-400 italic">
 								No staff have been active yet
 							</p>
 						)}
 					</div>
 				</div>
 
-				<h2 className="text-base font-medium text-gray-900 dark:text-white mb-2">Quick Actions</h2>
+				<h2 className="text-base font-medium text-zinc-900 dark:text-white mb-2">Quick Actions</h2>
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
 					{workspace.yourPermission.includes("manage_activity") && (
 						<ActionButton
@@ -234,15 +234,15 @@ const Activity: pageWithLayout = () => {
 					<div className="fixed inset-0 overflow-y-auto">
 						<div className="flex min-h-full items-center justify-center p-4 text-center">
 							<Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
-								<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-gray-800 p-6 text-left shadow-xl transition-all">
-									<Dialog.Title className="text-lg font-medium text-gray-900 dark:text-white">
+								<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-zinc-800 p-6 text-left shadow-xl transition-all">
+									<Dialog.Title className="text-lg font-medium text-zinc-900 dark:text-white">
 										Reset Activity Period
 									</Dialog.Title>
-									<p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+									<p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
 										Are you sure you want to create a new timeframe? This will reset all activity data.
 									</p>
 									<div className="mt-4 flex gap-3">
-										<button onClick={() => setIsOpen(false)} className="flex-1 rounded-lg border border-gray-300 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600">
+										<button onClick={() => setIsOpen(false)} className="flex-1 rounded-lg border border-gray-300 bg-white dark:bg-zinc-700 px-4 py-2 text-sm font-medium text-zinc-700 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-600">
 											Cancel
 										</button>
 										<button onClick={resetActivity} className="flex-1 rounded-lg bg-red-500 hover:bg-red-600 px-4 py-2 text-sm font-medium text-white">
@@ -264,27 +264,27 @@ const Activity: pageWithLayout = () => {
 const ActionButton = ({ icon: Icon, title, desc, onClick }: any) => (
 	<button
 		onClick={onClick}
-		className="flex items-center gap-3 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm hover:shadow-md transition-all text-left"
+		className="flex items-center gap-3 bg-white dark:bg-zinc-800 p-4 rounded-xl shadow-sm hover:shadow-md transition-all text-left"
 	>
 		<div className="bg-primary/10 p-2 rounded-lg">
 			<Icon className="w-5 h-5 text-primary" />
 		</div>
 		<div>
-			<p className="text-sm font-medium text-gray-900 dark:text-white">{title}</p>
-			<p className="text-xs text-gray-500 dark:text-gray-400">{desc}</p>
+			<p className="text-sm font-medium text-zinc-900 dark:text-white">{title}</p>
+			<p className="text-xs text-zinc-500 dark:text-zinc-400">{desc}</p>
 		</div>
 	</button>
 );
 
 const BG_COLORS = [
-	"bg-red-200",
-	"bg-green-200",
-	"bg-blue-200",
-	"bg-yellow-200",
-	"bg-pink-200",
-	"bg-indigo-200",
-	"bg-teal-200",
 	"bg-orange-200",
+	"bg-amber-200",
+	"bg-lime-200",
+	"bg-purple-200",
+	"bg-violet-200",
+	"bg-fuchsia-200",
+	"bg-rose-200",
+	"bg-green-200",
 ];
 
 function getRandomBg(userid: string | number) {

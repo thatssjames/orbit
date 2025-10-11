@@ -99,8 +99,8 @@ const Home: pageWithLayout<pageProps> = (props) => {
 			<div className="max-w-7xl mx-auto">
 				<div className="flex items-center gap-3 mb-6">
 					<div>
-						<h1 className="text-2xl font-medium text-gray-900 dark:text-white">Sessions</h1>
-						<p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Plan, schedule, and manage sessions for your staff members</p>
+						<h1 className="text-2xl font-medium text-zinc-900 dark:text-white">Sessions</h1>
+						<p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Plan, schedule, and manage sessions for your staff members</p>
 					</div>
 				</div>
 
@@ -110,34 +110,34 @@ const Home: pageWithLayout<pageProps> = (props) => {
 							<IconCalendarEvent className="w-5 h-5 text-primary" />
 						</div>
 						<div>
-							<h2 className="text-lg font-medium text-gray-900 dark:text-white">Ongoing Sessions</h2>
-							<p className="text-sm text-gray-500 dark:text-gray-400">View and manage currently active sessions</p>
+							<h2 className="text-lg font-medium text-zinc-900 dark:text-white">Ongoing Sessions</h2>
+							<p className="text-sm text-zinc-500 dark:text-zinc-400">View and manage currently active sessions</p>
 						</div>
 					</div>
 
 					{sessions.length > 0 ? (
 						<div className="grid gap-4 grid-cols-1 md:grid-cols-2">
 							{sessions.map(session => (
-								<div key={session.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+								<div key={session.id} className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
 									<div className="p-6">
 										<div className="flex items-start justify-between">
 											<div>
-												<h3 className="text-lg font-medium text-gray-900 dark:text-white">{session.sessionType.name}</h3>
+												<h3 className="text-lg font-medium text-zinc-900 dark:text-white">{session.sessionType.name}</h3>
 												<div className="flex items-center gap-2 mt-2">
 													<img 
 														src={(session.owner.picture || '/default-avatar.png') as string} 
-														className="w-8 h-8 rounded-full bg-primary border-2 border-white dark:border-gray-700" 
+														className="w-8 h-8 rounded-full bg-primary border-2 border-white dark:border-zinc-700" 
 														alt={session.owner.username || 'User'}
 													/>
 													<div>
-														<p className="text-sm text-gray-900 dark:text-white">{session.owner.username}</p>
-														<p className="text-xs text-gray-500 dark:text-gray-400">{statues.get(session.id)}</p>
+														<p className="text-sm text-zinc-900 dark:text-white">{session.owner.username}</p>
+														<p className="text-xs text-zinc-500 dark:text-zinc-400">{statues.get(session.id)}</p>
 													</div>
 												</div>
 											</div>
 											<button
 												onClick={() => endSession(session.id)}
-												className="p-2 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+												className="p-2 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
 											>
 												<IconTrash className="w-5 h-5" />
 											</button>
@@ -147,13 +147,13 @@ const Home: pageWithLayout<pageProps> = (props) => {
 							))}
 						</div>
 					) : (
-						<div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+						<div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
 							<div className="p-8 text-center">
 								<div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
 									<IconCalendarEvent className="w-6 h-6 text-primary" />
 								</div>
-								<h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">No Active Sessions</h3>
-								<p className="text-sm text-gray-500 dark:text-gray-400">There are no sessions currently in progress</p>
+								<h3 className="text-sm font-medium text-zinc-900 dark:text-white mb-1">No Active Sessions</h3>
+								<p className="text-sm text-zinc-500 dark:text-zinc-400">There are no sessions currently in progress</p>
 							</div>
 						</div>
 					)}
@@ -165,38 +165,38 @@ const Home: pageWithLayout<pageProps> = (props) => {
 							<IconClipboardList className="w-5 h-5 text-primary" />
 						</div>
 						<div>
-							<h2 className="text-lg font-medium text-gray-900 dark:text-white">Management</h2>
-							<p className="text-sm text-gray-500 dark:text-gray-400">Schedule and manage your sessions</p>
+							<h2 className="text-lg font-medium text-zinc-900 dark:text-white">Management</h2>
+							<p className="text-sm text-zinc-500 dark:text-zinc-400">Schedule and manage your sessions</p>
 						</div>
 					</div>
 
 					<div className="grid gap-4 grid-cols-1 md:grid-cols-2">
 						<button 
 							onClick={() => router.push(`/workspace/${router.query.id}/sessions/schedule`)}
-							className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left group"
+							className="bg-white dark:bg-zinc-800 p-6 rounded-xl shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors text-left group"
 						>
 							<div className="flex items-center gap-3">
 								<div className="bg-primary/10 p-2 rounded-lg">
 									<IconCalendarEvent className="w-5 h-5 text-primary" />
 								</div>
 								<div>
-									<h3 className="text-base font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors">View Schedule</h3>
-									<p className="text-sm text-gray-500 dark:text-gray-400">View this workspace's session schedule</p>
+									<h3 className="text-base font-medium text-zinc-900 dark:text-white group-hover:text-primary transition-colors">View Schedule</h3>
+									<p className="text-sm text-zinc-500 dark:text-zinc-400">View this workspace's session schedule</p>
 								</div>
 							</div>
 						</button>
 
 						<button 
 							onClick={() => router.push(`/workspace/${router.query.id}/sessions/schedules`)}
-							className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left group"
+							className="bg-white dark:bg-zinc-800 p-6 rounded-xl shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors text-left group"
 						>
 							<div className="flex items-center gap-3">
 								<div className="bg-primary/10 p-2 rounded-lg">
 									<IconUsers className="w-5 h-5 text-primary" />
 								</div>
 								<div>
-									<h3 className="text-base font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors">View & Edit Schedules</h3>
-									<p className="text-sm text-gray-500 dark:text-gray-400">Edit the session schedules</p>
+									<h3 className="text-base font-medium text-zinc-900 dark:text-white group-hover:text-primary transition-colors">View & Edit Schedules</h3>
+									<p className="text-sm text-zinc-500 dark:text-zinc-400">Edit the session schedules</p>
 								</div>
 							</div>
 						</button>

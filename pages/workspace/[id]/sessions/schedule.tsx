@@ -288,14 +288,14 @@ const Home: pageWithLayout<{
 	const canUnclaimHost = sessionForSelectedDate?.owner?.userid?.toString() === login.userId?.toString() || workspace.yourPermission?.includes('manage_sessions');
 
 	return (
-		<div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+		<div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
 			<Toaster position="bottom-center" />
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 				<div className="flex items-center gap-3 mb-8">
-					<button onClick={() => router.back()} className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+					<button onClick={() => router.back()} className="p-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-300 dark:hover:text-white rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
 						<IconArrowLeft className="w-5 h-5" />
 					</button>
-					<h1 className="text-2xl font-medium text-gray-900 dark:text-white">Sessions</h1>
+					<h1 className="text-2xl font-medium text-zinc-900 dark:text-white">Sessions</h1>
 				</div>
 
 				<div className="mb-8">
@@ -305,8 +305,8 @@ const Home: pageWithLayout<{
 								<IconCalendarEvent className="w-5 h-5 text-primary" />
 							</div>
 							<div>
-								<h2 className="text-lg font-medium text-gray-900 dark:text-white">Session Schedule</h2>
-								<p className="text-sm text-gray-500 dark:text-gray-400">View and manage upcoming sessions</p>
+								<h2 className="text-lg font-medium text-zinc-900 dark:text-white">Session Schedule</h2>
+								<p className="text-sm text-zinc-500 dark:text-zinc-400">View and manage upcoming sessions</p>
 							</div>
 						</div>
 						<button onClick={() => router.push(`/workspace/${router.query.id}/sessions/new`)} className="inline-flex items-center px-4 py-2 shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
@@ -317,9 +317,9 @@ const Home: pageWithLayout<{
 
 					<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 						<div className="lg:col-span-3">
-							<div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-								<div className="p-4 border-b border-gray-200 dark:border-gray-700">
-									<h3 className="text-sm font-medium text-gray-900 dark:text-white">Select Date</h3>
+							<div className="bg-white dark:bg-zinc-800 rounded-lg shadow">
+								<div className="p-4 border-b border-gray-200 dark:border-zinc-700">
+									<h3 className="text-sm font-medium text-zinc-900 dark:text-white">Select Date</h3>
 								</div>
 								<div className="p-4 space-y-2">
 									{getLastThreeDays.map((day, i) => (
@@ -329,7 +329,7 @@ const Home: pageWithLayout<{
 											className={`w-full px-4 py-3 rounded-lg text-left transition-colors ${
 												selectedDate.getDate() === day.getDate()
 												? 'bg-primary/10 text-primary dark:bg-primary/20'
-												: 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+												: 'hover:bg-zinc-50 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300'
 											}`}
 										>
 											<div className="font-medium">{day.toLocaleDateString("en-US", { weekday: "long" })}</div>
@@ -362,14 +362,14 @@ const Home: pageWithLayout<{
 										const isDisabled = check.disabled || isSessionInPastLocal(session);
 
 										return (
-											<div key={session.id} className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+											<div key={session.id} className="bg-white dark:bg-zinc-800 rounded-lg shadow overflow-hidden">
 												<div className="p-6">
 													<div className="flex items-center justify-between">
 														<div>
-															<h3 className="text-lg font-medium text-gray-900 dark:text-white">
+															<h3 className="text-lg font-medium text-zinc-900 dark:text-white">
 																{session.sessionType.name}
 															</h3>
-															<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+															<p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
 																{displayDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
 															</p>
 														</div>
@@ -382,13 +382,13 @@ const Home: pageWithLayout<{
 																		className="w-8 h-8 rounded-full"
 																	/>
 																	<div className="text-sm">
-																		<div className="font-medium text-gray-900 dark:text-white">
+																		<div className="font-medium text-zinc-900 dark:text-white">
 																			{currentSession.owner.username}
 																		</div>
-																		<div className="text-gray-500 dark:text-gray-400">Host</div>
+																		<div className="text-zinc-500 dark:text-zinc-400">Host</div>
 																	</div>
 																	{(currentSession.owner.userid === BigInt(login.userId) || workspace.yourPermission?.includes('manage_sessions')) && (
-																		<button onClick={() => unclaimSession(session)} disabled={isLoading} className="ml-2 p-2 text-gray-400 hover:text-red-500 transition-colors">
+																		<button onClick={() => unclaimSession(session)} disabled={isLoading} className="ml-2 p-2 text-zinc-400 hover:text-red-500 transition-colors">
 																			<IconX className="w-5 h-5" />
 																		</button>
 																	)}
@@ -401,7 +401,7 @@ const Home: pageWithLayout<{
 																)
 															)}
 															{session.sessionType.slots && (
-																<Button onPress={() => setSelectedSession(session)} classoverride="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-white" disabled={isLoading}>
+																<Button onPress={() => setSelectedSession(session)} classoverride="bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-700 dark:text-white" disabled={isLoading}>
 																	View Slots
 																</Button>
 															)}
@@ -413,12 +413,12 @@ const Home: pageWithLayout<{
 									})}
 								</div>
 							) : (
-						<div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
+						<div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-8 text-center">
 							<div className="mx-auto w-12 h-12 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center mb-4">
 								<IconCalendarEvent className="w-6 h-6 text-primary" />
 							</div>
-							<h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">No Sessions Scheduled</h3>
-							<p className="text-sm text-gray-500 dark:text-gray-400">There are no sessions scheduled for this date.</p>
+							<h3 className="text-sm font-medium text-zinc-900 dark:text-white mb-1">No Sessions Scheduled</h3>
+							<p className="text-sm text-zinc-500 dark:text-zinc-400">There are no sessions scheduled for this date.</p>
 						</div>
 					)}
 				</div>
@@ -453,20 +453,20 @@ const Home: pageWithLayout<{
 							>
 								<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
 									<Dialog.Title as="div" className="flex items-center justify-between mb-4">
-										<h3 className="text-lg font-medium text-gray-900">
+										<h3 className="text-lg font-medium text-zinc-900">
 											Session Slots
 										</h3>
 										<button
 											onClick={() => setSelectedSession(null)}
-											className="p-2 text-gray-400 hover:text-gray-500 transition-colors"
+											className="p-2 text-zinc-400 hover:text-zinc-500 transition-colors"
 										>
 											<IconX className="w-5 h-5" />
 										</button>
 									</Dialog.Title>
 
 									<div className="space-y-4 max-h-96 overflow-y-auto">
-										<div className="bg-gray-50 rounded-lg p-4 mb-4">
-											<h4 className="text-sm font-medium text-gray-900 mb-3">Host</h4>
+										<div className="bg-zinc-50 rounded-lg p-4 mb-4">
+											<h4 className="text-sm font-medium text-zinc-900 mb-3">Host</h4>
 											<div className="flex items-center justify-between bg-white rounded-md p-2">
 												<div className="flex items-center gap-2">
 													{sessionForSelectedDate?.owner ? (
@@ -476,19 +476,19 @@ const Home: pageWithLayout<{
 																alt={sessionForSelectedDate.owner.username || ''}
 																className="w-6 h-6 rounded-full"
 															/>
-															<span className="text-sm text-gray-600">
+															<span className="text-sm text-zinc-600">
 																{sessionForSelectedDate.owner.username}
 															</span>
 														</>
 													) : (
-														<span className="text-sm text-gray-500">Unclaimed</span>
+														<span className="text-sm text-zinc-500">Unclaimed</span>
 													)}
 												</div>
 												{sessionForSelectedDate?.owner && (sessionForSelectedDate.owner.userid === BigInt(login.userId) || workspace.yourPermission?.includes('manage_sessions')) && selectedSession && (
 													<button
 														onClick={() => unclaimSession(selectedSession)}
 														disabled={isLoading}
-														className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+														className="p-1 text-zinc-400 hover:text-red-500 transition-colors"
 													>
 														<IconX className="w-4 h-4" />
 													</button>
@@ -516,8 +516,8 @@ const Home: pageWithLayout<{
 													u.roleID === slotData.id && u.slot === index
 												);
 										return (
-											<div key={index} className="bg-gray-50 rounded-lg p-4">
-													<h4 className="text-sm font-medium text-gray-900 mb-3">{slotData.name}</h4>
+											<div key={index} className="bg-zinc-50 rounded-lg p-4">
+													<h4 className="text-sm font-medium text-zinc-900 mb-3">{slotData.name}</h4>
 											<div className="space-y-2">
 												{Array.from(Array(slotData.slots)).map((_, i) => {
 															const matchedUser = session?.users?.find(u =>
@@ -533,12 +533,12 @@ const Home: pageWithLayout<{
 																					alt={matchedUser.user.username || 'Unclaimed'}
 																					className="w-6 h-6 rounded-full"
 														/>
-																				<span className="text-sm font-medium text-gray-900">
+																				<span className="text-sm font-medium text-zinc-900">
 																					{matchedUser.user.username}
 														</span>
 																			</>
 																		) : (
-																			<span className="text-sm text-gray-500">Unclaimed</span>
+																			<span className="text-sm text-zinc-500">Unclaimed</span>
 																		)}
 													</div>
 													{!matchedUser && !isSessionInPastLocal(selectedSession) && (

@@ -128,7 +128,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 	return (
 		<div className="space-y-4 mt-4">
 			<div className="flex items-center justify-between">
-				<h3 className="text-lg font-medium text-gray-900 dark:text-white">Roles</h3>
+				<h3 className="text-lg font-medium text-zinc-900 dark:text-white">Roles</h3>
 				<div className="flex items-center space-x-3">
 					<button
 						onClick={newRole}
@@ -139,7 +139,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 					</button>
 					<button
 						onClick={checkRoles}
-						className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 dark:text-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
+						className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md text-zinc-700 bg-zinc-100 hover:bg-zinc-200 dark:text-zinc-200 dark:bg-zinc-700 dark:hover:bg-zinc-600 transition-colors"
 					>
 						<IconRefresh size={16} className="mr-1.5" />
 						Sync Group Roles
@@ -152,7 +152,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 					<Disclosure
 						as="div"
 						key={role.id}
-						className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
+						className="bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700 shadow-sm"
 					>
 						{({ open }) => (
 							<>
@@ -160,10 +160,10 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 									className="w-full px-4 py-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-lg"
 								>
 									<div className="flex items-center justify-between">
-										<span className="text-sm font-medium text-gray-900 dark:text-white">{role.name}</span>
+										<span className="text-sm font-medium text-zinc-900 dark:text-white">{role.name}</span>
 										<IconChevronDown
 											className={clsx(
-												"w-5 h-5 text-gray-500 transition-transform",
+												"w-5 h-5 text-zinc-500 transition-transform",
 												open ? "transform rotate-180" : ""
 											)}
 										/>
@@ -186,12 +186,12 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 													placeholder="Role name"
 													value={role.name}
 													onChange={(e) => updateRole(e.target.value, role.id)}
-													className="w-full px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
+													className="w-full px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
 												/>
 											</div>
 
 											<div>
-												<h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Permissions</h4>
+												<h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-2">Permissions</h4>
 												<div className="space-y-2">
 													{Object.entries(permissions).map(([label, value]) => (
 														<label key={value} className="flex items-center space-x-2">
@@ -199,16 +199,16 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 																type="checkbox"
 																checked={role.permissions.includes(value)}
 																onChange={() => togglePermission(role.id, value)}
-																className="w-4 h-4 rounded text-primary border-gray-300 dark:border-gray-600 focus:ring-primary/50"
+																className="w-4 h-4 rounded text-primary border-gray-300 dark:border-zinc-600 focus:ring-primary/50"
 															/>
-															<span className="text-sm text-gray-700 dark:text-gray-200">{label}</span>
+															<span className="text-sm text-zinc-700 dark:text-zinc-200">{label}</span>
 														</label>
 													))}
 												</div>
 											</div>
 
 											<div>
-												<h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Group-synced roles</h4>
+												<h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-2">Group-synced roles</h4>
 												<div className="space-y-2">
 													{grouproles.map((groupRole) => (
 														<label key={groupRole.id} className="flex items-center space-x-2">
@@ -217,9 +217,9 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 																checked={role.groupRoles.includes(groupRole.id)}
 																onChange={() => toggleGroupRole(role.id, groupRole)}
 																disabled={aroledoesincludegrouprole(role.id, groupRole)}
-																className="w-4 h-4 rounded text-primary border-gray-300 dark:border-gray-600 focus:ring-primary/50 disabled:opacity-50"
+																className="w-4 h-4 rounded text-primary border-gray-300 dark:border-zinc-600 focus:ring-primary/50 disabled:opacity-50"
 															/>
-															<span className="text-sm text-gray-700 dark:text-gray-200">{groupRole.name}</span>
+															<span className="text-sm text-zinc-700 dark:text-zinc-200">{groupRole.name}</span>
 														</label>
 													))}
 												</div>

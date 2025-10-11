@@ -21,7 +21,7 @@ const Input: FC<Props> = ({ placeholder, label, classoverride, id, onChange, onB
 	return (
 		<div className="mb-3">
 			{label &&
-				<label htmlFor={id} className="text-gray-500 text-sm dark:text-gray-200">
+				<label htmlFor={id} className="text-zinc-500 text-sm dark:text-zinc-200">
 					{label}
 				</label>
 			}
@@ -41,7 +41,7 @@ const Input: FC<Props> = ({ placeholder, label, classoverride, id, onChange, onB
 					onBlur={onBlur}
 					name={name}
 					className={
-						`text-gray-600 dark:text-white flex-1 rounded-lg p-2 border-2 border-gray-300  dark:border-gray-500 w-full  bg-gray-50 disabled:bg-gray-200 focus-visible:outline-none dark:bg-gray-700 ${prepend ? 'rounded-l-none' : 'rounded-l-lg'} ${append ? 'rounded-r-none' : 'rounded-r-lg'} ` + classoverride
+						`text-zinc-600 dark:text-white flex-1 rounded-lg p-2 border-2 border-gray-300  dark:border-zinc-500 w-full  bg-zinc-50 disabled:bg-zinc-200 focus-visible:outline-none dark:bg-zinc-700 ${prepend ? 'rounded-l-none' : 'rounded-l-lg'} ${append ? 'rounded-r-none' : 'rounded-r-lg'} ` + classoverride
 					}
 				/>
 			</div> : <textarea
@@ -52,7 +52,7 @@ const Input: FC<Props> = ({ placeholder, label, classoverride, id, onChange, onB
 				value={value}
 				name={name}
 				className={
-					"text-gray-600 dark:text-white rounded-lg p-2 border-2 border-gray-300  dark:border-gray-500 w-full bg-gray-50 focus-visible:outline-none dark:bg-gray-700 " + classoverride 
+					"text-zinc-600 dark:text-white rounded-lg p-2 border-2 border-gray-300  dark:border-zinc-500 w-full bg-zinc-50 focus-visible:outline-none dark:bg-zinc-700 " + classoverride 
 				}
 			/>}
 		</div>

@@ -178,16 +178,16 @@ const Allies: pageWithLayout<pageProps> = (props) => {
 	return <>
 		<Toaster position="bottom-center" />
 
-		<div className="pagePadding bg-gray-50 dark:bg-gray-900">
+		<div className="pagePadding bg-zinc-50 dark:bg-zinc-900">
 			<div className="max-w-7xl mx-auto">
 				<div className="flex items-center gap-3 mb-6">
 					<div>
-						<h1 className="text-2xl font-medium text-gray-900 dark:text-white">Alliances</h1>
-						<p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage and view your group’s alliances with other communities</p>
+						<h1 className="text-2xl font-medium text-zinc-900 dark:text-white">Alliances</h1>
+						<p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Manage and view your group’s alliances with other communities</p>
 					</div>
 				</div>
 
-				<div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden mb-6">
+				<div className="bg-white dark:bg-zinc-800 border-zinc-100 dark:border-zinc-70 rounded-xl shadow-sm overflow-hidden mb-6">
 					<div className="p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div className="flex items-center gap-3">
@@ -195,8 +195,8 @@ const Allies: pageWithLayout<pageProps> = (props) => {
 									<IconUsers className="w-5 h-5 text-primary" />
 								</div>
 								<div>
-									<h2 className="text-lg font-medium text-gray-900 dark:text-white">Allies</h2>
-									<p className="text-sm text-gray-500 dark:text-gray-400">Manage your group alliances</p>
+									<h2 className="text-lg font-medium text-zinc-900 dark:text-white">Allies</h2>
+									<p className="text-sm text-zinc-500 dark:text-zinc-400">Manage your group alliances</p>
 								</div>
 							</div>
 							<button
@@ -210,12 +210,12 @@ const Allies: pageWithLayout<pageProps> = (props) => {
 
 						{allies.length === 0 ? (
 							<div className="text-center py-12">
-								<div className="bg-white dark:bg-gray-800 rounded-xl p-8 max-w-md mx-auto">
+								<div className="bg-white dark:bg-zinc-800 rounded-xl p-8 max-w-md mx-auto">
 									<div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
 										<IconClipboardList className="w-8 h-8 text-primary" />
 									</div>
-									<h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">No Allies</h3>
-									<p className="text-sm text-gray-500 dark:text-gray-400 mb-4">You haven't created any allies yet</p>
+									<h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-1">No Allies</h3>
+									<p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">You haven't created any allies yet</p>
 									<button
 										onClick={() => setIsOpen(true)}
 										className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
@@ -228,13 +228,13 @@ const Allies: pageWithLayout<pageProps> = (props) => {
 						) : (
 							<div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
 								{allies.map((ally: any) => (
-									<div key={ally.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+									<div key={ally.id} className="bg-zinc-50 dark:bg-zinc-700 rounded-lg p-4">
 										<div className="flex items-start justify-between mb-3">
 											<div className="flex items-center gap-3">
 												<img src={ally.icon} className="w-12 h-12 rounded-full" />
 												<div>
-													<h3 className="text-sm font-medium text-gray-900 dark:text-white">{ally.name}</h3>
-													<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Group ID: {ally.groupId}</p>
+													<h3 className="text-sm font-medium text-zinc-900 dark:text-white">{ally.name}</h3>
+													<p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Group ID: {ally.groupId}</p>
 												</div>
 											</div>
 											<button
@@ -251,7 +251,7 @@ const Allies: pageWithLayout<pageProps> = (props) => {
 														}
 													);
 												}}
-												className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+												className="p-1 text-zinc-400 hover:text-red-500 transition-colors"
 											>
 												<IconTrash className="w-4 h-4" />
 											</button>
@@ -261,7 +261,7 @@ const Allies: pageWithLayout<pageProps> = (props) => {
 												<Tooltip key={rep.userid} orientation="top" tooltipText={rep.username}>
 													<img 
 														src={rep.thumbnail} 
-														className="w-8 h-8 rounded-full bg-primary border-2 border-gray-200 dark:border-gray-700 transition-transform"
+														className="w-8 h-8 rounded-full bg-primary border-2 border-gray-200 dark:border-zinc-700 transition-transform"
 														alt={rep.username}
 													/>
 												</Tooltip>
@@ -269,7 +269,7 @@ const Allies: pageWithLayout<pageProps> = (props) => {
 										</div>
 										<button
 											onClick={() => router.push(`/workspace/${id}/allies/manage/${ally.id}`)}
-											className="flex items-center gap-3 p-2 rounded-lg dark:text-white hover:bg-gray-50 dark:bg-gray-600 dark:hover:bg-gray-500 cursor-pointer">
+											className="flex items-center gap-3 p-2 rounded-lg dark:text-white hover:bg-zinc-50 dark:bg-zinc-600 dark:hover:bg-zinc-500 cursor-pointer">
 											Manage Ally
 										</button>
 									</div>
@@ -306,8 +306,8 @@ const Allies: pageWithLayout<pageProps> = (props) => {
 							leaveFrom="opacity-100 scale-100"
 							leaveTo="opacity-0 scale-95"
 						>
-							<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
-								<Dialog.Title as="h3" className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+							<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-zinc-800 border-zinc-100 dark:border-zinc-700 p-6 text-left align-middle shadow-xl transition-all">
+								<Dialog.Title as="h3" className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
 									Create New Ally
 								</Dialog.Title>
 
@@ -326,19 +326,19 @@ const Allies: pageWithLayout<pageProps> = (props) => {
 													{...register("notes")} 
 												/>
 												<div>
-													<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+													<label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
 														Representatives
 													</label>
 													{users.length < 1 ? (
-														<p className="text-sm text-gray-500">You don't have anyone who can represent yet</p>
+														<p className="text-sm text-zinc-500">You don't have anyone who can represent yet</p>
 													) : (
 														<>
-															<p className="text-sm text-gray-500 mb-2">{reps.length} Reps Selected (Minimum 1)</p>
+															<p className="text-sm text-zinc-500 mb-2">{reps.length} Reps Selected (Minimum 1)</p>
 															<div className="space-y-2 max-h-48 overflow-y-auto">
 																{users.map((user: any) => (
 																	<label
 																		key={user.userid}
-																		className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+																		className="flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700 cursor-pointer"
 																	>
 																		<input
 																			type="checkbox"
@@ -351,7 +351,7 @@ const Allies: pageWithLayout<pageProps> = (props) => {
 																			className="w-8 h-8 rounded-full bg-primary" 
 																			alt={user.username}
 																		/>
-																		<span className="text-sm text-gray-900 dark:text-white">{user.username}</span>
+																		<span className="text-sm text-zinc-900 dark:text-white">{user.username}</span>
 																	</label>
 																))}
 															</div>
@@ -367,7 +367,7 @@ const Allies: pageWithLayout<pageProps> = (props) => {
 								<div className="mt-6 flex gap-3">
 									<button
 										type="button"
-										className="flex-1 justify-center rounded-lg bg-gray-100 dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+										className="flex-1 justify-center rounded-lg bg-zinc-100 dark:bg-zinc-700 px-4 py-2 text-sm font-medium text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
 										onClick={() => setIsOpen(false)}
 									>
 										Cancel

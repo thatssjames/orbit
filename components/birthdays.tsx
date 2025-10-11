@@ -85,13 +85,12 @@ export default function Birthdays() {
       ...user,
       daysAway: getDaysUntilBirthday(user.birthdayDay, user.birthdayMonth),
     }))
-    .filter(user => user.daysAway >= 0 && user.daysAway <= 7)
-    .sort((a, b) => a.daysAway - b.daysAway);
+    .filter(user => user.daysAway >= 0 && user.daysAway <= 7);
 
   if (usersWithDays.length === 0) return null;
 
   return (
-    <div ref={cardRef} className="z-0 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 flex flex-col gap-4 mb-6 relative overflow-hidden">
+    <div ref={cardRef} className="z-0 bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-4 flex flex-col gap-4 mb-6 relative overflow-hidden">
       {showConfetti && cardSize.width > 0 && cardSize.height > 0 && (
         <Confetti width={cardSize.width} height={cardSize.height} numberOfPieces={300} recycle={true} style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }} />
       )}
@@ -99,13 +98,13 @@ export default function Birthdays() {
         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
           <IconGift className="w-5 h-5 text-primary" />
         </div>
-        <span className="text-lg font-medium text-gray-900 dark:text-white">Upcoming Birthdays</span>
+        <span className="text-lg font-medium text-zinc-900 dark:text-white">Upcoming Birthdays</span>
       </div>
       <div className="flex flex-col gap-3">
         {usersWithDays.map(user => (
           <div
             key={user.userid}
-            className="flex items-center gap-3 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm"
+            className="flex items-center gap-3 bg-white dark:bg-zinc-800 p-3 rounded-lg shadow-sm"
             onMouseEnter={() => {
               if (user.daysAway === 0) {
                 if (cardRef.current) {
@@ -130,8 +129,8 @@ export default function Birthdays() {
               />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-medium text-gray-900 dark:text-white">{user.username}</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">
+              <div className="font-medium text-zinc-900 dark:text-white">{user.username}</div>
+              <div className="text-sm text-zinc-500 dark:text-zinc-400">
                 {user.daysAway === 0
                   ? "🎉 Birthday Today!"
                   : user.daysAway === 1

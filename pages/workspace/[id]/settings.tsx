@@ -133,7 +133,7 @@ const Settings: pageWithLayout<Props> = ({ users, roles, grouproles }) => {
   const renderContent = () => {
     if (activeSection === "permissions") {
       return (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 sm:p-6">
+        <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4 sm:p-6">
           <Permissions users={users} roles={roles} grouproles={grouproles} />
         </div>
       )
@@ -147,7 +147,7 @@ const Settings: pageWithLayout<Props> = ({ users, roles, grouproles }) => {
 		apiComponents.unshift(apiKeyComponent)
 	  }
 	  return apiComponents.map(({ component: Component }, index) => (
-		<div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 sm:p-6 mb-4 last:mb-0">
+		<div key={index} className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4 sm:p-6 mb-4 last:mb-0">
 		  <div className="mb-4">
 			<Component triggerToast={toast} />
 		  </div>
@@ -156,9 +156,9 @@ const Settings: pageWithLayout<Props> = ({ users, roles, grouproles }) => {
 	}
 
     return SECTIONS[activeSection as keyof typeof SECTIONS].components.map(({ component: Component, title }, index) => (
-      <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 sm:p-6 mb-4 last:mb-0">
+      <div key={index} className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4 sm:p-6 mb-4 last:mb-0">
         <div className="mb-4">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{title}</h3>
+          <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-2">{title}</h3>
           <Component triggerToast={toast} isSidebarExpanded={isSidebarExpanded} />
         </div>
       </div>
@@ -166,12 +166,12 @@ const Settings: pageWithLayout<Props> = ({ users, roles, grouproles }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Settings</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white">Settings</h1>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
             Manage your workspace preferences and configurations
           </p>
         </div>
@@ -179,7 +179,7 @@ const Settings: pageWithLayout<Props> = ({ users, roles, grouproles }) => {
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Navigation Sidebar */}
           <div className="w-full lg:w-64 flex-shrink-0">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3">
+            <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-3">
               <nav className="space-y-1">
                 {Object.entries(SECTIONS).map(([key, section]) => {
                   const Icon = section.icon
@@ -191,7 +191,7 @@ const Settings: pageWithLayout<Props> = ({ users, roles, grouproles }) => {
                         "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors",
                         activeSection === key
                           ? "text-primary bg-primary/10 dark:bg-primary/20"
-                          : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700",
+                          : "text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700",
                       )}
                     >
                       <Icon size={18} />
@@ -199,7 +199,7 @@ const Settings: pageWithLayout<Props> = ({ users, roles, grouproles }) => {
                       <IconChevronRight
                         size={16}
                         className={clsx(
-                          "ml-auto transition-transform text-gray-400 dark:text-gray-300",
+                          "ml-auto transition-transform text-zinc-400 dark:text-zinc-300",
                           activeSection === key ? "rotate-90" : "",
                         )}
                       />
@@ -213,10 +213,10 @@ const Settings: pageWithLayout<Props> = ({ users, roles, grouproles }) => {
           {/* Main Content */}
           <div className="flex-1">
             <div className="mb-4">
-              <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+              <h2 className="text-lg font-medium text-zinc-900 dark:text-white">
                 {SECTIONS[activeSection as keyof typeof SECTIONS].name}
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
                 {SECTIONS[activeSection as keyof typeof SECTIONS].description}
               </p>
             </div>

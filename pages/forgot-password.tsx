@@ -56,11 +56,11 @@ const ForgotPassword: NextPage = () => {
 	return (
 		<>
 			<div className="flex items-center justify-center h-screen px-4 overflow-hidden bg-infobg-light dark:bg-infobg-dark">
-				<div className="bg-white dark:bg-gray-700 dark:bg-opacity-50 dark:backdrop-blur-lg max-w-md w-full rounded-3xl p-8 shadow-lg relative">
+				<div className="bg-white dark:bg-zinc-700 dark:bg-opacity-50 dark:backdrop-blur-lg max-w-md w-full rounded-3xl p-8 shadow-lg relative">
 					{selectedSlide === 0 && (
 						<>
 							<p className="font-bold text-2xl dark:text-white mb-2">Forgot your password?</p>
-							<p className="text-md text-gray-500 dark:text-gray-200 mb-6">
+							<p className="text-md text-zinc-500 dark:text-zinc-200 mb-6">
 								Enter your Roblox username to begin resetting your password.
 							</p>
 							<FormProvider {...usernameForm}>
@@ -89,11 +89,11 @@ const ForgotPassword: NextPage = () => {
 					{selectedSlide === 1 && (
 						<>
 							<p className="font-bold text-2xl dark:text-white mb-2">Verify your Roblox account</p>
-							<p className="text-md text-gray-500 dark:text-gray-200 mb-6">
+							<p className="text-md text-zinc-500 dark:text-zinc-200 mb-6">
 								Paste the below code into your Roblox profile blurb to prove ownership:
 							</p>
-							<p className="text-lg text-gray-500 dark:text-gray-200 text-center mt-4 leading-10">
-								<code className="bg-gray-600 p-2 rounded-lg">{code}</code>
+							<p className="text-lg text-zinc-500 dark:text-zinc-200 text-center mt-4 leading-10">
+								<code className="bg-zinc-600 p-2 rounded-lg">{code}</code>
 							</p>
 							{error && (
 								<p className="text-center mt-4">
@@ -132,7 +132,7 @@ const ForgotPassword: NextPage = () => {
 					{selectedSlide === 2 && (
 						<>
 							<p className="font-bold text-2xl dark:text-white mb-2">Set your new password</p>
-							<p className="text-md text-gray-500 dark:text-gray-200 mb-6">
+							<p className="text-md text-zinc-500 dark:text-zinc-200 mb-6">
 								Enter and confirm your new password
 							</p>
 							<FormProvider {...passwordForm}>
@@ -166,7 +166,7 @@ const ForgotPassword: NextPage = () => {
 											Reset Password
 										</Button>
 									</div>
-									<div className="mt-4 text-xs text-gray-500 dark:text-gray-400 text-center">
+									<div className="mt-4 text-xs text-zinc-500 dark:text-zinc-400 text-center">
 										<strong>Don't share your password.</strong>
 										<br />
 										<span>Do not use the same password as your Roblox account.</span>
@@ -185,7 +185,7 @@ const ForgotPassword: NextPage = () => {
 				<div className="fixed bottom-4 left-4 z-40">
 					<button
 						onClick={() => setShowCopyright(true)}
-						className="text-left text-xs text-gray-500 hover:text-primary"
+						className="text-left text-xs text-zinc-500 hover:text-primary"
 						type="button"
 					>
 						© Copyright Notices
@@ -201,34 +201,34 @@ const ForgotPassword: NextPage = () => {
 				<div className="fixed inset-0 bg-black/30" aria-hidden="true" />
 
 				<div className="fixed inset-0 flex items-center justify-center p-4">
-					<Dialog.Panel className="mx-auto max-w-sm rounded-lg bg-white dark:bg-gray-800 p-6 shadow-xl">
+					<Dialog.Panel className="mx-auto max-w-sm rounded-lg bg-white dark:bg-zinc-800 p-6 shadow-xl">
 						<div className="flex items-center justify-between mb-4">
-							<Dialog.Title className="text-lg font-medium text-gray-900 dark:text-white">
+							<Dialog.Title className="text-lg font-medium text-zinc-900 dark:text-white">
 								Copyright Notices
 							</Dialog.Title>
 							<button
 								onClick={() => setShowCopyright(false)}
-								className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+								className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700"
 							>
-								<IconX className="w-5 h-5 text-gray-500" />
+								<IconX className="w-5 h-5 text-zinc-500" />
 							</button>
 						</div>
 
 						<div className="space-y-4">
 							<div>
-								<h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+								<h3 className="text-sm font-medium text-zinc-900 dark:text-white mb-1">
 									Orbit features, enhancements, and modifications:
 								</h3>
-								<p className="text-sm text-gray-500 dark:text-gray-400">
+								<p className="text-sm text-zinc-500 dark:text-zinc-400">
 									Copyright © 2025 Planetary. All rights reserved.
 								</p>
 							</div>
 
 							<div>
-								<h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+								<h3 className="text-sm font-medium text-zinc-900 dark:text-white mb-1">
 									Original Tovy features and code:
 								</h3>
-								<p className="text-sm text-gray-500 dark:text-gray-400">
+								<p className="text-sm text-zinc-500 dark:text-zinc-400">
 									Copyright © 2022 Tovy. All rights reserved.
 								</p>
 							</div>

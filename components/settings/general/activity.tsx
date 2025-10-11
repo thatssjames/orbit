@@ -51,21 +51,21 @@ const Activity: FC<props> = (props) => {
 
 	return (
 		<div className="relative z-15">
-			<p className="mb-2 z-15 dark:text-gray-400"> Sessions are a powerful way to keep track of your groups sessions & shifts</p>
+			<p className="mb-2 z-15 dark:text-zinc-400"> Sessions are a powerful way to keep track of your groups sessions & shifts</p>
 			<Listbox value={selectedRole} onChange={(value: number) => updateRole(value)} as="div" className="relative inline-block w-full text-left mb-2">
-				<Listbox.Button className="z-10 h-auto w-full flex flex-row rounded-xl py-1 hover:bg-gray-200 dark:hover:bg-gray-800 dark:focus-visible:bg-gray-800 px-2 transition cursor-pointer outline-1 outline-gray-300 outline mb-1 focus-visible:bg-gray-200">
+				<Listbox.Button className="z-10 h-auto w-full flex flex-row rounded-xl py-1 hover:bg-zinc-200 dark:hover:bg-zinc-800 dark:focus-visible:bg-zinc-800 px-2 transition cursor-pointer outline-1 outline-gray-300 outline mb-1 focus-visible:bg-zinc-200">
 					
 					<p className="z-10 my-auto text-lg pl-2 dark:text-white">
 						{(roles.find((r: any) => r.rank === selectedRole) as any)?.name || "Guest"}
 					</p>
 					<IconChevronDown size={18} color="#AAAAAA" className="my-auto ml-auto" />
 				</Listbox.Button>
-				<Listbox.Options className="absolute left-0 z-10 mt-2 w-48 origin-top-left rounded-xl bg-white dark:text-white dark:bg-gray-800 shadow-lg ring-1 ring-gray-300 focus-visible:outline-none overflow-clip">
+				<Listbox.Options className="absolute left-0 z-10 mt-2 w-48 origin-top-left rounded-xl bg-white dark:text-white dark:bg-zinc-800 shadow-lg ring-1 ring-gray-300 focus-visible:outline-none overflow-clip">
 					<div className="">
 						{roles.map((role: any, index) => (
 							<Listbox.Option
 								className={({ active }) =>
-									`${active ? 'text-white bg-primary' : 'text-gray-900 dark:text-white'} relative cursor-pointer select-none py-2 pl-3 pr-9`
+									`${active ? 'text-white bg-primary' : 'text-zinc-900 dark:text-white'} relative cursor-pointer select-none py-2 pl-3 pr-9`
 								}
 								key={index}
 								value={role.rank}

@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 export default function Error() {
   return (
-    <div className="flex h-screen flex-col items-center justify-center bg-gray-900 text-center px-4">
+    <div className="flex h-screen flex-col items-center justify-center bg-zinc-900 text-center px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -19,10 +19,10 @@ export default function Error() {
         >
           404
         </motion.h1>
-        <h2 className="text-3xl font-semibold text-gray-300 mb-4">
+        <h2 className="text-3xl font-semibold text-zinc-300 mb-4">
           Page Not Found
         </h2>
-        <p className="text-gray-400 max-w-md mx-auto">
+        <p className="text-zinc-400 max-w-md mx-auto">
           Looks like you've ventured into uncharted space. Let's get you back on course.
         </p>
         <motion.button

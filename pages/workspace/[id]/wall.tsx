@@ -189,14 +189,14 @@ const Wall: pageWithLayout<pageProps> = (props) => {
   };
 
   const BG_COLORS = [
-    "bg-red-200",
-    "bg-green-200",
-    "bg-blue-200",
-    "bg-yellow-200",
-    "bg-pink-200",
-    "bg-indigo-200",
-    "bg-teal-200",
     "bg-orange-200",
+    "bg-amber-200",
+    "bg-lime-200",
+    "bg-purple-200",
+    "bg-violet-200",
+    "bg-fuchsia-200",
+    "bg-rose-200",
+    "bg-green-200",
   ];
 
   function getRandomBg(userid: string | number) {
@@ -214,16 +214,16 @@ const Wall: pageWithLayout<pageProps> = (props) => {
 
       <div className="flex items-center gap-3 mb-6">
         <div>
-          <h1 className="text-2xl font-medium text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-medium text-zinc-900 dark:text-white">
             Group Wall
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
             Share updates and announcements with your team
           </p>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 mb-8">
+      <div className="bg-white dark:bg-zinc-800 border-zinc-100 dark:border-zinc-70 rounded-xl shadow-sm p-4 mb-8">
         <div className="flex items-start gap-4">
           <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(login.userId)}`}>
             <img
@@ -235,7 +235,7 @@ const Wall: pageWithLayout<pageProps> = (props) => {
           </div>
           <div className="flex-1">
             <textarea
-              className="w-full border-0 focus:ring-0 resize-none bg-transparent placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white"
+              className="w-full border-0 focus:ring-0 resize-none bg-transparent placeholder-gray-400 dark:placeholder-gray-500 text-zinc-900 dark:text-white"
               placeholder="What's on your mind?"
               value={wallMessage}
               onChange={(e) => setWallMessage(e.target.value)}
@@ -257,7 +257,7 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                 </button>
               </div>
             )}
-            <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
+            <div className="flex items-center justify-between pt-3 border-t border-zinc-100 dark:border-zinc-700">
               <div className="flex items-center gap-4">
                 <input
                   type="file"
@@ -267,14 +267,14 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                   onChange={handleImageSelect}
                 />
                 <button
-                  className="p-2 text-gray-500 hover:text-primary rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="p-2 text-zinc-500 hover:text-primary rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <IconPhoto size={20} />
                 </button>
                 <div className="relative z-10">
                   <button
-                    className="p-2 text-gray-500 hover:text-primary rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    className="p-2 text-zinc-500 hover:text-primary rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                   >
                     <IconMoodSmile size={20} />
@@ -314,16 +314,16 @@ const Wall: pageWithLayout<pageProps> = (props) => {
 
       <div className="space-y-6">
         {posts.length < 1 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 text-center">
+          <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm p-8 text-center">
             <img
               className="mx-auto h-48 mb-4"
               alt="No posts yet"
               src="/conifer-charging-the-battery-with-a-windmill.png"
             />
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            <h3 className="text-xl font-semibold text-zinc-900 dark:text-white mb-2">
               No posts yet
             </h3>
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-zinc-500 dark:text-zinc-400">
               Be the first to share something with your team!
             </p>
           </div>
@@ -331,7 +331,7 @@ const Wall: pageWithLayout<pageProps> = (props) => {
           posts.map((post: any) => (
             <div
               key={post.id}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow"
+              className="bg-white dark:bg-zinc-800 border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow"
             >
               <div className="flex items-start gap-4">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center ${getRandomBg(post.authorId)}`}>
@@ -345,10 +345,10 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">
+                      <h3 className="font-semibold text-zinc-900 dark:text-white">
                         {post.author.username}
                       </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
                         {moment(post.createdAt).format(
                           "MMMM D, YYYY [at] h:mm A"
                         )}
@@ -360,7 +360,7 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                       </button>
                     )}
                   </div>
-                  <div className="prose text-gray-800 dark:text-gray-200 dark:prose-invert max-w-none mt-3">
+                  <div className="prose text-zinc-800 dark:text-zinc-200 dark:prose-invert max-w-none mt-3">
                     <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{post.content}</ReactMarkdown>
                   </div>
                   {post.image && (
@@ -384,15 +384,15 @@ const Wall: pageWithLayout<pageProps> = (props) => {
       </div>
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">
               Confirm Deletion
             </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+            <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-6">
               Are you sure you want to delete this post? This action cannot be undone.
             </p>
             <div className="flex justify-center gap-4">
-              <button onClick={() => setShowDeleteModal(false)} className="px-4 py-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-white">Cancel</button>
+              <button onClick={() => setShowDeleteModal(false)} className="px-4 py-2 rounded-md bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white">Cancel</button>
               <button onClick={confirmDelete} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">Delete</button>
             </div>
           </div>
