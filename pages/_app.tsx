@@ -98,18 +98,6 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const [user, setUser] = useState<any>(null);
   const Layout = Component.layout || (({ children }: { children: React.ReactNode }) => <>{children}</>)
 
-  const isDbConfigured = process.env.NEXT_PUBLIC_DATABASE_CHECK === "true"
-
-  // Redirect to /db-error if DB is not configured and we're not already there
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const currentPath = window.location.pathname
-      if (!isDbConfigured && currentPath !== "/db-error") {
-        Router.replace("/db-error")
-      }
-    }
-  }, [isDbConfigured])
-
   useEffect(() => {
     axios.get("/api/@me").then(res => {
       setUser(res.data.user || res.data);
