@@ -44,7 +44,11 @@ export async function handler(
 			groupId: parseInt(req.query.id as string)
 		},
 		include: {
-			roles: true
+			roles: {
+				orderBy: {
+					isOwnerRole: 'desc'
+				}
+			}
 		}
 	});
 	if (!workspace) return res.status(404).json({ success: false, error: 'Not found' });
@@ -57,6 +61,9 @@ export async function handler(
 			roles: {
 				where: {
 					workspaceGroupId: workspace.groupId
+				},
+				orderBy: {
+					isOwnerRole: 'desc'
 				}
 			}
 		}
@@ -76,6 +83,8 @@ export async function handler(
 		"Manage members": "manage_members",
 		"Manage docs": "manage_docs",
 		"View entire groups activity": "view_entire_groups_activity",
+		"Manage alliances": "manage_alliances",
+		"Represent alliance": "represent_alliance",
 	};
 
 	res.status(200).json({ success: true, permissions: user.roles[0].permissions, workspace: {

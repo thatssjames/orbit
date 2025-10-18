@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { IconX, IconPin } from "@tabler/icons-react"
-const ANNOUNCEMENT_KEY = "announcementDismissed_v2_2_0";
+const ANNOUNCEMENT_KEY = "announcementDismissed_v2_1_0b2";
 
 export default function StickyNoteAnnouncement() {
   const [isVisible, setIsVisible] = useState(false)
@@ -33,27 +33,26 @@ export default function StickyNoteAnnouncement() {
     <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0"></p>
     <div className="text-zinc-800 dark:text-zinc-300 text-sm space-y-2">
       <p>
-        👋 <strong>Orbit v2.1.0beta1 is live!</strong> — A spooky seasonal upgrade 🎃
+        👋 <strong>Orbit v2.1.0beta2 is live!</strong> — A few sweet treats 🍬
         <br />
         Here’s what’s new since the last announcement:
       </p>
 
-      <p className="mt-4 font-semibold">🛠️ Manual Activity Adjustments</p>
+      <p className="mt-4 font-semibold">🟢 Live Session Tracking</p>
       <p>
-        Workspace managers can now <strong>award or remove minutes</strong>. Adjustments appear in the activity timeline and the user’s total.
+        Live sessions now show real-time duration updates in your profile activity.
       </p>
 
-      <p className="mt-4 font-semibold">👥 New Member & Profile Enhancements</p>
-      <ul className="list-disc list-inside space-y-1">
-        <li>New members scroller shows who's recently joined.</li>
-        <li>Join date now appears on profile info.</li>
-      </ul>
+      <p className="mt-4 font-semibold">🚪 OAuth Support</p>
+      <p>
+        Orbit now supports OAuth for Roblox. Developers can create apps that connect with Orbit securely and easily.
+      </p>
 
-      <p className="mt-4 font-semibold">🎃 Seasonal Polish</p>
+      <p className="mt-4 font-semibold">🐛 Bug Fixes</p>
       <ul className="list-disc list-inside space-y-1">
-        <li>Dynamic Halloween greetings across the app.</li>
-        <li>Avatar accent colors updated for the season.</li>
-        <li>Dark theme updated to Zinc instead of Gray.</li>
+        <li>We've resolved issues with Activity Tracking on Cloud instances.</li>
+        <li>Owner role now has priority over other workspace roles preventing softlocking.</li>
+        <li>Speed improvement updates pushed soon improving overall performance.</li>
       </ul>
 
       <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">

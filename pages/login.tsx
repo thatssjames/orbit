@@ -12,12 +12,14 @@ import { useTheme } from "next-themes";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Dialog } from "@headlessui/react";
 import { IconX } from "@tabler/icons-react";
+import { OAuthAvailable } from "@/hooks/useOAuth";
 
 type LoginForm = { username: string; password: string };
 type SignupForm = { username: string; password: string; verifypassword: string };
 
 const Login: NextPage = () => {
   const [login, setLogin] = useRecoilState(loginState);
+  const { isAvailable: isOAuth } = OAuthAvailable();
 
   const loginMethods = useForm<LoginForm>();
   const signupMethods = useForm<SignupForm>();
@@ -239,18 +241,47 @@ const Login: NextPage = () => {
                       Show password
                     </label>
                   </div>
-                  <div className="flex justify-between items-center mt-2">
-                    <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
-                      Forgot password?
-                    </Link>
-                    <Button
-                      type="submit"
-                      classoverride="px-6 py-2 text-sm rounded-lg"
-                      loading={loading}
-                      disabled={loading}
-                    >
-                      Login
-                    </Button>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
+                        Forgot password?
+                      </Link>
+                      <Button
+                        type="submit"
+                        classoverride="px-6 py-2 text-sm rounded-lg"
+                        loading={loading}
+                        disabled={loading}
+                      >
+                        Login
+                      </Button>
+                    </div>
+                    
+                    {isOAuth && (
+                      <>
+                        <div className="text-center">
+                          <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                              <span className="w-full border-t border-zinc-300 dark:border-zinc-600" />
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                              <span className="bg-white dark:bg-zinc-700 px-2 text-zinc-500 dark:text-zinc-400">Or</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="w-full">
+                          <button
+                            type="button"
+                            onClick={() => window.location.href = '/api/auth/roblox/start'}
+                            disabled={loading}
+                            className="w-full flex items-center justify-center px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-sm bg-white dark:bg-zinc-800 text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <img src="/roblox.svg" alt="Roblox" className="w-5 h-5 mr-2" />
+                            Continue with Roblox
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </form>
               </FormProvider>
@@ -277,6 +308,33 @@ const Login: NextPage = () => {
                       </div>
                     </form>
                   </FormProvider>
+                  
+                  {isOAuth && (
+                    <>
+                      <div className="mt-4">
+                        <div className="relative">
+                          <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t border-zinc-300 dark:border-zinc-600" />
+                          </div>
+                          <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-white dark:bg-zinc-700 px-2 text-zinc-500 dark:text-zinc-400">Or</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-4">
+                        <button
+                          type="button"
+                          onClick={() => window.location.href = '/api/auth/roblox/start'}
+                          disabled={loading}
+                          className="w-full flex items-center justify-center px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-sm bg-white dark:bg-zinc-800 text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          <img src="/roblox.svg" alt="Roblox" className="w-5 h-5 mr-2" />
+                          Sign up with Roblox
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </>
               )}
 
@@ -332,6 +390,34 @@ const Login: NextPage = () => {
                           Continue
                         </Button>
                       </div>
+                      
+                      {isOAuth && (
+                        <>
+                          <div className="mt-4">
+                            <div className="relative">
+                              <div className="absolute inset-0 flex items-center">
+                                <span className="w-full border-t border-zinc-300 dark:border-zinc-600" />
+                              </div>
+                              <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-white dark:bg-zinc-700 px-2 text-zinc-500 dark:text-zinc-400">Or</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="mt-4">
+                            <button
+                              type="button"
+                              onClick={() => window.location.href = '/api/auth/roblox/start'}
+                              disabled={loading}
+                              className="w-full flex items-center justify-center px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-sm bg-white dark:bg-zinc-800 text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                              <img src="/roblox.svg" alt="Roblox" className="w-5 h-5 mr-2" />
+                              Sign up with Roblox
+                            </button>
+                          </div>
+                        </>
+                      )}
+                      
                       <div className="mt-4 text-xs text-zinc-500 dark:text-zinc-400 text-center">
                         <strong>Don't share your password.</strong><br />
                         <span>Do not use the same password as your Roblox account.</span>
