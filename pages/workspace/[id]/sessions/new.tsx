@@ -53,9 +53,11 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(asy
 
   const roles = await prisma.role.findMany({
     where: {
-      workspaceGroupId: Number(id),
-      isOwnerRole: false,
+      workspaceGroupId: Number(id)
     },
+    orderBy: {
+      isOwnerRole: 'desc'
+    }
   })
 
   return {

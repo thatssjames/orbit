@@ -156,9 +156,16 @@ const Button: FC<Props> = (props) => {
 																className="w-10 h-10 rounded-full"
 															/>
 															<div>
-																<p className="text-sm font-medium text-zinc-900 dark:text-white">
-																	{user.displayName}
-																</p>
+																<div className="flex items-center space-x-2">
+																	<p className="text-sm font-medium text-zinc-900 dark:text-white">
+																		{user.displayName}
+																	</p>
+																	{user.roles[0].isOwnerRole === true && (
+																		<span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+																			Owner
+																		</span>
+																	)}
+																</div>
 																<p className="text-xs text-zinc-500 dark:text-zinc-400">
 																	@{user.username}
 																</p>
@@ -168,9 +175,15 @@ const Button: FC<Props> = (props) => {
 															<Listbox
 																value={user.roles[0].id}
 																onChange={(value) => updateRole(user.userid, value)}
+																disabled={user.roles[0].isOwnerRole === true}
 															>
 																<div className="relative">
-																	<Listbox.Button className="relative w-40 py-2 pl-3 pr-10 text-left bg-white dark:text-white dark:bg-zinc-700 rounded-lg border border-gray-300 dark:border-zinc-600 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50">
+																	<Listbox.Button className={clsx(
+																		"relative w-40 py-2 pl-3 pr-10 text-left bg-white dark:text-white dark:bg-zinc-700 rounded-lg border border-gray-300 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary/50",
+																		user.roles[0].isOwnerRole === true 
+																			? "cursor-not-allowed opacity-50" 
+																			: "cursor-pointer"
+																	)}>
 																		<span className="block truncate text-sm">
 																			{user.roles[0].name}
 																		</span>
@@ -185,7 +198,7 @@ const Button: FC<Props> = (props) => {
 																		leaveTo="opacity-0"
 																	>
 																		<Listbox.Options className="absolute z-10 w-full py-1 mt-1 overflow-auto text-base bg-white dark:bg-zinc-700 rounded-md shadow-lg max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none">
-																			{workspace.roles.map((role) => (
+																			{workspace.roles.filter(role => !role.isOwnerRole).map((role) => (
 																				<Listbox.Option
 																					key={role.id}
 																					value={role.id}
@@ -216,13 +229,20 @@ const Button: FC<Props> = (props) => {
 																	</Transition>
 																</div>
 															</Listbox>
-															<button
-																onClick={() => { setUserToRemove(user.userid); setShowRemoveModal(true); }}
-																className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors"
-															>
-																<IconCircleMinus width={16} height={16} className="mr-1.5" />
-																Remove
-															</button>
+															{user.roles[0].isOwnerRole === true && (
+																<div className="text-xs text-zinc-500 dark:text-zinc-400 max-w-32">
+																	Owner role cannot be changed
+																</div>
+															)}
+															{!user.roles[0].isOwnerRole && (
+																<button
+																	onClick={() => { setUserToRemove(user.userid); setShowRemoveModal(true); }}
+																	className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors"
+																>
+																	<IconCircleMinus width={16} height={16} className="mr-1.5" />
+																	Remove
+																</button>
+															)}
 														</div>
 													</div>
 												))}

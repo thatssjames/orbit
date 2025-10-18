@@ -391,7 +391,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                   </button>
 
                   <div className="mt-2 text-xs text-zinc-500">
-                    v{packageJson.version} - <button onClick={() => setShowChangelog(true)} className="mt-2 text-left text-xs text-zinc-500 hover:text-primary">Orbit Changelog</button>
+                    Orbit v{packageJson.version} - <button onClick={() => setShowChangelog(true)} className="mt-2 text-left text-xs text-zinc-500 hover:text-primary">Changelog</button>
                   </div>
                 </>
               )}

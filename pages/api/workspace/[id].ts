@@ -56,8 +56,10 @@ export async function handler(
 	console.log(`Theme config found after ${new Date().getTime() - time.getTime()}ms`)
 	const roles = await prisma.role.findMany({
 		where: {
-			workspaceGroupId: workspace.groupId,
-			isOwnerRole: false
+			workspaceGroupId: workspace.groupId
+		},
+		orderBy: {
+			isOwnerRole: 'desc'
 		}
 	})
 	console.log(`Roles found after ${new Date().getTime() - time.getTime()}ms`)
@@ -71,6 +73,9 @@ export async function handler(
 			roles: {
 				where: {
 					workspaceGroupId: workspace.groupId
+				},
+				orderBy: {
+					isOwnerRole: 'desc'
 				}
 			}
 		}
@@ -90,6 +95,8 @@ export async function handler(
 		"Manage members": "manage_members",
 		"Manage docs": "manage_docs",
 		"View entire groups activity": "view_entire_groups_activity",
+		"Manage alliances": "manage_alliances",
+		"Represent alliance": "represent_alliance",
 	};
 
 	

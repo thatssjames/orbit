@@ -29,7 +29,6 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(asy
       roles: {
         some: {
           workspaceGroupId: Number.parseInt(params.id as string),
-          isOwnerRole: false,
         },
       },
     },
@@ -37,18 +36,22 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(asy
       roles: {
         where: {
           workspaceGroupId: Number.parseInt(params.id as string),
-          isOwnerRole: false,
         },
+        orderBy: {
+          isOwnerRole: 'desc'
+        }
       },
     },
   })
 
-  //get roles that arent admin
+  //get all roles including owner roles
   const roles = await prisma.role.findMany({
     where: {
       workspaceGroupId: Number.parseInt(params.id as string),
-      isOwnerRole: false,
     },
+    orderBy: {
+      isOwnerRole: 'desc'
+    }
   })
 
   //promise all to get user with username, displayname and thumbnail

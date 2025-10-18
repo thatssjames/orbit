@@ -41,9 +41,11 @@ export const getServerSideProps = withPermissionCheckSsr(
 
 		const roles = await prisma.role.findMany({
 			where: {
-				workspaceGroupId: Number(params?.id),
-				isOwnerRole: false
+				workspaceGroupId: Number(params?.id)
 			},
+			orderBy: {
+				isOwnerRole: 'desc'
+			}
 		});
 
 		return {
@@ -160,8 +162,8 @@ const Quotas: pageWithLayout<pageProps> = (props) => {
 
 						{quotas.length === 0 ? (
 							<div className="text-center py-12">
-								<div className="bg-zinc-50 dark:bg-zinc-600 rounded-xl p-8 max-w-md mx-auto">
-									<div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+								<div className="bg-white dark:bg-zinc-800 rounded-xl p-8 max-w-md mx-auto">
+									<div className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4">
 										<IconClipboardList className="w-8 h-8 text-primary" />
 									</div>
 									<h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-1">No Quotas</h3>
@@ -267,7 +269,7 @@ const Quotas: pageWithLayout<pageProps> = (props) => {
 														{roles.map((role: any) => (
 															<label
 																key={role.id}
-																className="flex items-center gap-2 p-2 rounded-lg hover:bg-zinc-50 cursor-pointer"
+																className="flex items-center gap-2 p-2 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-300 cursor-pointer"
 															>
 																<input
 																	type="checkbox"
@@ -326,7 +328,7 @@ const Quotas: pageWithLayout<pageProps> = (props) => {
 										className="flex-1 justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
 										onClick={handleSubmit(onSubmit)}
 									>
-										Submit
+										Create
 									</button>
 								</div>
 							</Dialog.Panel>

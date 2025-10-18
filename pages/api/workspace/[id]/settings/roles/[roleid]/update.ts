@@ -23,6 +23,7 @@ export async function handler(
 		}
 	});
 	if (!role) return res.status(404).json({ success: false, error: 'Role not found' });
+	if (role.isOwnerRole) return res.status(403).json({ success: false, error: 'Owner role cannot be modified' });
 	await prisma.role.update({
 		where: {
 			id: (req.query.roleid as string)

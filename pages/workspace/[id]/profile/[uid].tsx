@@ -30,6 +30,9 @@ export const getServerSideProps = withPermissionCheckSsr(
 					where: {
 						workspaceGroupId: parseInt(query.id as string)
 					},
+					orderBy: {
+						isOwnerRole: 'desc' // Owner roles first
+					},
 					include: {
 						quotaRoles: {
 							include: {
@@ -69,7 +72,7 @@ export const getServerSideProps = withPermissionCheckSsr(
 	const sessions = await prisma.activitySession.findMany({
 			where: {
 				userId: BigInt(query?.uid as string),
-				active: false
+				workspaceGroupId: parseInt(query.id as string)
 			},
 			include: {
 				user: {
@@ -78,9 +81,11 @@ export const getServerSideProps = withPermissionCheckSsr(
 					}
 				}
 			},
-			orderBy: {
-				endTime: "desc"
-			}
+			orderBy: [
+				{ active: 'desc' }, // Active sessions first
+				{ endTime: "desc" }, // Then by end time for completed sessions
+				{ startTime: "desc" } // Then by start time for active sessions
+			]
 		});
 
 		const adjustments = await prisma.activityAdjustment.findMany({
@@ -98,7 +103,9 @@ export const getServerSideProps = withPermissionCheckSsr(
 
 		let timeSpent = 0;
 		if (sessions.length) {
-			timeSpent = sessions.reduce((sum, session) => {
+			// Only count completed sessions for total time
+			const completedSessions = sessions.filter(session => !session.active && session.endTime);
+			timeSpent = completedSessions.reduce((sum, session) => {
 				return sum + ((session.endTime?.getTime() ?? 0) - session.startTime.getTime());
 			}, 0);
 			timeSpent = Math.round(timeSpent / 60000);
@@ -111,8 +118,8 @@ export const getServerSideProps = withPermissionCheckSsr(
 
 	const weeklySessions = await prisma.activitySession.findMany({
 			where: {
-				active: false,
 				userId: BigInt(query?.uid as string),
+				workspaceGroupId: parseInt(query.id as string),
 				startTime: {
 					lte: endOfWeek,
 					gte: startOfWeek
@@ -130,8 +137,19 @@ export const getServerSideProps = withPermissionCheckSsr(
 
 		weeklySessions.forEach((session) => {
 			const day = session.startTime.getDay();
-			const duration = Math.round(((session.endTime?.getTime() ?? 0) - session.startTime.getTime()) / 60000);
-			days.find(d => d.day === day)?.ms.push(duration);
+			let duration = 0;
+			
+			if (session.active && !session.endTime) {
+				// For active sessions, calculate current duration
+				duration = Math.round((new Date().getTime() - session.startTime.getTime()) / 60000);
+			} else if (session.endTime) {
+				// For completed sessions, use actual duration
+				duration = Math.round((session.endTime.getTime() - session.startTime.getTime()) / 60000);
+			}
+			
+			if (duration > 0) {
+				days.find(d => d.day === day)?.ms.push(duration);
+			}
 		});
 
 	const data: number[] = days.map(d => d.ms.reduce((sum, val) => sum + val, 0));

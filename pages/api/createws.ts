@@ -128,7 +128,9 @@ export async function handler(
 					'view_members',
 					'manage_members',
 					'manage_docs',
-					'view_entire_groups_activity'
+					'view_entire_groups_activity',
+					'manage_alliances',
+					'represent_alliance'
 				],
 				members: { connect: { userid: BigInt(req.session.userid) } }
 			}

@@ -48,6 +48,14 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 		const index = roles.findIndex((role: any) => role.id === id);
 		if (index === null) return;
 		const rroles = Object.assign(([] as typeof roles), roles);
+		
+		if (rroles[index].isOwnerRole) {
+			toast.error('Owner role name cannot be modified');
+			const input = document.querySelector(`input[value="${value}"]`) as HTMLInputElement;
+			if (input) input.value = rroles[index].name;
+			return;
+		}
+		
 		rroles[index].name = value;
 		setRoles(rroles);
 		await axios.post(
@@ -60,6 +68,12 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 		const index = roles.findIndex((role: any) => role.id === id);
 		if (index === null) return;
 		const rroles = Object.assign(([] as typeof roles), roles);
+		
+		if (rroles[index].isOwnerRole) {
+			toast.error('Owner role permissions cannot be modified');
+			return;
+		}
+		
 		if (rroles[index].permissions.includes(permission)) {
 			rroles[index].permissions = rroles[index].permissions.filter(
 				(perm: any) => perm !== permission
@@ -79,6 +93,12 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 		const index = roles.findIndex((role: any) => role.id === id);
 		if (index === null) return;
 		const rroles = Object.assign(([] as typeof roles), roles);
+		
+		if (rroles[index].isOwnerRole) {
+			toast.error('Owner role group assignments cannot be modified');
+			return;
+		}
+		
 		if (rroles[index].groupRoles.includes(role.id)) {
 			rroles[index].groupRoles = rroles[index].groupRoles.filter((r) => r !== role.id);
 		} else {
@@ -160,7 +180,14 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 									className="w-full px-4 py-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-lg"
 								>
 									<div className="flex items-center justify-between">
-										<span className="text-sm font-medium text-zinc-900 dark:text-white">{role.name}</span>
+										<div className="flex items-center space-x-2">
+											<span className="text-sm font-medium text-zinc-900 dark:text-white">{role.name}</span>
+											{role.isOwnerRole && (
+												<span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+													Owner
+												</span>
+											)}
+										</div>
 										<IconChevronDown
 											className={clsx(
 												"w-5 h-5 text-zinc-500 transition-transform",
@@ -186,8 +213,14 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 													placeholder="Role name"
 													value={role.name}
 													onChange={(e) => updateRole(e.target.value, role.id)}
-													className="w-full px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
+													disabled={role.isOwnerRole === true}
+													className="w-full px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
 												/>
+												{role.isOwnerRole === true && (
+													<p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+														Owner role name cannot be changed
+													</p>
+												)}
 											</div>
 
 											<div>
@@ -199,12 +232,18 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 																type="checkbox"
 																checked={role.permissions.includes(value)}
 																onChange={() => togglePermission(role.id, value)}
-																className="w-4 h-4 rounded text-primary border-gray-300 dark:border-zinc-600 focus:ring-primary/50"
+																disabled={role.isOwnerRole === true}
+																className="w-4 h-4 rounded text-primary border-gray-300 dark:border-zinc-600 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
 															/>
 															<span className="text-sm text-zinc-700 dark:text-zinc-200">{label}</span>
 														</label>
 													))}
 												</div>
+												{role.isOwnerRole === true && (
+													<p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+														Owner role permissions are automatically managed
+													</p>
+												)}
 											</div>
 
 											<div>
@@ -216,22 +255,29 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 																type="checkbox"
 																checked={role.groupRoles.includes(groupRole.id)}
 																onChange={() => toggleGroupRole(role.id, groupRole)}
-																disabled={aroledoesincludegrouprole(role.id, groupRole)}
-																className="w-4 h-4 rounded text-primary border-gray-300 dark:border-zinc-600 focus:ring-primary/50 disabled:opacity-50"
+																disabled={role.isOwnerRole === true || aroledoesincludegrouprole(role.id, groupRole)}
+																className="w-4 h-4 rounded text-primary border-gray-300 dark:border-zinc-600 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
 															/>
 															<span className="text-sm text-zinc-700 dark:text-zinc-200">{groupRole.name}</span>
 														</label>
 													))}
 												</div>
+												{role.isOwnerRole === true && (
+													<p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+														Owner role group synchronization is disabled
+													</p>
+												)}
 											</div>
 
-											<button
-												onClick={() => deleteRole(role.id)}
-												className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md text-white bg-red-500 hover:bg-red-600 transition-colors"
-											>
-												<IconTrash size={16} className="mr-1.5" />
-												Delete Role
-											</button>
+											{!role.isOwnerRole && (
+												<button
+													onClick={() => deleteRole(role.id)}
+													className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md text-white bg-red-500 hover:bg-red-600 transition-colors"
+												>
+													<IconTrash size={16} className="mr-1.5" />
+													Delete Role
+												</button>
+											)}
 										</div>
 									</Disclosure.Panel>
 								</Transition>

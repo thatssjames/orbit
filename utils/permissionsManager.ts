@@ -30,6 +30,9 @@ export function withPermissionCheck(
 				roles: {
 					where: {
 						workspaceGroupId: workspaceId
+					},
+					orderBy: {
+						isOwnerRole: 'desc'
 					}
 				}
 			}
@@ -75,6 +78,9 @@ export function withPermissionCheckSsr(
 				roles: {
 					where: {
 						workspaceGroupId: workspaceId
+					},
+					orderBy: {
+						isOwnerRole: 'desc'
 					}
 				}
 			}
@@ -172,6 +178,10 @@ export async function checkGroupRoles(groupID: number) {
 					if (!user.roles.find(r => r.id === role?.id)) continue;
 					if (rs.find(r => r.groupRoles?.includes(rank.id))) continue;
 					if (members.find(member => member.userId === Number(user.userid))) continue;
+					if (user.roles.find(r => r.id === role?.id)?.isOwnerRole) {
+						console.log(`Skipping role removal for user ${user.userid} - they have an owner role`);
+						continue;
+					}
 					await prisma.user.update({
 						where: {
 							userid: user.userid
@@ -210,6 +220,11 @@ export async function checkGroupRoles(groupID: number) {
 						}
 					});
 					if (user) continue;
+
+					if (role.isOwnerRole) {
+						console.log(`Skipping assignment of owner role ${role.id} to new user ${member.userId}`);
+						continue;
+					}
 
 					await prisma.user.upsert({
 						where: {
@@ -309,6 +324,10 @@ export async function checkSpecificUser(userID: number) {
 		});
 		if (!user) continue;
 		if (user.roles.length) {
+			if (user.roles[0].isOwnerRole) {
+				console.log(`Skipping role update for user ${userID} - they have an owner role`);
+				continue;
+			}
 			await prisma.user.update({
 				where: {
 					userid: BigInt(userID)
@@ -321,6 +340,10 @@ export async function checkSpecificUser(userID: number) {
 					}
 				}
 			});
+		}
+		if (role.isOwnerRole) {
+			console.log(`Skipping assignment of owner role ${role.id} to user ${userID}`);
+			continue;
 		}
 		await prisma.user.update({
 			where: {

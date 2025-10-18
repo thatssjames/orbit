@@ -32,7 +32,7 @@ type Props = {
 	adjustments?: any[];
 }
 
-type TimelineItem = (ActivitySession & { __type: 'session'; user: { picture: string | null } }) | (inactivityNotice & { __type: 'notice' }) | ({ __type: 'adjustment'; id: string; minutes: number; actor?: { username?: string }; createdAt: string; reason?: string });
+type TimelineItem = (ActivitySession & { __type: 'session'; user: { picture: string | null }; active: boolean }) | (inactivityNotice & { __type: 'notice' }) | ({ __type: 'adjustment'; id: string; minutes: number; actor?: { username?: string }; createdAt: string; reason?: string });
 
 const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAttended, sessionsHosted, avatar, sessions, notices, adjustments = [] }) => {
 	const router = useRouter();
@@ -57,11 +57,11 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 	const [adjustReason, setAdjustReason] = useState('');
 	const [adjustType, setAdjustType] = useState<'award' | 'remove'>('award');
 	const [submittingAdjust, setSubmittingAdjust] = useState(false);
+	const [liveSessionTimer, setLiveSessionTimer] = useState<NodeJS.Timeout | null>(null);
 
 	const theme = useRecoilValue(themeState);
 	const isDark = theme === "dark";
 
-	// Memoize sorted timeline to avoid state churn affecting navigation
 	const sortedTimeline = useMemo(() => {
 		return [...timeline].sort((a, b) => {
 			const aDate = a.__type === 'adjustment' ? new Date((a as any).createdAt).getTime() : new Date((a as any).startTime || (a as any).createdAt).getTime();
@@ -105,6 +105,34 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 			}
 		});
 	}, [data, isDark]);
+
+	useEffect(() => {
+		const hasLiveSessions = timeline.some(item => item.__type === 'session' && item.active && !item.endTime);
+		
+		if (hasLiveSessions) {
+			const timer = setInterval(() => {
+				setTimeline(prev => [...prev]);
+			}, 60000);
+			
+			setLiveSessionTimer(timer);
+			
+			return () => {
+				clearInterval(timer);
+				setLiveSessionTimer(null);
+			};
+		} else if (liveSessionTimer) {
+			clearInterval(liveSessionTimer);
+			setLiveSessionTimer(null);
+		}
+	}, [timeline, liveSessionTimer]);
+
+	useEffect(() => {
+		return () => {
+			if (liveSessionTimer) {
+				clearInterval(liveSessionTimer);
+			}
+		};
+	}, [liveSessionTimer]);
 
 	const getQuotaPercentage = (quota: Quota) => {
 		switch (quota.type) {
@@ -285,18 +313,45 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 													</div>
 												);
 											}
-											// session
+											const isLive = item.active && !item.endTime;
+											const sessionDuration = isLive ? 
+												Math.floor((new Date().getTime() - new Date(item.startTime).getTime()) / (1000 * 60)) :
+												Math.floor((new Date(item.endTime || new Date()).getTime() - new Date(item.startTime).getTime()) / (1000 * 60));
+											
 											return (
 												<div key={`session-${item.id}`}>
 													<li className="mb-6 ml-6">
-														<span className="flex absolute -left-3 justify-center items-center w-6 h-6 bg-primary rounded-full ring-4 ring-white">
-															<img className="rounded-full" src={item.user.picture ? item.user.picture : avatar} alt="timeline avatar" />
+														<span className={`flex absolute -left-3 justify-center items-center w-6 h-6 ${isLive ? 'bg-green-500 animate-pulse' : 'bg-primary'} rounded-full ring-4 ring-white`}>
+															{isLive ? (
+																<div className="w-3 h-3 bg-white rounded-full"></div>
+															) : (
+																<img className="rounded-full" src={item.user.picture ? item.user.picture : avatar} alt="timeline avatar" />
+															)}
 														</span>
-														<div onClick={() => fetchSession(item.id)} className="p-4 bg-zinc-50 dark:bg-zinc-500 rounded-lg border border-zinc-100 cursor-pointer hover:bg-zinc-100 transition-colors">
-															<div className="flex justify-between items-center mb-1 dark:bg-zinc-500">
-																<p className="text-sm font-medium text-zinc-900 dark:text-white">Activity Session</p>
-																<time className="text-xs text-zinc-500 dark:text-white">{moment(item.startTime).format('HH:mm')} - {moment(item.endTime).format('HH:mm')} on {moment(item.startTime).format('DD MMM YYYY')}</time>
+														<div 
+															onClick={() => !isLive && fetchSession(item.id)} 
+															className={`p-4 ${isLive ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700' : 'bg-zinc-50 dark:bg-zinc-500 border-zinc-100'} rounded-lg border ${!isLive ? 'cursor-pointer hover:bg-zinc-100 transition-colors' : ''}`}
+														>
+															<div className="flex justify-between items-center mb-1">
+																<div className="flex items-center gap-2">
+																	<p className="text-sm font-medium text-zinc-900 dark:text-white">Activity Session</p>
+																	{isLive && (
+																		<span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+																			LIVE
+																		</span>
+																	)}
+																</div>
+																<time className="text-xs text-zinc-500 dark:text-white">
+																	{isLive ? (
+																		<>Started at {moment(item.startTime).format('HH:mm')} • {sessionDuration}m</>
+																	) : (
+																		<>{moment(item.startTime).format('HH:mm')} - {moment(item.endTime).format('HH:mm')} on {moment(item.startTime).format('DD MMM YYYY')} • {sessionDuration}m</>
+																	)}
+																</time>
 															</div>
+															{isLive && (
+																<p className="text-xs text-zinc-600 dark:text-zinc-300">Currently active in game</p>
+															)}
 														</div>
 													</li>
 												</div>

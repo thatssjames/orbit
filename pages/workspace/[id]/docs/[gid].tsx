@@ -30,6 +30,9 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(asy
 			roles: {
 				where: {
 					workspaceGroupId: parseInt(context.query.id as string)
+				},
+				orderBy: {
+					isOwnerRole: 'desc' // Owner roles first
 				}
 			}
 		}

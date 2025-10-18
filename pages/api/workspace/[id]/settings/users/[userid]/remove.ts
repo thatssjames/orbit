@@ -26,6 +26,9 @@ export async function handler(
 			roles: {
 				where: {
 					workspaceGroupId: parseInt(req.query.id as string)
+				},
+				orderBy: {
+					isOwnerRole: 'desc'
 				}
 			}
 		}
