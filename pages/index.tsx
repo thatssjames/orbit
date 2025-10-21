@@ -219,15 +219,15 @@ const Home: NextPage = () => {
           </div>
 
           {login.workspaces?.length ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
               {login.workspaces.map((workspace, i) => (
                 <div
                   key={i}
-                  className="bg-white dark:bg-zinc-700 rounded-xl shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md hover:scale-[1.02] cursor-pointer"
+                  className="bg-white dark:bg-zinc-700 rounded-xl shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md hover:scale-[1.02] cursor-pointer aspect-square flex flex-col"
                   onClick={() => gotoWorkspace(workspace.groupId)}
                 >
                   <div
-                    className="h-32 bg-cover bg-center"
+                    className="flex-1 bg-cover bg-center"
                     style={{ backgroundImage: `url(${workspace.groupThumbnail})` }}
                   />
                   <div className="p-4 flex items-center justify-between">

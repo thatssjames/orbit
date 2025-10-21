@@ -68,6 +68,9 @@ model user {
   workspaceMemberships workspaceMember[]
   adjustmentsReceived ActivityAdjustment[] @relation("AdjustmentUser")
   adjustmentsMade     ActivityAdjustment[] @relation("AdjustmentActor")
+  sessionNotes      SessionNote[]
+  sessionLogsAsActor SessionLog[] @relation("SessionLogActor")
+  sessionLogsAsTarget SessionLog[] @relation("SessionLogTarget")
 }
 
 model userInfo {
@@ -116,14 +119,10 @@ model wallPost {
 model SessionType {
   id               String     @id @unique @default(uuid()) @db.Uuid
   name             String
+  description      String?
   gameId           BigInt?
   allowUnscheduled Boolean
   workspaceGroupId Int
-  webhookBody      String?
-  webhookEnabled   Boolean?
-  webhookTitle     String?
-  webhookUrl       String?
-  webhookPing      String?
   statues          Json[]
   slots            Json[]
   sessions         Session[]
@@ -155,17 +154,44 @@ model sessionUser {
 
 model Session {
   id            String        @id @unique @default(uuid()) @db.Uuid
+  name          String?
+  type          String?
   ownerId       BigInt?
   date          DateTime
   startedAt     DateTime?
   ended         DateTime?
   sessionTypeId String        @db.Uuid
   scheduleId    String?       @db.Uuid
-  messageId     String?
   owner         user?         @relation(fields: [ownerId], references: [userid])
   schedule      schedule?     @relation(fields: [scheduleId], references: [id])
   sessionType   SessionType   @relation(fields: [sessionTypeId], references: [id])
   users         sessionUser[]
+  notes         SessionNote[]
+  logs          SessionLog[]
+}
+
+model SessionNote {
+  id        String   @id @unique @default(uuid()) @db.Uuid
+  sessionId String   @db.Uuid
+  authorId  BigInt
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  author    user     @relation(fields: [authorId], references: [userid])
+}
+
+model SessionLog {
+  id        String   @id @unique @default(uuid()) @db.Uuid
+  sessionId String   @db.Uuid
+  actorId   BigInt
+  targetId  BigInt?
+  action    String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  actor     user     @relation("SessionLogActor", fields: [actorId], references: [userid])
+  target    user?    @relation("SessionLogTarget", fields: [targetId], references: [userid])
 }
 
 model ActivitySession {

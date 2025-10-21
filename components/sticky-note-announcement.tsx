@@ -33,26 +33,29 @@ export default function StickyNoteAnnouncement() {
     <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0"></p>
     <div className="text-zinc-800 dark:text-zinc-300 text-sm space-y-2">
       <p>
-        👋 <strong>Orbit v2.1.0beta2 is live!</strong> — A few sweet treats 🍬
+        👋 <strong>Orbit v2.1.1beta1 is live!</strong> — Sessions ⏱️
         <br />
         Here’s what’s new since the last announcement:
       </p>
 
-      <p className="mt-4 font-semibold">🟢 Live Session Tracking</p>
+      <p className="mt-4 font-semibold">Introduction</p>
       <p>
-        Live sessions now show real-time duration updates in your profile activity.
+        Our new system is LIVE. You can now create sessions (shifts, trainings, events, and more) that your team can view and book right from Orbit. 
+		Sessions can be made up to a year in advance, and can be one-time or recurring.
+		Like before, you can still create as many session roles as required for your team.
       </p>
 
-      <p className="mt-4 font-semibold">🚪 OAuth Support</p>
-      <p>
-        Orbit now supports OAuth for Roblox. Developers can create apps that connect with Orbit securely and easily.
-      </p>
-
-      <p className="mt-4 font-semibold">🐛 Bug Fixes</p>
+      <p className="mt-4 font-semibold">Features</p>
       <ul className="list-disc list-inside space-y-1">
-        <li>We've resolved issues with Activity Tracking on Cloud instances.</li>
-        <li>Owner role now has priority over other workspace roles preventing softlocking.</li>
-        <li>Speed improvement updates pushed soon improving overall performance.</li>
+        <li>Calendar Overview</li>
+        <li>Session Names, Types, Descriptions</li>
+        <li>Scheduled and unscheduled sessions</li>
+        <li>Manage individual or recurring</li>
+        <li>Statuses and Roles</li>
+        <li>Session Notes</li>
+        <li>Activity Log</li>
+        <li>New API Endpoints</li>
+        <li>Session Tag Color Picker</li>
       </ul>
 
       <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">

@@ -51,7 +51,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         hour: schedule.Hour,
         minute: schedule.Minute,
       })),
-      webhookEnabled: type.webhookEnabled || false,
     }))
 
     return res.status(200).json({

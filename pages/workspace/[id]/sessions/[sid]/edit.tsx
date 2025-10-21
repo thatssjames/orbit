@@ -1,7 +1,7 @@
 import type { pageWithLayout } from "@/layoutTypes";
 import { loginState, workspacestate } from "@/state";
 import Button from "@/components/button";
-import toast, { Toaster } from 'react-hot-toast'
+import toast, { Toaster } from "react-hot-toast";
 import Input from "@/components/input";
 import Workspace from "@/layouts/workspace";
 import { v4 as uuidv4 } from "uuid";
@@ -17,7 +17,6 @@ import {
   IconAlertCircle,
   IconCalendarEvent,
   IconUsers,
-  IconBrandDiscord,
   IconClipboardList,
   IconUserPlus,
   IconArrowLeft,
@@ -28,57 +27,64 @@ import * as noblox from "noblox.js";
 import { useRouter } from "next/router";
 import axios from "axios";
 import prisma from "@/utils/database";
-import Switchcomponenet from "@/components/switch";
+
 import { useForm, FormProvider } from "react-hook-form";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 
-export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(async (context) => {
-  const { id, sid } = context.query;
-  let games: { name: string; id: number }[] = [];
-  let fallbackToManual = false;
+export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
+  async (context) => {
+    const { id, sid } = context.query;
+    let games: { name: string; id: number }[] = [];
+    let fallbackToManual = false;
 
-  try {
-    const fetchedGames = await noblox.getGroupGames(Number(id));
-    games = fetchedGames.map(game => ({
-      name: game.name,
-      id: game.id,
-    }));
-  } catch (err) {
-    console.error("Failed to fetch games from noblox:", err);
-    fallbackToManual = true;
-  }
-  const session = await prisma.sessionType.findUnique({
-    where: {
-      id: (sid as string)
-    },
-    include: {
-      hostingRoles: true
+    try {
+      const fetchedGames = await noblox.getGroupGames(Number(id));
+      games = fetchedGames.map((game) => ({
+        name: game.name,
+        id: game.id,
+      }));
+    } catch (err) {
+      console.error("Failed to fetch games from noblox:", err);
+      fallbackToManual = true;
     }
-  });
-  if (!session) {
+    const session = await prisma.sessionType.findUnique({
+      where: {
+        id: sid as string,
+      },
+      include: {
+        hostingRoles: true,
+      },
+    });
+    if (!session) {
+      return {
+        notFound: true,
+      };
+    }
+
+    const roles = await prisma.role.findMany({
+      where: {
+        workspaceGroupId: Number(id),
+      },
+      orderBy: {
+        isOwnerRole: "desc",
+      },
+    });
+
     return {
-      notFound: true
-    }
-  }
-
-  const roles = await prisma.role.findMany({
-    where: {
-      workspaceGroupId: Number(id)
-    },
-    orderBy: {
-      isOwnerRole: 'desc'
-    }
-  });
-
-  return {
-    props: {
-      games,
-      roles,
-      session: JSON.parse(JSON.stringify(session, (key, value) => (typeof value === 'bigint' ? value.toString() : value))),
-      fallbackToManual
-    },
-  };
-}, 'manage_sessions')
+      props: {
+        games,
+        roles,
+        session: JSON.parse(
+          JSON.stringify(session, (key, value) =>
+            typeof value === "bigint" ? value.toString() : value
+          )
+        ),
+        fallbackToManual,
+      },
+    };
+  },
+  "manage_sessions"
+);
 
 type StatusType = {
   id: string;
@@ -93,94 +99,132 @@ type SlotType = {
   slots: number;
 };
 
-const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({ games, roles, session, fallbackToManual }) => {
+const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
+  games,
+  roles,
+  session,
+  fallbackToManual,
+}) => {
   const [login, setLogin] = useRecoilState(loginState);
   const [activeTab, setActiveTab] = useState("basic");
   const [enabled, setEnabled] = useState(session.schedule?.enabled ?? false);
   const [days, setDays] = useState<string[]>(session.schedule?.days || []);
-  const [statues, setStatues] = useState(session.statues?.length ? session.statues : []);
-  const [slots, setSlots] = useState(session.slots?.length ? session.slots : [{
-    name: 'Co-Host',
-    slots: 1,
-    id: uuidv4()
-  }]);
+  const [statues, setStatues] = useState(
+    session.statues?.length ? session.statues : []
+  );
+  const [slots, setSlots] = useState(
+    session.slots?.length
+      ? session.slots
+      : [
+          {
+            name: "Co-Host",
+            slots: 1,
+            id: uuidv4(),
+          },
+        ]
+  );
   const form = useForm({
     defaultValues: {
       name: session.name,
-      webhooksEnabled: session.webhookEnabled,
-      webhookUrl: session.webhookUrl,
-      webhookTitle: session.webhookTitle,
-      webhookBody: session.webhookBody,
-      webhookPing: session.webhookPing,
       gameId: session.gameId ?? "",
       time: session.schedule?.time || "",
-    }
+    },
   });
   const [workspace] = useRecoilState(workspacestate);
-  const [allowUnscheduled, setAllowUnscheduled] = useState(session.allowUnscheduled ?? false);
-  const [webhooksEnabled, setWebhooksEnabled] = useState(session.webhookEnabled ?? false);
-  const [selectedGame, setSelectedGame] = useState(session.gameId?.toString() ?? "");
-  const [selectedRoles, setSelectedRoles] = useState<string[]>(session.hostingRoles.map((role: any) => role.id));
+  const [allowUnscheduled, setAllowUnscheduled] = useState(
+    session.allowUnscheduled ?? false
+  );
+  const [selectedGame, setSelectedGame] = useState(
+    session.gameId?.toString() ?? ""
+  );
+  const [selectedRoles, setSelectedRoles] = useState<string[]>(
+    session.hostingRoles.map((role: any) => role.id)
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const router = useRouter();
 
   // Tab navigation
   const tabs = [
     { id: "basic", label: "Basic Info", icon: <IconInfoCircle size={18} /> },
     { id: "permissions", label: "Permissions", icon: <IconUsers size={18} /> },
-    { id: "webhooks", label: "Discord", icon: <IconBrandDiscord size={18} /> },
-    { id: "statuses", label: "Statuses", icon: <IconClipboardList size={18} /> },
+    {
+      id: "statuses",
+      label: "Statuses",
+      icon: <IconClipboardList size={18} />,
+    },
     { id: "slots", label: "Slots", icon: <IconUserPlus size={18} /> },
   ];
 
   // Role toggle
   const toggleRole = (role: string) => {
-    setSelectedRoles((prev) => (prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]));
+    setSelectedRoles((prev) =>
+      prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]
+    );
   };
 
   // Day toggle
   const toggleDay = (day: string) => {
-    setDays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]));
+    setDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+    );
   };
 
   // Statuses
   const newStatus = () => {
-	setStatues((prev: StatusType[]) => [
-	  ...prev,
-	  {
-		name: "New status",
-		timeAfter: 0,
-		color: "green",
-		id: uuidv4(),
-	  } as StatusType,
-	]);
+    setStatues((prev: StatusType[]) => [
+      ...prev,
+      {
+        name: "New status",
+        timeAfter: 0,
+        color: "green",
+        id: uuidv4(),
+      } as StatusType,
+    ]);
   };
   const deleteStatus = (id: string) => {
-	setStatues((prev: StatusType[]) => prev.filter((status: StatusType) => status.id !== id));
+    setStatues((prev: StatusType[]) =>
+      prev.filter((status: StatusType) => status.id !== id)
+    );
   };
-  const updateStatus = (id: string, name: string, color: string, timeafter: number) => {
-	setStatues((prev: StatusType[]) =>
-	  prev.map((status: StatusType) => (status.id === id ? { ...status, name, color, timeAfter: timeafter } : status)),
-	);
+  const updateStatus = (
+    id: string,
+    name: string,
+    color: string,
+    timeafter: number
+  ) => {
+    setStatues((prev: StatusType[]) =>
+      prev.map((status: StatusType) =>
+        status.id === id
+          ? { ...status, name, color, timeAfter: timeafter }
+          : status
+      )
+    );
   };
 
   // Slots
   const newSlot = () => {
-	setSlots((prev: SlotType[]) => [
-	  ...prev,
-	  {
-		name: "Co-Host",
-		slots: 1,
-		id: uuidv4(),
-	  } as SlotType,
-	]);
+    setSlots((prev: SlotType[]) => [
+      ...prev,
+      {
+        name: "Co-Host",
+        slots: 1,
+        id: uuidv4(),
+      } as SlotType,
+    ]);
   };
   const deleteSlot = (id: string) => {
-	setSlots((prev: SlotType[]) => prev.filter((slot: SlotType) => slot.id !== id));
+    setSlots((prev: SlotType[]) =>
+      prev.filter((slot: SlotType) => slot.id !== id)
+    );
   };
   const updateSlot = (id: string, name: string, slotsAvailble: number) => {
-	setSlots((prev: SlotType[]) => prev.map((slot: SlotType) => (slot.id === id ? { ...slot, slots: slotsAvailble, name } : slot)));
+    setSlots((prev: SlotType[]) =>
+      prev.map((slot: SlotType) =>
+        slot.id === id ? { ...slot, slots: slotsAvailble, name } : slot
+      )
+    );
   };
 
   // Form validation
@@ -188,11 +232,6 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
     if (!form.getValues().name) return false;
     if (fallbackToManual && !form.getValues().gameId) return false;
     if (enabled && !form.getValues().time) return false;
-    if (
-      webhooksEnabled &&
-      (!form.getValues().webhookUrl || !form.getValues().webhookTitle || !form.getValues().webhookBody)
-    )
-      return false;
     return true;
   };
 
@@ -202,33 +241,62 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
     setFormError("");
     try {
       const time24 = form.getValues().time || "00:00";
-      await axios.post(`/api/workspace/${workspace.groupId}/sessions/manage/${session.id}/edit`, {
-        name: form.getValues().name,
-        gameId: fallbackToManual ? form.getValues().gameId : selectedGame,
-        schedule: {
-          enabled,
-          days,
-          time: time24,
-          allowUnscheduled,
-        },
-        slots,
-        statues,
-        webhook: {
-          enabled: webhooksEnabled,
-          url: form.getValues().webhookUrl,
-          title: form.getValues().webhookTitle,
-          body: form.getValues().webhookBody,
-          ping: form.getValues().webhookPing,
-        },
-        permissions: selectedRoles,
-      });
+      await axios.post(
+        `/api/workspace/${workspace.groupId}/sessions/manage/${session.id}/edit`,
+        {
+          name: form.getValues().name,
+          gameId: fallbackToManual ? form.getValues().gameId : selectedGame,
+          schedule: {
+            enabled,
+            days,
+            time: time24,
+            allowUnscheduled,
+          },
+          slots,
+          statues,
+          permissions: selectedRoles,
+        }
+      );
       toast.success("Session updated");
       router.push(`/workspace/${workspace.groupId}/sessions/schedules`);
     } catch (err: any) {
-      setFormError(err?.response?.data?.error || "Failed to update session. Please try again.");
+      setFormError(
+        err?.response?.data?.error ||
+          "Failed to update session. Please try again."
+      );
       window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const deleteSession = async () => {
+    setIsSubmitting(true);
+    try {
+      const isRecurring =
+        session.schedule?.enabled && session.schedule?.days?.length > 0;
+
+      if (isRecurring) {
+        await axios.delete(
+          `/api/workspace/${workspace.groupId}/sessions/${session.id}/delete?deleteAll=true`
+        );
+        toast.success("All sessions in series deleted successfully");
+      } else {
+        await axios.delete(
+          `/api/workspace/${workspace.groupId}/sessions/${session.id}/delete`
+        );
+        toast.success("Session deleted successfully");
+      }
+
+      router.push(`/workspace/${workspace.groupId}/sessions`);
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.error ||
+          "Failed to delete session. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+      setShowDeleteModal(false);
     }
   };
 
@@ -237,8 +305,12 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold dark:text-white">Edit Session Type</h1>
-          <p className="text-zinc-500 dark:text-zinc-400 mt-1">Update your session type settings</p>
+          <h1 className="text-2xl md:text-3xl font-bold dark:text-white">
+            Edit Session Type
+          </h1>
+          <p className="text-zinc-500 dark:text-zinc-400 mt-1">
+            Update your session type settings
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -246,6 +318,12 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
             classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600 flex items-center gap-1"
           >
             <IconArrowLeft size={16} /> Back
+          </Button>
+          <Button
+            onPress={() => setShowDeleteModal(true)}
+            classoverride="bg-red-500 text-white hover:bg-red-600 flex items-center gap-1"
+          >
+            <IconTrash size={16} /> Delete
           </Button>
           <Button
             onPress={form.handleSubmit(updateSession)}
@@ -256,7 +334,8 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                 : "bg-zinc-300 text-zinc-500 cursor-not-allowed dark:bg-zinc-700 dark:text-zinc-400"
             }`}
           >
-            <IconDeviceFloppy size={16} /> {isSubmitting ? "Updating..." : "Update Session"}
+            <IconDeviceFloppy size={16} />{" "}
+            {isSubmitting ? "Updating..." : "Update Session"}
           </Button>
         </div>
       </div>
@@ -264,10 +343,17 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
       {/* Error message */}
       {formError && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 dark:bg-red-900/20 dark:border-red-800">
-          <IconAlertCircle className="text-red-500 mt-0.5 flex-shrink-0" size={18} />
+          <IconAlertCircle
+            className="text-red-500 mt-0.5 flex-shrink-0"
+            size={18}
+          />
           <div>
-            <h3 className="font-medium text-red-800 dark:text-red-400">Error</h3>
-            <p className="text-red-600 dark:text-red-300 text-sm">{formError}</p>
+            <h3 className="font-medium text-red-800 dark:text-red-400">
+              Error
+            </h3>
+            <p className="text-red-600 dark:text-red-300 text-sm">
+              {formError}
+            </p>
           </div>
         </div>
       )}
@@ -302,7 +388,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                   <IconInfoCircle className="text-primary" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold dark:text-white">Basic Information</h2>
+                  <h2 className="text-xl font-semibold dark:text-white">
+                    Basic Information
+                  </h2>
                   <p className="text-zinc-500 dark:text-zinc-400 mt-1">
                     Edit the essential details about your session type
                   </p>
@@ -312,7 +400,10 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                 <div>
                   <Input
                     {...form.register("name", {
-                      required: { value: true, message: "Session name is required" },
+                      required: {
+                        value: true,
+                        message: "Session name is required",
+                      },
                     })}
                     label="Session Type Name"
                     placeholder="Weekly Session"
@@ -321,19 +412,28 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                     Choose a descriptive name for your session type
                   </p>
                   {form.formState.errors.name && (
-                    <p className="mt-1 text-sm text-red-500">{form.formState.errors.name.message as string}</p>
+                    <p className="mt-1 text-sm text-red-500">
+                      {form.formState.errors.name.message as string}
+                    </p>
                   )}
                 </div>
                 {games.length > 0 && !fallbackToManual ? (
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Game</label>
+                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                      Game
+                    </label>
                     <Listbox as="div" className="relative">
                       <Listbox.Button className="flex items-center justify-between w-full px-4 py-2.5 text-left bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm">
                         <span className="block truncate text-zinc-700 dark:text-white">
-                          {games?.find((game: { name: string; id: number }) => game.id === Number(selectedGame))
-                            ?.name || "Select a game"}
+                          {games?.find(
+                            (game: { name: string; id: number }) =>
+                              game.id === Number(selectedGame)
+                          )?.name || "Select a game"}
                         </span>
-                        <IconChevronDown size={18} className="text-zinc-500 dark:text-zinc-400" />
+                        <IconChevronDown
+                          size={18}
+                          className="text-zinc-500 dark:text-zinc-400"
+                        />
                       </Listbox.Button>
                       <Listbox.Options className="absolute z-10 w-full mt-1 overflow-auto bg-white dark:bg-zinc-800 rounded-lg shadow-lg max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none">
                         {games.map((game: { name: string; id: number }) => (
@@ -343,13 +443,19 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                             onClick={() => setSelectedGame(game.id.toString())}
                             className={({ active }) =>
                               `${
-                                active ? "bg-primary/10 text-primary" : "text-zinc-900 dark:text-white"
+                                active
+                                  ? "bg-primary/10 text-primary"
+                                  : "text-zinc-900 dark:text-white"
                               } cursor-pointer select-none relative py-2.5 pl-10 pr-4`
                             }
                           >
                             {({ selected, active }) => (
                               <>
-                                <span className={`${selected ? "font-medium" : "font-normal"} block truncate`}>
+                                <span
+                                  className={`${
+                                    selected ? "font-medium" : "font-normal"
+                                  } block truncate`}
+                                >
                                   {game.name}
                                 </span>
                                 {selectedGame === game.id.toString() && (
@@ -367,13 +473,21 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                           onClick={() => setSelectedGame("")}
                           className={({ active }) =>
                             `${
-                              active ? "bg-primary/10 text-primary" : "text-zinc-900 dark:text-white"
+                              active
+                                ? "bg-primary/10 text-primary"
+                                : "text-zinc-900 dark:text-white"
                             } cursor-pointer select-none relative py-2.5 pl-10 pr-4`
                           }
                         >
                           {({ selected, active }) => (
                             <>
-                              <span className={`${selected ? "font-medium" : "font-normal"} block truncate`}>None</span>
+                              <span
+                                className={`${
+                                  selected ? "font-medium" : "font-normal"
+                                } block truncate`}
+                              >
+                                None
+                              </span>
                               {selectedGame === "" && (
                                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-primary">
                                   <IconCheck size={18} aria-hidden="true" />
@@ -392,7 +506,11 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                   <div>
                     <Input
                       {...form.register("gameId", {
-                        required: { value: true, message: "Game ID is required when games cannot be fetched" },
+                        required: {
+                          value: true,
+                          message:
+                            "Game ID is required when games cannot be fetched",
+                        },
                         pattern: {
                           value: /^[0-9]+$/,
                           message: "Invalid Game ID format",
@@ -402,10 +520,13 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       placeholder="Enter your game ID manually"
                     />
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                      Enter the Roblox game ID where this session will take place
+                      Enter the Roblox game ID where this session will take
+                      place
                     </p>
                     {form.formState.errors.gameId && (
-                      <p className="mt-1 text-sm text-red-500">{form.formState.errors.gameId.message as string}</p>
+                      <p className="mt-1 text-sm text-red-500">
+                        {form.formState.errors.gameId.message as string}
+                      </p>
                     )}
                   </div>
                 )}
@@ -421,7 +542,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                   <IconUsers className="text-primary" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold dark:text-white">Permissions</h2>
+                  <h2 className="text-xl font-semibold dark:text-white">
+                    Permissions
+                  </h2>
                   <p className="text-zinc-500 dark:text-zinc-400 mt-1">
                     Control which roles can host and claim these sessions
                   </p>
@@ -429,7 +552,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
               </div>
               <div className="max-w-2xl">
                 <div className="p-4 bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700">
-                  <h3 className="text-md font-medium dark:text-white mb-3">Roles that can host/claim sessions</h3>
+                  <h3 className="text-md font-medium dark:text-white mb-3">
+                    Roles that can host/claim sessions
+                  </h3>
                   {roles.length > 0 ? (
                     <div className="space-y-2 max-h-60 overflow-y-auto p-2">
                       {roles.map((role: any) => (
@@ -459,7 +584,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                     </div>
                   ) : (
                     <div className="text-center py-8 bg-zinc-50 dark:bg-zinc-700/30 rounded-lg">
-                      <p className="text-zinc-500 dark:text-zinc-400">No roles available</p>
+                      <p className="text-zinc-500 dark:text-zinc-400">
+                        No roles available
+                      </p>
                       <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-1">
                         Create roles in your workspace settings first
                       </p>
@@ -475,122 +602,6 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
             </div>
           )}
 
-          {/* Discord Webhooks */}
-          {activeTab === "webhooks" && (
-            <div className="p-6">
-              <div className="flex items-start mb-6">
-                <div className="bg-primary/10 p-2 rounded-lg mr-4">
-                  <IconBrandDiscord className="text-primary" size={24} />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold dark:text-white">Discord Notifications</h2>
-                  <p className="text-zinc-500 dark:text-zinc-400 mt-1">
-                    Set up Discord webhook notifications for your sessions
-                  </p>
-                </div>
-              </div>
-              <div className="max-w-2xl">
-                <div className="p-4 bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700">
-                  <Switchcomponenet
-                    label="Enable Discord notifications"
-                    checked={webhooksEnabled}
-                    onChange={() => setWebhooksEnabled(!webhooksEnabled)}
-                  />
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 ml-10 mt-1">
-                    Send notifications to Discord when sessions are scheduled
-                  </p>
-                  {webhooksEnabled && (
-                    <div className="space-y-4 pt-4 mt-4 border-t border-gray-200 dark:border-zinc-700">
-                      <div>
-                        <Input
-                          {...form.register("webhookUrl", {
-                            required: {
-                              value: webhooksEnabled,
-                              message: "Webhook URL is required",
-                            },
-                            pattern: {
-                              value: /^https?:\/\/(?:www\.)?discord(?:app)?\.com\/api\/webhooks\/(\d+)\/([\w-]+)$/,
-                              message: "Invalid Discord webhook URL",
-                            },
-                          })}
-                          label="Webhook URL"
-                          placeholder="https://discord.com/api/webhooks/..."
-                        />
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                          The Discord webhook URL to send notifications to
-                        </p>
-                        {form.formState.errors.webhookUrl && (
-                          <p className="mt-1 text-sm text-red-500">
-                            {form.formState.errors.webhookUrl.message as string}
-                          </p>
-                        )}
-                      </div>
-                      <div>
-                        <Input
-                          {...form.register("webhookPing", {
-                            required: {
-                              value: webhooksEnabled,
-                              message: "Webhook ping is required",
-                            },
-                          })}
-                          label="Role/User to Ping"
-                          placeholder="@everyone or <@&role_id>"
-                        />
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                          Who should be notified when a session is scheduled
-                        </p>
-                        {form.formState.errors.webhookPing && (
-                          <p className="mt-1 text-sm text-red-500">
-                            {form.formState.errors.webhookPing.message as string}
-                          </p>
-                        )}
-                      </div>
-                      <div>
-                        <Input
-                          {...form.register("webhookTitle", {
-                            required: {
-                              value: webhooksEnabled,
-                              message: "Webhook title is required",
-                            },
-                          })}
-                          label="Notification Title"
-                          placeholder="New Session"
-                        />
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">The title of the Discord embed</p>
-                        {form.formState.errors.webhookTitle && (
-                          <p className="mt-1 text-sm text-red-500">
-                            {form.formState.errors.webhookTitle.message as string}
-                          </p>
-                        )}
-                      </div>
-                      <div>
-                        <Input
-                          {...form.register("webhookBody", {
-                            required: {
-                              value: webhooksEnabled,
-                              message: "Webhook message is required",
-                            },
-                          })}
-                          label="Notification Message"
-                          textarea
-                          placeholder="Join us for our weekly session!"
-                        />
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                          The main content of the Discord notification
-                        </p>
-                        {form.formState.errors.webhookBody && (
-                          <p className="mt-1 text-sm text-red-500">
-                            {form.formState.errors.webhookBody.message as string}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Statuses */}
           {activeTab === "statuses" && (
             <div className="p-6">
@@ -599,7 +610,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                   <IconClipboardList className="text-primary" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold dark:text-white">Session Statuses</h2>
+                  <h2 className="text-xl font-semibold dark:text-white">
+                    Session Statuses
+                  </h2>
                   <p className="text-zinc-500 dark:text-zinc-400 mt-1">
                     Define status updates that occur during a session
                   </p>
@@ -608,7 +621,8 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
               <div className="max-w-2xl">
                 <div className="flex justify-between items-center mb-4">
                   <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    Statuses automatically update after the specified time has passed
+                    Statuses automatically update after the specified time has
+                    passed
                   </p>
                   <Button
                     onPress={newStatus}
@@ -620,10 +634,16 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                 </div>
                 {statues.length === 0 ? (
                   <div className="text-center py-10 bg-zinc-50 dark:bg-zinc-700/30 rounded-lg border border-dashed border-gray-300 dark:border-zinc-600">
-                    <IconClipboardList className="mx-auto text-zinc-400 dark:text-zinc-500" size={32} />
-                    <p className="text-zinc-500 dark:text-zinc-400 mt-2">No statuses added yet</p>
+                    <IconClipboardList
+                      className="mx-auto text-zinc-400 dark:text-zinc-500"
+                      size={32}
+                    />
+                    <p className="text-zinc-500 dark:text-zinc-400 mt-2">
+                      No statuses added yet
+                    </p>
                     <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-1 max-w-xs mx-auto">
-                      Add statuses to track session progress (e.g., "Starting Soon", "In Progress", "Completed")
+                      Add statuses to track session progress (e.g., "Starting
+                      Soon", "In Progress", "Completed")
                     </p>
                     <Button
                       onPress={newStatus}
@@ -632,23 +652,27 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       <IconPlus size={16} /> Add Your First Status
                     </Button>
                   </div>
-        ) : (
-          <div className="space-y-4">
-            {statues.map((status: StatusType, index: number) => (
-              <div
-                key={status.id}
-                className="border border-gray-200 dark:border-zinc-700 rounded-lg p-4 bg-white dark:bg-zinc-800 shadow-sm"
-              >
-                <Status
-                  updateStatus={(value: string, mins: number, color: string) => updateStatus(status.id, value, color, mins)}
-                  deleteStatus={() => deleteStatus(status.id)}
-                  data={status}
-                  index={index + 1}
-                />
-              </div>
-            ))}
-          </div>
-        )}
+                ) : (
+                  <div className="space-y-4">
+                    {statues.map((status: StatusType, index: number) => (
+                      <div
+                        key={status.id}
+                        className="border border-gray-200 dark:border-zinc-700 rounded-lg p-4 bg-white dark:bg-zinc-800 shadow-sm"
+                      >
+                        <Status
+                          updateStatus={(
+                            value: string,
+                            mins: number,
+                            color: string
+                          ) => updateStatus(status.id, value, color, mins)}
+                          deleteStatus={() => deleteStatus(status.id)}
+                          data={status}
+                          index={index + 1}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -661,7 +685,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                   <IconUserPlus className="text-primary" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold dark:text-white">Session Slots</h2>
+                  <h2 className="text-xl font-semibold dark:text-white">
+                    Session Slots
+                  </h2>
                   <p className="text-zinc-500 dark:text-zinc-400 mt-1">
                     Define roles and how many people can claim each role
                   </p>
@@ -670,7 +696,8 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
               <div className="max-w-2xl">
                 <div className="flex justify-between items-center mb-4">
                   <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    Each session has one Host by default. Add additional roles below.
+                    Each session has one Host by default. Add additional roles
+                    below.
                   </p>
                   <Button
                     onPress={newSlot}
@@ -692,19 +719,21 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       }}
                     />
                   </div>
-				{slots.map((slot: SlotType, index: number) => (
-					<div
-						key={slot.id}
-						className="border border-gray-200 dark:border-zinc-700 rounded-lg p-4 bg-white dark:bg-zinc-800 shadow-sm"
-					>
-						<Slot
-							updateStatus={(name: string, openSlots: number) => updateSlot(slot.id, name, openSlots)}
-							deleteStatus={() => deleteSlot(slot.id)}
-							data={slot}
-							index={index + 1}
-						/>
-					</div>
-				))}
+                  {slots.map((slot: SlotType, index: number) => (
+                    <div
+                      key={slot.id}
+                      className="border border-gray-200 dark:border-zinc-700 rounded-lg p-4 bg-white dark:bg-zinc-800 shadow-sm"
+                    >
+                      <Slot
+                        updateStatus={(name: string, openSlots: number) =>
+                          updateSlot(slot.id, name, openSlots)
+                        }
+                        deleteStatus={() => deleteSlot(slot.id)}
+                        data={slot}
+                        index={index + 1}
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -712,6 +741,42 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
         </div>
       </FormProvider>
       <Toaster />
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">
+              Confirm Deletion
+            </h2>
+            <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-6">
+              {session.schedule?.enabled && session.schedule?.days?.length > 0
+                ? "Are you sure you want to delete all sessions in this recurring series? This action cannot be undone."
+                : "Are you sure you want to delete this session? This action cannot be undone."}
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={isSubmitting}
+                className="px-4 py-2 rounded-md bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={deleteSession}
+                disabled={isSubmitting}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
+              >
+                {isSubmitting
+                  ? "Deleting..."
+                  : session.schedule?.enabled &&
+                    session.schedule?.days?.length > 0
+                  ? "Delete All"
+                  : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -719,28 +784,32 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
 Home.layout = Workspace;
 
 const Status: React.FC<{
-  data: any
-  updateStatus: (value: string, minutes: number, color: string) => void
-  deleteStatus: () => void
-  index?: number
+  data: any;
+  updateStatus: (value: string, minutes: number, color: string) => void;
+  deleteStatus: () => void;
+  index?: number;
 }> = ({ updateStatus, deleteStatus, data, index }) => {
   const methods = useForm<{
-    minutes: number
-    value: string
+    minutes: number;
+    value: string;
   }>({
     defaultValues: {
       value: data.name,
       minutes: data.timeAfter,
     },
-  })
-  const { register, watch } = methods
+  });
+  const { register, watch } = methods;
 
   useEffect(() => {
     const subscription = methods.watch((value) => {
-      updateStatus(methods.getValues().value, Number(methods.getValues().minutes), "green")
-    })
-    return () => subscription.unsubscribe()
-  }, [methods.watch])
+      updateStatus(
+        methods.getValues().value,
+        Number(methods.getValues().minutes),
+        "green"
+      );
+    });
+    return () => subscription.unsubscribe();
+  }, [methods.watch]);
 
   return (
     <FormProvider {...methods}>
@@ -751,7 +820,9 @@ const Status: React.FC<{
               {index}
             </span>
           )}
-          <h3 className="font-medium dark:text-white">{watch("value") || "New Status"}</h3>
+          <h3 className="font-medium dark:text-white">
+            {watch("value") || "New Status"}
+          </h3>
         </div>
         <Button
           onPress={deleteStatus}
@@ -762,40 +833,53 @@ const Status: React.FC<{
         </Button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input {...register("value")} label="Status Name" placeholder="In Progress" />
-        <Input {...register("minutes")} label="Time After (minutes)" type="number" placeholder="15" />
+        <Input
+          {...register("value")}
+          label="Status Name"
+          placeholder="In Progress"
+        />
+        <Input
+          {...register("minutes")}
+          label="Time After (minutes)"
+          type="number"
+          placeholder="15"
+        />
         <p className="text-xs text-zinc-500 dark:text-zinc-400 md:col-span-2">
-          Status will activate {watch("minutes") || 0} minutes after session starts
+          Status will activate {watch("minutes") || 0} minutes after session
+          starts
         </p>
       </div>
     </FormProvider>
-  )
-}
+  );
+};
 
 const Slot: React.FC<{
-  data: any
-  updateStatus: (value: string, slots: number) => void
-  deleteStatus: () => void
-  isPrimary?: boolean
-  index?: number
+  data: any;
+  updateStatus: (value: string, slots: number) => void;
+  deleteStatus: () => void;
+  isPrimary?: boolean;
+  index?: number;
 }> = ({ updateStatus, deleteStatus, isPrimary, data, index }) => {
   const methods = useForm<{
-    slots: number
-    value: string
+    slots: number;
+    value: string;
   }>({
     defaultValues: {
       value: data.name,
       slots: data.slots,
     },
-  })
-  const { register, watch } = methods
+  });
+  const { register, watch } = methods;
 
   useEffect(() => {
     const subscription = methods.watch((value) => {
-      updateStatus(methods.getValues().value, Number(methods.getValues().slots))
-    })
-    return () => subscription.unsubscribe()
-  }, [methods.watch])
+      updateStatus(
+        methods.getValues().value,
+        Number(methods.getValues().slots)
+      );
+    });
+    return () => subscription.unsubscribe();
+  }, [methods.watch]);
 
   return (
     <FormProvider {...methods}>
@@ -806,7 +890,9 @@ const Slot: React.FC<{
               {index}
             </span>
           )}
-          <h3 className="font-medium dark:text-white">{isPrimary ? "Host (Primary)" : watch("value") || "New Slot"}</h3>
+          <h3 className="font-medium dark:text-white">
+            {isPrimary ? "Host (Primary)" : watch("value") || "New Slot"}
+          </h3>
         </div>
         {!isPrimary && (
           <Button
@@ -819,16 +905,29 @@ const Slot: React.FC<{
         )}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input {...register("value")} disabled={isPrimary} label="Role Name" placeholder="Co-Host" />
-        <Input {...register("slots")} disabled={isPrimary} label="Available Slots" type="number" placeholder="2" />
+        <Input
+          {...register("value")}
+          disabled={isPrimary}
+          label="Role Name"
+          placeholder="Co-Host"
+        />
+        <Input
+          {...register("slots")}
+          disabled={isPrimary}
+          label="Available Slots"
+          type="number"
+          placeholder="2"
+        />
         <p className="text-xs text-zinc-500 dark:text-zinc-400 md:col-span-2">
           {isPrimary
             ? "Primary host role cannot be changed"
-            : `Number of people who can claim this role: ${watch("slots") || 0}`}
+            : `Number of people who can claim this role: ${
+                watch("slots") || 0
+              }`}
         </p>
       </div>
     </FormProvider>
-  )
-}
+  );
+};
 
 export default Home;

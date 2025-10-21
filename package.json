@@ -1,6 +1,6 @@
 {
   "name": "orbit",
-  "version": "2.1.0beta2",
+  "version": "2.1.1beta1",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -20,7 +20,7 @@
     "@tabler/icons": "^2.47.0",
     "@tabler/icons-react": "^3.34.0",
     "@tailwindcss/forms": "^0.5.7",
-    "@tailwindcss/typography": "^0.5.14",
+    "@tailwindcss/typography": "^0.5.19",
     "@tanstack/react-table": "^8.10.0",
     "@tiptap/extension-document": "^2.2.0",
     "@tiptap/extension-task-item": "^2.2.0",
@@ -38,7 +38,6 @@
     "bcryptjs": "^3.0.2",
     "chart.js": "^4.4.3",
     "class-variance-authority": "^0.7.1",
-    "discord.js": "^14.16.0",
     "dotenv": "^16.4.5",
     "emoji-picker-react": "^4.12.2",
     "express-rate-limit": "^7.5.0",

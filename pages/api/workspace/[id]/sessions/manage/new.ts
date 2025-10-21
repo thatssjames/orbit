@@ -1,77 +1,108 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiRequest, NextApiResponse } from 'next'
-import prisma, { SessionType } from '@/utils/database';
-import { withPermissionCheck } from '@/utils/permissionsManager'
-type Data = {
-	success: boolean
-	error?: string
-	session?: SessionType
+import type { NextApiRequest, NextApiResponse } from "next";
+import prisma, { SessionType } from "@/utils/database";
+import { withPermissionCheck } from "@/utils/permissionsManager";
+
+const sessionTypeCreationLimits: { [key: string]: { count: number; resetTime: number } } = {};
+function checkSessionTypeCreationRateLimit(req: NextApiRequest, res: NextApiResponse): boolean {
+  const workspaceId = req.query?.id || 'unknown';
+  const userId = (req as any).session?.userid || 'anonymous';
+  const key = `workspace:${workspaceId}:user:${userId}`;
+  const now = Date.now();
+  const windowMs = 60 * 1000;
+  const maxRequests = 3;
+
+  let entry = sessionTypeCreationLimits[key];
+  if (!entry || now >= entry.resetTime) {
+    entry = { count: 0, resetTime: now + windowMs };
+    sessionTypeCreationLimits[key] = entry;
+  }
+
+  entry.count++;
+  if (entry.count > maxRequests) {
+    res.status(429).json({
+      success: false,
+      error: 'Too many session type creation attempts. Please wait a moment before creating another session type.'
+    });
+    return false;
+  }
+  return true;
 }
 
-export default withPermissionCheck(handler, 'manage_sessions');
+type Data = {
+  success: boolean;
+  error?: string;
+  session?: SessionType;
+  sessionsCreated?: number;
+};
 
-export async function handler(
-	req: NextApiRequest,
-	res: NextApiResponse<Data>
-) {
-	if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
-	const { name, schedule, permissions, webhook, slots, statues } = req.body;
-	if (!name || !schedule || !permissions) return res.status(400).json({ success: false, error: 'Missing required fields' });
-	const { days, time, allowUnscheduled } = schedule;
-	if (schedule.enebled && (!days || !time || !allowUnscheduled)) return res.status(400).json({ success: false, error: 'Missing required fields' });
-	if (schedule.enabled) {
-		const session = await prisma.sessionType.create({
-			data: {
-				workspaceGroupId: parseInt(req.query.id as string),
-				name,
-				gameId: (BigInt(req.body.gameId as string) || null),
-				allowUnscheduled: schedule.allowUnscheduled,
-				statues: statues || [],
-				slots: slots || [],
-				webhookEnabled: webhook?.enabled || false,
-				webhookUrl: webhook?.url,
-				webhookPing: webhook?.ping,
-				webhookBody: webhook?.body,
-				webhookTitle: webhook?.title,
-				hostingRoles: {
-					connect: [
-						...permissions.map((role: string) => ({ id: role }))
-					]
-				},
-				schedule: {
-					create: [
-						{ Days: days, Hour: parseInt(time.split(':')[0]), Minute: parseInt(time.split(':')[1]) },
-					]
-				}
-				
-			}
-		});
-		
-		return res.status(200).json({ success: true, session: JSON.parse(JSON.stringify(session, (key, value) => (typeof value === 'bigint' ? value.toString() : value))) })
+export default withPermissionCheck(handler, "manage_sessions");
 
-	}
-	
-	const session = await prisma.sessionType.create({
-		data: {
-			workspaceGroupId: parseInt(req.query.id as string),
-			name,
-			gameId: (parseInt(req.body.gameId as string) || null),
-			allowUnscheduled: schedule.allowUnscheduled,
-			webhookEnabled: webhook?.enabled || false,
-			webhookUrl: webhook?.url,
-			webhookPing: webhook?.ping,
-			slots: slots || [],
-			statues: statues || [],
-			webhookBody: webhook?.body,
-			webhookTitle: webhook?.title,
-			hostingRoles: { 
-				connect: [
-					...permissions.map((role: string) => ({ id: role }))
-				]
-			},
-			
-		}
-	});
-	
-	res.status(200).json({ success: true, session: JSON.parse(JSON.stringify(session, (key, value) => (typeof value === 'bigint' ? value.toString() : value))) })
+export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+  if (!checkSessionTypeCreationRateLimit(req, res)) return;
+  
+  if (req.method !== "POST")
+    return res
+      .status(405)
+      .json({ success: false, error: "Method not allowed" });  const { name, description, schedule, permissions, slots, statues } =
+    req.body;
+
+  if (!name || !permissions)
+    return res
+      .status(400)
+      .json({ success: false, error: "Missing required fields" });
+
+  try {
+    let scheduleData = null;
+    if (
+      schedule?.enabled &&
+      schedule.days &&
+      schedule.hours !== undefined &&
+      schedule.minutes !== undefined
+    ) {
+      scheduleData = {
+        create: [
+          {
+            Days: schedule.days,
+            Hour: schedule.hours,
+            Minute: schedule.minutes,
+          },
+        ],
+      };
+    }
+
+    const sessionType = await prisma.sessionType.create({
+      data: {
+        workspaceGroupId: parseInt(req.query.id as string),
+        name,
+        description: description || null,
+        gameId: req.body.gameId ? BigInt(req.body.gameId as string) : null,
+        allowUnscheduled: schedule?.allowUnscheduled || false,
+        statues: statues || [],
+        slots: slots || [],
+        hostingRoles: {
+          connect: [...permissions.map((role: string) => ({ id: role }))],
+        },
+        ...(scheduleData && { schedule: scheduleData }),
+      },
+      include: {
+        schedule: true,
+        hostingRoles: true,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      session: JSON.parse(
+        JSON.stringify(sessionType, (key, value) =>
+          typeof value === "bigint" ? value.toString() : value
+        )
+      ),
+    });
+  } catch (error) {
+    console.error("Error creating session type:", error);
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to create session type" });
+  }
 }

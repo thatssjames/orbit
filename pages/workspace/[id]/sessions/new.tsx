@@ -19,7 +19,6 @@ import {
   IconAlertCircle,
   IconCalendarEvent,
   IconUsers,
-  IconBrandDiscord,
   IconClipboardList,
   IconUserPlus,
   IconArrowLeft,
@@ -79,11 +78,13 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
   })
   const [workspace, setWorkspace] = useRecoilState(workspacestate)
   const [allowUnscheduled, setAllowUnscheduled] = useState(false)
-  const [webhooksEnabled, setWebhooksEnabled] = useState(false)
   const [selectedGame, setSelectedGame] = useState("")
   const [selectedRoles, setSelectedRoles] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formError, setFormError] = useState("")
+  const [frequency, setFrequency] = useState("weekly")
+  const [unscheduledDate, setUnscheduledDate] = useState("")
+  const [unscheduledTime, setUnscheduledTime] = useState("")
   const [statues, setStatues] = useState<
     {
       name: string
@@ -112,43 +113,58 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
     setFormError("")
 
     try {
-      const date = new Date(`${new Date().toDateString()} ${form.getValues().time || "00:00"}`)
-      const days2: number[] = days.map((day) => {
-        const udate = new Date()
-        const ds = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-        udate.setDate(date.getDate() + ((ds.indexOf(day) - date.getDay() + 7) % 7))
-        udate.setHours(date.getHours())
-        udate.setMinutes(date.getMinutes())
-        udate.setSeconds(0)
-        udate.setMilliseconds(0)
+      const timeValue = form.getValues().time || "00:00";
+      const [localHours, localMinutes] = timeValue.split(':').map(Number);
+      const selectedDays: number[] = days.map((day) => {
+        const dayMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        return dayMap.indexOf(day);
+      });
 
-        return udate.getUTCDay()
-      })
-
-      const time24 = form.getValues().time || "00:00";
-
-      const session = await axios.post(`/api/workspace/${workspace.groupId}/sessions/manage/new`, {
+      const sessionTypeResponse = await axios.post(`/api/workspace/${workspace.groupId}/sessions/manage/new`, {
         name: form.getValues().name,
+        description: form.getValues().description,
         gameId: fallbackToManual ? form.getValues().gameId : selectedGame,
         schedule: {
           enabled,
-          days: days2,
-          time: time24,
+          days: selectedDays,
+          hours: localHours,
+          minutes: localMinutes,
           allowUnscheduled,
         },
         slots,
         statues,
-        webhook: {
-          enabled: webhooksEnabled,
-          url: form.getValues().webhookUrl,
-          title: form.getValues().webhookTitle,
-          body: form.getValues().webhookBody,
-          ping: form.getValues().webhookPing,
-        },
         permissions: selectedRoles,
       })
 
-      router.push(`/workspace/${workspace.groupId}/sessions/schedules`)
+      const createdSessionType = sessionTypeResponse.data.session;
+
+      if (enabled && selectedDays.length > 0) {
+        await axios.post(`/api/workspace/${workspace.groupId}/sessions/create-scheduled`, {
+          sessionTypeId: createdSessionType.id,
+          name: form.getValues().name,
+          type: form.getValues().type,
+          schedule: {
+            days: selectedDays,
+            hours: localHours,
+            minutes: localMinutes,
+            frequency: frequency,
+          },
+          timezoneOffset: new Date().getTimezoneOffset(),
+        });
+      }
+
+      if (allowUnscheduled && unscheduledDate && unscheduledTime) {
+        await axios.post(`/api/workspace/${workspace.groupId}/sessions/create-unscheduled`, {
+          sessionTypeId: createdSessionType.id,
+          name: form.getValues().name,
+          type: form.getValues().type,
+          date: unscheduledDate,
+          time: unscheduledTime,
+          timezoneOffset: new Date().getTimezoneOffset(),
+        });
+      }
+
+      router.push(`/workspace/${workspace.groupId}/sessions?refresh=true`)
     } catch (err: any) {
       setFormError(err?.response?.data?.error || "Failed to create session. Please try again.")
       window.scrollTo({ top: 0, behavior: "smooth" })
@@ -210,52 +226,33 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
     { id: "basic", label: "Basic Info", icon: <IconInfoCircle size={18} /> },
     { id: "scheduling", label: "Scheduling", icon: <IconCalendarEvent size={18} /> },
     { id: "permissions", label: "Permissions", icon: <IconUsers size={18} /> },
-    { id: "webhooks", label: "Discord", icon: <IconBrandDiscord size={18} /> },
     { id: "statuses", label: "Statuses", icon: <IconClipboardList size={18} /> },
     { id: "slots", label: "Slots", icon: <IconUserPlus size={18} /> },
   ]
 
   const isFormValid = () => {
-    // Basic validation
     if (!form.getValues().name) return false
+    if (!form.getValues().type) return false
     if (fallbackToManual && !form.getValues().gameId) return false
+    if (!allowUnscheduled && !enabled) return false
+    if (allowUnscheduled && enabled) return false
     if (enabled && !form.getValues().time) return false
-    if (
-      webhooksEnabled &&
-      (!form.getValues().webhookUrl || !form.getValues().webhookTitle || !form.getValues().webhookBody)
-    )
-      return false
+    if (enabled && days.length === 0) return false
+    if (allowUnscheduled && (!unscheduledDate || !unscheduledTime)) return false
 
     return true
   }
 
   const getCompletionStatus = () => {
     let completed = 0
-    const total = 6 // Total number of sections
+    const total = 5
 
-    // Basic info
     if (form.getValues().name && (selectedGame || (fallbackToManual && form.getValues().gameId))) {
       completed++
     }
-
-    // Scheduling - always considered complete
     completed++
-
-    // Permissions - always considered complete
     completed++
-
-    // Webhooks
-    if (
-      !webhooksEnabled ||
-      (form.getValues().webhookUrl && form.getValues().webhookTitle && form.getValues().webhookBody)
-    ) {
-      completed++
-    }
-
-    // Statuses - always considered complete
     completed++
-
-    // Slots - always considered complete
     completed++
 
     return Math.round((completed / total) * 100)
@@ -266,32 +263,8 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold dark:text-white">Create New Session Type</h1>
-          <p className="text-zinc-500 dark:text-zinc-400 mt-1">Set up a new session type for your group's activities</p>
-        </div>
-
-
-		<div className="flex items-center gap-2">
-
-				
-          <Button
-            onPress={() => router.back()}
-            classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600 flex items-center gap-1"
-          >
-            <IconArrowLeft size={16} /> Back
-          </Button>
-
-          <Button
-            onPress={form.handleSubmit(createSession)}
-            disabled={isSubmitting || !isFormValid()}
-            classoverride={`flex items-center gap-1 ${
-              isFormValid()
-                ? "bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"
-                : "bg-zinc-300 text-zinc-500 cursor-not-allowed dark:bg-zinc-700 dark:text-zinc-400"
-            }`}
-          >
-            <IconDeviceFloppy size={16} /> {isSubmitting ? "Creating..." : "Create Session"}
-          </Button>
+          <h1 className="text-2xl md:text-3xl font-bold dark:text-white">Create New Session</h1>
+          <p className="text-zinc-500 dark:text-zinc-400 mt-1">Set up a new session for your group's activities</p>
         </div>
       </div>
 
@@ -349,14 +322,40 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                     {...form.register("name", {
                       required: { value: true, message: "Session name is required" },
                     })}
-                    label="Session Type Name"
-                    placeholder="Weekly Session"
+                    label="Session Name"
+                    placeholder="Weekly Training Session"
                   />
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                    Choose a descriptive name for your session type
-                  </p>
                   {form.formState.errors.name && (
                     <p className="mt-1 text-sm text-red-500">{form.formState.errors.name.message as string}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Input
+                    {...form.register("description")}
+                    label="Description"
+                    textarea
+                    placeholder="Describe what this session is about, what will happen, and any special instructions..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                    Session Type
+                  </label>
+                  <select
+                    {...form.register("type", {
+                      required: { value: true, message: "Session type is required" },
+                    })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white">
+                    <option value="">Select type...</option>
+                    <option value="shift">Shift</option>
+                    <option value="training">Training</option>
+                    <option value="event">Event</option>
+                    <option value="other">Other</option>
+                  </select>
+                  {form.formState.errors.type && (
+                    <p className="mt-1 text-sm text-red-500">{form.formState.errors.type.message as string}</p>
                   )}
                 </div>
 
@@ -437,9 +436,6 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       label="Game ID"
                       placeholder="Enter your game ID manually"
                     />
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                      Enter the Roblox game ID where this session will take place
-                    </p>
                     {form.formState.errors.gameId && (
                       <p className="mt-1 text-sm text-red-500">{form.formState.errors.gameId.message as string}</p>
                     )}
@@ -477,19 +473,29 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                 <div className="p-4 bg-zinc-50 dark:bg-zinc-700/30 rounded-lg border border-gray-200 dark:border-zinc-700">
                   <div className="flex flex-col space-y-3">
                     <Switchcomponenet
-                      label="Allow unscheduled sessions"
+                      label="Unscheduled session"
                       checked={allowUnscheduled}
-                      onChange={() => setAllowUnscheduled(!allowUnscheduled)}
+                      onChange={() => {
+                        if (!allowUnscheduled && enabled) {
+                          setEnabled(false);
+                        }
+                        setAllowUnscheduled(!allowUnscheduled);
+                      }}
                     />
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 ml-10">
-                      Enable this to allow sessions to be created at any time
+                      Enable this to set up a one time session
                     </p>
 
                     <div className="mt-2">
                       <Switchcomponenet
-                        label="Enable scheduled sessions"
+                        label="Scheduled session"
                         checked={enabled}
-                        onChange={() => setEnabled(!enabled)}
+                        onChange={() => {
+                          if (!enabled && allowUnscheduled) {
+                            setAllowUnscheduled(false);
+                          }
+                          setEnabled(!enabled);
+                        }}
                       />
                       <p className="text-xs text-zinc-500 dark:text-zinc-400 ml-10">
                         Enable this to set up recurring sessions on a schedule
@@ -498,12 +504,79 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                   </div>
                 </div>
 
+                {allowUnscheduled && (
+                  <div className="p-4 bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700 space-y-4">
+                    <h3 className="text-lg font-medium dark:text-white">Unscheduled Session</h3>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      Set the date and time for your single session
+                    </p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                          Session Date
+                        </label>
+                        <input
+                          type="date"
+                          value={unscheduledDate}
+                          onChange={(e) => setUnscheduledDate(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                          Session Time
+                        </label>
+                        <input
+                          type="time"
+                          value={unscheduledTime}
+                          onChange={(e) => setUnscheduledTime(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white"
+                        />
+                      </div>
+                    </div>
+                    
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                      Enter date and time in your local timezone. This will create a single session at the specified date and time.
+                    </p>
+                  </div>
+                )}
+
                 {enabled && (
                   <div className="p-4 bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700 space-y-6">
                     <div>
-                      <h3 className="text-lg font-medium dark:text-white mb-3">Repeating Days</h3>
+                      <h3 className="text-lg font-medium dark:text-white mb-3">Frequency</h3>
                       <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-3">
-                        Select which days of the week this session will repeat
+                        Choose how often this session repeats
+                      </p>
+
+                      <div className="grid grid-cols-3 gap-3">
+                        {[
+                          { value: "weekly", label: "Weekly" },
+                          { value: "biweekly", label: "Bi-weekly" },
+                          { value: "monthly", label: "Monthly" }
+                        ].map((freq) => (
+                          <button
+                            key={freq.value}
+                            type="button"
+                            onClick={() => setFrequency(freq.value)}
+                            className={`py-3 px-4 rounded-lg transition-all text-center ${
+                              frequency === freq.value
+                                ? "bg-primary text-white"
+                                : "bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-600"
+                            }`}
+                          >
+                            {freq.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-medium dark:text-white mb-3">Repeating Day</h3>
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-3">
+                        Select which day of the week this session will repeat
                       </p>
 
                       <div className="grid grid-cols-7 gap-2">
@@ -511,7 +584,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                           <button
                             key={day}
                             type="button"
-                            onClick={() => toggleDay(day)}
+                            onClick={() => setDays([day])}
                             className={`py-3 rounded-lg transition-all ${
                               days.includes(day)
                                 ? "bg-primary text-white"
@@ -536,7 +609,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                         type="time"
                       />
                       <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                        Set the time when sessions will start (in your local timezone)
+                        Set the time in your local timezone. Will be displayed in local time on the calendar.
                       </p>
                       {form.formState.errors.time && (
                         <p className="mt-1 text-sm text-red-500">{form.formState.errors.time.message as string}</p>
@@ -546,7 +619,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                 )}
               </div>
 
-              <div className="mt-8 flex justify-between">
+              <div className="mt-8 flex justify-between w-full">
                 <Button
                   onPress={() => setActiveTab("basic")}
                   classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
@@ -626,145 +699,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                 </div>
               </div>
 
-              <div className="mt-8 flex justify-between">
+              <div className="mt-8 flex justify-between w-full">
                 <Button
                   onPress={() => setActiveTab("scheduling")}
-                  classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
-                >
-                  Back
-                </Button>
-                <Button
-                  onPress={() => setActiveTab("webhooks")}
-                  classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"
-                >
-                  Continue to Discord Settings
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Discord Webhooks */}
-          {activeTab === "webhooks" && (
-            <div className="p-6">
-              <div className="flex items-start mb-6">
-                <div className="bg-primary/10 p-2 rounded-lg mr-4">
-                  <IconBrandDiscord className="text-primary" size={24} />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold dark:text-white">Discord Notifications</h2>
-                  <p className="text-zinc-500 dark:text-zinc-400 mt-1">
-                    Set up Discord webhook notifications for your sessions
-                  </p>
-                </div>
-              </div>
-
-              <div className="max-w-2xl">
-                <div className="p-4 bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700">
-                  <Switchcomponenet
-                    label="Enable Discord notifications"
-                    checked={webhooksEnabled}
-                    onChange={() => setWebhooksEnabled(!webhooksEnabled)}
-                  />
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 ml-10 mt-1">
-                    Send notifications to Discord when sessions are scheduled
-                  </p>
-
-                  {webhooksEnabled && (
-                    <div className="space-y-4 pt-4 mt-4 border-t border-gray-200 dark:border-zinc-700">
-                      <div>
-                        <Input
-                          {...form.register("webhookUrl", {
-                            required: {
-                              value: webhooksEnabled,
-                              message: "Webhook URL is required",
-                            },
-                            pattern: {
-                              value: /^https?:\/\/(?:www\.)?discord(?:app)?\.com\/api\/webhooks\/(\d+)\/([\w-]+)$/,
-                              message: "Invalid Discord webhook URL",
-                            },
-                          })}
-                          label="Webhook URL"
-                          placeholder="https://discord.com/api/webhooks/..."
-                        />
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                          The Discord webhook URL to send notifications to
-                        </p>
-                        {form.formState.errors.webhookUrl && (
-                          <p className="mt-1 text-sm text-red-500">
-                            {form.formState.errors.webhookUrl.message as string}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <Input
-                          {...form.register("webhookPing", {
-                            required: {
-                              value: webhooksEnabled,
-                              message: "Webhook ping is required",
-                            },
-                          })}
-                          label="Role/User to Ping"
-                          placeholder="@everyone or <@&role_id>"
-                        />
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                          Who should be notified when a session is scheduled
-                        </p>
-                        {form.formState.errors.webhookPing && (
-                          <p className="mt-1 text-sm text-red-500">
-                            {form.formState.errors.webhookPing.message as string}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <Input
-                          {...form.register("webhookTitle", {
-                            required: {
-                              value: webhooksEnabled,
-                              message: "Webhook title is required",
-                            },
-                          })}
-                          label="Notification Title"
-                          placeholder="New Session"
-                        />
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">The title of the Discord embed</p>
-                        {form.formState.errors.webhookTitle && (
-                          <p className="mt-1 text-sm text-red-500">
-                            {form.formState.errors.webhookTitle.message as string}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <Input
-                          {...form.register("webhookBody", {
-                            required: {
-                              value: webhooksEnabled,
-                              message: "Webhook message is required",
-                            },
-                          })}
-                          label="Notification Message"
-                          textarea
-                          placeholder="Join us for our weekly session!"
-                        />
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                          The main content of the Discord notification
-                        </p>
-                        {form.formState.errors.webhookBody && (
-                          <p className="mt-1 text-sm text-red-500">
-                            {form.formState.errors.webhookBody.message as string}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="mt-8 flex justify-between">
-                <Button
-                  onPress={() => setActiveTab("permissions")}
                   classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
                 >
                   Back
@@ -778,6 +715,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
               </div>
             </div>
           )}
+
 
           {/* Statuses */}
           {activeTab === "statuses" && (
@@ -841,7 +779,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                 )}
               </div>
 
-              <div className="mt-8 flex justify-between">
+              <div className="mt-8 flex justify-between w-full">
                 <Button
                   onPress={() => setActiveTab("webhooks")}
                   classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
@@ -916,7 +854,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                 </div>
               </div>
 
-              <div className="mt-8 flex justify-between">
+              <div className="mt-8 flex justify-between w-full">
                 <Button
                   onPress={() => setActiveTab("statuses")}
                   classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
@@ -932,7 +870,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       : "bg-zinc-300 text-zinc-500 cursor-not-allowed dark:bg-zinc-700 dark:text-zinc-400"
                   }`}
                 >
-                  <IconDeviceFloppy size={16} /> {isSubmitting ? "Creating..." : "Create Session Type"}
+                  <IconDeviceFloppy size={16} /> {isSubmitting ? "Creating..." : "Create Session"}
                 </Button>
               </div>
             </div>
