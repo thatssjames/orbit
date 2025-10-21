@@ -19,6 +19,38 @@ import prisma from "@/utils/database";
 import axios from "axios";
 import rateLimit from "express-rate-limit";
 import { NextApiHandler } from "next";
+const groupCache = new Map<number, { logo: string; name: string; timestamp: number }>();
+const CACHE_DURATION = 15 * 60 * 1000;
+
+async function getCachedGroupInfo(groupId: number) {
+  const cached = groupCache.get(groupId);
+  const now = Date.now();
+  if (cached && (now - cached.timestamp) < CACHE_DURATION) {
+    return { logo: cached.logo, group: { name: cached.name } };
+  }
+  
+  try {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    const [logo, group] = await Promise.all([
+      noblox.getLogo(groupId).catch(() => '/default-group-logo.svg'),
+      noblox.getGroup(groupId).catch(() => ({ name: `Group ${groupId}` })),
+    ]);
+    groupCache.set(groupId, {
+      logo: logo,
+      name: group.name,
+      timestamp: now
+    });
+    
+    return { logo, group };
+  } catch (error) {
+    console.warn(`Failed to fetch group ${groupId}:`, error);
+    return {
+      logo: '/default-group-logo.svg',
+      group: { name: `Group ${groupId}` }
+    };
+  }
+}
 
 // Rate limtning for login
 const limiter = rateLimit({
@@ -214,20 +246,26 @@ export async function handler(
     let roles: any[] = [];
     if (user.roles.length) {
       try {
-        for (const role of user.roles) {
-          const [logo, group] = await Promise.all([
-            noblox.getLogo(role.workspaceGroupId),
-            noblox.getGroup(role.workspaceGroupId),
-          ]);
-
-          roles.push({
+        // Use cached function to minimize API calls
+        const groupPromises = user.roles.map(async (role) => {
+          const { logo, group } = await getCachedGroupInfo(role.workspaceGroupId);
+          return {
             groupId: role.workspaceGroupId,
             groupThumbnail: logo,
             groupName: group.name,
-          });
-        }
+          };
+        });
+
+        roles = await Promise.all(groupPromises);
+        
       } catch (error) {
         console.error("Error fetching group information:", error);
+        // Fallback: return basic workspace info without thumbnails
+        roles = user.roles.map(role => ({
+          groupId: role.workspaceGroupId,
+          groupThumbnail: '/default-group-logo.svg',
+          groupName: `Group ${role.workspaceGroupId}`,
+        }));
       }
     }
 
