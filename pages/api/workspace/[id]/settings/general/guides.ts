@@ -9,9 +9,7 @@ type Data = {
   value?: any
 }
 
-export default withPermissionCheck(handler, 'admin');
-
-export async function handler(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
@@ -23,12 +21,14 @@ export async function handler(
     return res.status(200).json({ success: true, value: config });
   }
 
-  if (req.method === 'PATCH') {
-    await setConfig('guides', {
-      enabled: req.body.enabled
-    }, parseInt(req.query.id as string));
-    return res.status(200).json({ success: true });
-  }
+  return withPermissionCheck(async (req: NextApiRequest, res: NextApiResponse<Data>) => {
+    if (req.method === 'PATCH') {
+      await setConfig('guides', {
+        enabled: req.body.enabled
+      }, parseInt(req.query.id as string));
+      return res.status(200).json({ success: true });
+    }
 
-  return res.status(405).json({ success: false, error: 'Method not allowed' });
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
+  }, 'admin')(req, res);
 }

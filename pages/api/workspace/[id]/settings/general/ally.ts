@@ -14,9 +14,7 @@ type Data = {
 	value?: any
 }
 
-export default withPermissionCheck(handler, 'admin');
-
-export async function handler(
+export default async function handler(
 	req: NextApiRequest,
 	res: NextApiResponse<Data>
 ) {
@@ -27,11 +25,14 @@ export async function handler(
 		}
 		return res.status(200).json({ success: true, value: config });
 	}
-	if (req.method !== 'PATCH') return res.status(405).json({ success: false, error: 'Method not allowed' })
-	if (typeof req.body.enabled !== "boolean") return res.status(400).json({ success: false, error: 'No enabled provided' })
-	await setConfig('allies', {
-		enabled: req.body.enabled
-	}, parseInt(req.query.id as string));
-	
-	res.status(200).json({ success: true })
+
+	return withPermissionCheck(async (req: NextApiRequest, res: NextApiResponse<Data>) => {
+		if (req.method !== 'PATCH') return res.status(405).json({ success: false, error: 'Method not allowed' })
+		if (typeof req.body.enabled !== "boolean") return res.status(400).json({ success: false, error: 'No enabled provided' })
+		await setConfig('allies', {
+			enabled: req.body.enabled
+		}, parseInt(req.query.id as string));
+		
+		res.status(200).json({ success: true })
+	}, 'admin')(req, res);
 }
