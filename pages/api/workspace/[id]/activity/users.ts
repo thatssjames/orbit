@@ -52,7 +52,9 @@ export async function handler(
 			startTime: {
 				lt: new Date()
 			},
-			workspaceGroupId: parseInt(req.query.id as string)
+			workspaceGroupId: parseInt(req.query.id as string),
+			approved: true,
+			reviewed: true
 		},
 		select: {
 			userId: true,
