@@ -71,13 +71,13 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       name: "Allies",
       href: "/workspace/[id]/allies",
       icon: IconBuildingCommunity,
-      accessible: true, // or add your permission check
+      accessible: true,
     }] : []),
     ...(sessionsEnabled ? [{
       name: "Sessions",
       href: "/workspace/[id]/sessions",
       icon: IconSpeakerphone,
-      accessible: workspace.yourPermission.includes("manage_sessions"),
+      accessible: true,
     }] : []),
     {
       name: "Staff",
@@ -89,7 +89,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       name: "Docs",
       href: "/workspace/[id]/docs",
       icon: IconFileText,
-      accessible: workspace.yourPermission.includes("manage_docs"),
+      accessible: true,
     }] : []),
     {
       name: "Settings",
