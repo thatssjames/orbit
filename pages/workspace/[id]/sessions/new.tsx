@@ -574,9 +574,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                     </div>
 
                     <div>
-                      <h3 className="text-lg font-medium dark:text-white mb-3">Repeating Day</h3>
+                      <h3 className="text-lg font-medium dark:text-white mb-3">Repeating Days</h3>
                       <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-3">
-                        Select which day of the week this session will repeat
+                        Select which days of the week this session will repeat
                       </p>
 
                       <div className="grid grid-cols-7 gap-2">
@@ -584,7 +584,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                           <button
                             key={day}
                             type="button"
-                            onClick={() => setDays([day])}
+                            onClick={() => toggleDay(day)}
                             className={`py-3 rounded-lg transition-all ${
                               days.includes(day)
                                 ? "bg-primary text-white"
@@ -595,6 +595,12 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                           </button>
                         ))}
                       </div>
+                      
+                      {days.length > 0 && (
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                          Selected: {days.join(", ")}
+                        </p>
+                      )}
                     </div>
 
                     <div>

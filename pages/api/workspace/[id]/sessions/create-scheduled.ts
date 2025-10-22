@@ -80,15 +80,6 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         .json({ success: false, error: "Session type not found" });
     }
 
-    if (!sessionType.schedule || sessionType.schedule.length === 0) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          error: "Session type has no schedule configured",
-        });
-    }
-
     const sessionsToCreate = [];
     const currentDate = new Date();
     const endDate = new Date();
@@ -101,62 +92,61 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       intervalDays = 30;
     }
 
-    for (const scheduleItem of sessionType.schedule) {
-      for (const dayOfWeek of scheduleItem.Days) {
-        const today = new Date();
-        const currentDay = today.getDay();
-        let daysUntilTarget = (dayOfWeek - currentDay + 7) % 7;
-
-        if (daysUntilTarget === 0) {
-          const scheduledTime = new Date(today);
-          scheduledTime.setHours(hours, minutes, 0, 0);
-          if (today.getTime() >= scheduledTime.getTime()) {
-            daysUntilTarget = 7;
-          }
+    const selectedDays = Array.isArray(days) ? days : [days];
+    for (const dayOfWeek of selectedDays) {
+      const today = new Date();
+      const currentDay = today.getDay();
+      let daysUntilTarget = (dayOfWeek - currentDay + 7) % 7;
+      if (daysUntilTarget === 0) {
+        const scheduledTime = new Date(today);
+        scheduledTime.setHours(hours, minutes, 0, 0);
+        if (today.getTime() >= scheduledTime.getTime()) {
+          daysUntilTarget = 7;
         }
+      }
+      
+      const firstOccurrence = new Date(today);
+      firstOccurrence.setDate(today.getDate() + daysUntilTarget);
+      firstOccurrence.setUTCHours(0, 0, 0, 0);
+
+      let sessionCount = 0;
+      let maxSessions;
+      if (frequency === "monthly") {
+        maxSessions = 12;
+      } else if (frequency === "biweekly") {
+        maxSessions = 26;
+      } else {
+        maxSessions = 52;
+      }
+
+      while (sessionCount < maxSessions) {
+        const sessionDate = new Date(firstOccurrence);
+        sessionDate.setDate(firstOccurrence.getDate() + (sessionCount * intervalDays));
         
-        const firstOccurrence = new Date(today);
-        firstOccurrence.setDate(today.getDate() + daysUntilTarget);
-        firstOccurrence.setUTCHours(0, 0, 0, 0);
+        const localDateStr = sessionDate.toISOString().split('T')[0];
+        const timeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        const localDateTime = new Date(localDateStr + 'T' + timeStr + ':00');
+        const offsetMinutes = timezoneOffset || 0;
+        const utcSessionDate = new Date(localDateTime.getTime() + (offsetMinutes * 60000));
 
-        let sessionCount = 0;
-        let maxSessions;
-        if (frequency === "monthly") {
-          maxSessions = 12;
-        } else if (frequency === "biweekly") {
-          maxSessions = 26;
-        } else {
-          maxSessions = 52;
+        if (utcSessionDate >= currentDate && utcSessionDate <= endDate) {
+          const scheduleId = sessionType.schedule && sessionType.schedule.length > 0 ? sessionType.schedule[0].id : null;
+          sessionsToCreate.push({
+            date: utcSessionDate,
+            sessionTypeId: sessionType.id,
+            scheduleId: scheduleId,
+            name: name,
+            type: type,
+          });
         }
-
-        while (sessionCount < maxSessions) {
-          const sessionDate = new Date(firstOccurrence);
-          sessionDate.setDate(firstOccurrence.getDate() + (sessionCount * intervalDays));
-          
-          const localDateStr = sessionDate.toISOString().split('T')[0];
-          const timeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-          const localDateTime = new Date(localDateStr + 'T' + timeStr + ':00');
-          const offsetMinutes = timezoneOffset || 0;
-          const utcSessionDate = new Date(localDateTime.getTime() + (offsetMinutes * 60000));
-
-          if (utcSessionDate >= currentDate && utcSessionDate <= endDate) {
-            sessionsToCreate.push({
-              date: utcSessionDate,
-              sessionTypeId: sessionType.id,
-              scheduleId: scheduleItem.id,
-              name: name,
-              type: type,
-            });
-          }
-          sessionCount++;
-        }
+        sessionCount++;
       }
     }
 
     if (sessionsToCreate.length === 0) {
       return res.status(400).json({
         success: false,
-        error: "No valid session dates found for the given schedule",
+        error: "No valid session dates found",
       });
     }
 
