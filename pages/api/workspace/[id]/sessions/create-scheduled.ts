@@ -103,14 +103,21 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
     for (const scheduleItem of sessionType.schedule) {
       for (const dayOfWeek of scheduleItem.Days) {
-        const nextMonday = new Date();
-        const daysUntilMonday = (1 - nextMonday.getDay() + 7) % 7;
-        if (daysUntilMonday === 0 && nextMonday.getDay() !== 1) {
-          nextMonday.setDate(nextMonday.getDate() + 7);
-        } else {
-          nextMonday.setDate(nextMonday.getDate() + daysUntilMonday);
+        const today = new Date();
+        const currentDay = today.getDay();
+        let daysUntilTarget = (dayOfWeek - currentDay + 7) % 7;
+
+        if (daysUntilTarget === 0) {
+          const scheduledTime = new Date(today);
+          scheduledTime.setHours(hours, minutes, 0, 0);
+          if (today.getTime() >= scheduledTime.getTime()) {
+            daysUntilTarget = 7;
+          }
         }
-        nextMonday.setUTCHours(0, 0, 0, 0);
+        
+        const firstOccurrence = new Date(today);
+        firstOccurrence.setDate(today.getDate() + daysUntilTarget);
+        firstOccurrence.setUTCHours(0, 0, 0, 0);
 
         let sessionCount = 0;
         let maxSessions;
@@ -123,12 +130,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         }
 
         while (sessionCount < maxSessions) {
-          const sessionDate = new Date(nextMonday);
-          sessionDate.setDate(
-            nextMonday.getDate() +
-              sessionCount * intervalDays +
-              ((dayOfWeek - 1 + 7) % 7)
-          );
+          const sessionDate = new Date(firstOccurrence);
+          sessionDate.setDate(firstOccurrence.getDate() + (sessionCount * intervalDays));
           
           const localDateStr = sessionDate.toISOString().split('T')[0];
           const timeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
