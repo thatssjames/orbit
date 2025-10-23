@@ -416,27 +416,28 @@ const AutocompleteInput: React.FC<{
 
   useEffect(() => {
     if (inputValue.trim() === "") {
-      const suggestions = [
-        ...(currentUserUsername
-          ? [
-              {
-                userid: currentUserId,
-                username: currentUserUsername,
-                picture: currentUserPicture || "/default-avatar.png",
-                isSelf: true,
-              },
-            ]
-          : []),
-        ...availableUsers
-          .filter((user) => user.userid !== currentUserId)
-          .slice(0, 8),
-      ];
+      const otherUsers = availableUsers.filter((user) => user.userid.toString() !== currentUserId.toString());
+      const suggestions = currentUserUsername
+        ? [
+            {
+              userid: currentUserId.toString(),
+              username: currentUserUsername,
+              picture: currentUserPicture || "/default-avatar.png",
+              isSelf: true,
+            },
+            ...otherUsers.slice(0, 7)
+          ]
+        : otherUsers.slice(0, 8);
       setFilteredUsers(suggestions);
     } else {
       const filtered = availableUsers
         .filter((user) =>
           user.username.toLowerCase().includes(inputValue.toLowerCase())
         )
+        .map((user) => ({
+          ...user,
+          isSelf: user.userid.toString() === currentUserId.toString(),
+        }))
         .slice(0, 8);
       setFilteredUsers(filtered);
     }

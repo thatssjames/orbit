@@ -6,31 +6,27 @@ export default withPermissionCheck(async (req: NextApiRequest, res: NextApiRespo
 	if (req.method !== 'GET') {
 		return res.status(405).json({ error: 'Method not allowed' });
 	}
-
 	const { id } = req.query;
-
 	try {
-		const workspaceUsers = await prisma.workspaceMember.findMany({
+		const workspaceUsers = await prisma.user.findMany({
 			where: {
-				workspaceGroupId: parseInt(id as string)
-			},
-			include: {
-				user: {
-					select: {
-						userid: true,
-						username: true,
-						picture: true
+				roles: {
+					some: {
+						workspaceGroupId: parseInt(id as string)
 					}
 				}
+			},
+			select: {
+				userid: true,
+				username: true,
+				picture: true
 			}
 		});
-
-		const users = workspaceUsers.map(wu => ({
-			userid: wu.user.userid.toString(),
-			username: wu.user.username,
-			picture: wu.user.picture
+		const users = workspaceUsers.map(user => ({
+			userid: user.userid.toString(),
+			username: user.username,
+			picture: user.picture
 		}));
-
 		res.status(200).json(users);
 	} catch (error) {
 		console.error('Error fetching workspace users:', error);
