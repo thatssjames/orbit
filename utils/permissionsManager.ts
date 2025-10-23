@@ -85,28 +85,22 @@ export function withPermissionCheckSsr(
 				}
 			}
 		});
-		if (!user) return {
-			redirect: {
-				destination: '/',
-				permanent: false
-			}
+
+		// Check if any role has the required permission
+		const hasPermission = !permission || user?.roles.some(role => 
+			role.isOwnerRole || role.permissions.includes(permission)
+		);
+
+		if (!hasPermission) {
+			return {
+				redirect: {
+					destination: '/',
+					permanent: false
+				}
+			};
 		}
-		const userrole = user.roles[0];
-		if (!userrole) return {
-			redirect: {
-				destination: '/',
-				permanent: false
-			}
-		};
-		if (userrole.isOwnerRole) return handler(context);
-		if (!permission) return handler(context);
-		if (userrole.permissions?.includes(permission)) return handler(context);
-		return {
-			redirect: {
-				destination: '/',
-				permanent: false
-			}
-		}
+
+		return handler(context);
 	})
 }
 
