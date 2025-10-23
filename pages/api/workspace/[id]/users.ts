@@ -36,4 +36,4 @@ export default withPermissionCheck(async (req: NextApiRequest, res: NextApiRespo
 		console.error('Error fetching workspace users:', error);
 		res.status(500).json({ error: 'Failed to fetch users' });
 	}
-}, 'view_sessions');
+});

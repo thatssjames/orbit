@@ -76,6 +76,5 @@ export default withPermissionCheck(
       console.error("Error fetching week sessions:", error);
       res.status(500).json({ error: "Failed to fetch sessions" });
     }
-  },
-  "view_sessions"
+  }
 );
