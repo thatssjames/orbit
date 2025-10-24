@@ -324,7 +324,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
         setSessions(sessions.filter((s) => s.id !== sessionId));
         setAllSessions(allSessions.filter((s) => s.id !== sessionId));
       }
-      loadWeekSessions(currentWeek);
+      await loadWeekSessions(currentWeek);
     } catch (error: any) {
       console.error("Delete session error:", error);
       toast.error(error?.response?.data?.error || "Failed to delete session");
@@ -349,8 +349,10 @@ const Home: pageWithLayout<pageProps> = (props) => {
         }
       );
       setAllSessions(response.data);
+      return response.data;
     } catch (error) {
       console.error("Failed to load week sessions:", error);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -359,12 +361,9 @@ const Home: pageWithLayout<pageProps> = (props) => {
   useEffect(() => {
     loadWeekSessions(currentWeek);
   }, [currentWeek, router.query.id]);
-
-  // Handle refresh parameter from session creation
   useEffect(() => {
     if (router.query.refresh === "true") {
       loadWeekSessions(currentWeek);
-      // Remove refresh parameter from URL without reload
       router.replace(`/workspace/${router.query.id}/sessions`, undefined, {
         shallow: true,
       });
@@ -619,8 +618,14 @@ const Home: pageWithLayout<pageProps> = (props) => {
             }}
             onEdit={handleEditSession}
             onDelete={handleDeleteSession}
-            onUpdate={() => {
-              loadWeekSessions(currentWeek);
+            onUpdate={async () => {
+              const freshSessions = await loadWeekSessions(currentWeek);
+              if (freshSessions && selectedSession) {
+                const updatedSession = freshSessions.find((s: any) => s.id === selectedSession.id);
+                if (updatedSession) {
+                  setSelectedSession(updatedSession);
+                }
+              }
             }}
             workspaceMembers={workspaceMembers}
             canManage={workspace.yourPermission?.includes("manage_sessions")}

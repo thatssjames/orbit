@@ -11,6 +11,7 @@ import {
   IconDeviceFloppy,
   IconTrash,
   IconAlertCircle,
+  IconUserPlus,
 } from "@tabler/icons-react"
 import { withPermissionCheckSsr } from "@/utils/permissionsManager"
 import { useRouter } from "next/router"
@@ -21,6 +22,26 @@ import type { GetServerSideProps, InferGetServerSidePropsType } from "next"
 import toast, { Toaster } from 'react-hot-toast'
 import ReactMarkdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
+
+const BG_COLORS = [
+  "bg-orange-200",
+  "bg-amber-200", 
+  "bg-lime-200",
+  "bg-purple-200",
+  "bg-violet-200",
+  "bg-fuchsia-200",
+  "bg-rose-200",
+  "bg-green-200",
+];
+
+function getRandomBg(userid: string | number) {
+  const str = String(userid);
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return BG_COLORS[Math.abs(hash) % BG_COLORS.length];
+}
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(async (context) => {
   const { id, sid } = context.query
@@ -273,13 +294,25 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
                 
                 <div className="bg-zinc-50 dark:bg-zinc-700/30 rounded-lg p-4 mb-4">
                   <h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-3">
-                    Host (1 slot)
+                    Host
                   </h4>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-zinc-600 dark:text-zinc-400 w-16">
-                      Host:
+                      Slot 1:
                     </span>
-                    <div className="flex-1 px-3 py-2 text-sm bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-md">
+                    <div className="flex-1 px-3 py-2 text-sm bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-md flex items-center gap-2">
+                      {session.owner?.username ? (
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${getRandomBg(session.owner.userid?.toString() || session.owner.userid || '')}`}>
+                          <img
+                            src={session.owner.picture || "/default-avatar.png"}
+                            alt={session.owner.username}
+                            className="w-6 h-6 rounded-full object-cover border border-white"
+                            onError={(e) => {
+                              e.currentTarget.src = "/default-avatar.png";
+                            }}
+                          />
+                        </div>
+                      ) : null}
                       <span className="text-zinc-700 dark:text-white">
                         {session.owner?.username || 'Unclaimed'}
                       </span>
@@ -296,19 +329,32 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
                       return (
                         <div key={slotIndex} className="bg-zinc-50 dark:bg-zinc-700/30 rounded-lg p-4">
                           <h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-3">
-                            {slotData.name} ({slotData.slots} slot{slotData.slots !== 1 ? 's' : ''})
+                            {slotData.name}
                           </h4>
                           <div className="space-y-2">
                             {Array.from(Array(slotData.slots)).map((_, i) => {
                               const assignedUser = session.users?.find((u: any) => u.roleID === slotData.id && u.slot === i)
                               const username = assignedUser ? availableUsers.find((user: any) => user.userid === assignedUser.userid.toString())?.username : null
+                              const userPicture = assignedUser ? availableUsers.find((user: any) => user.userid === assignedUser.userid.toString())?.picture : null
                               
                               return (
                                 <div key={i} className="flex items-center gap-2">
                                   <span className="text-sm text-zinc-600 dark:text-zinc-400 w-16">
                                     Slot {i + 1}:
                                   </span>
-                                  <div className="flex-1 px-3 py-2 text-sm bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-md">
+                                  <div className="flex-1 px-3 py-2 text-sm bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-md flex items-center gap-2">
+                                    {username ? (
+                                      <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${getRandomBg(assignedUser.userid.toString())}`}>
+                                        <img
+                                          src={userPicture || "/default-avatar.png"}
+                                          alt={username}
+                                          className="w-6 h-6 rounded-full object-cover border border-white"
+                                          onError={(e) => {
+                                            e.currentTarget.src = "/default-avatar.png";
+                                          }}
+                                        />
+                                      </div>
+                                    ) : null}
                                     <span className="text-zinc-700 dark:text-white">
                                       {username || 'Unclaimed'}
                                     </span>

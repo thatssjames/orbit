@@ -19,6 +19,26 @@ import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
 import { useSessionColors } from "@/hooks/useSessionColors";
 
+const BG_COLORS = [
+  "bg-orange-200",
+  "bg-amber-200", 
+  "bg-lime-200",
+  "bg-purple-200",
+  "bg-violet-200",
+  "bg-fuchsia-200",
+  "bg-rose-200",
+  "bg-green-200",
+];
+
+function getRandomBg(userid: string | number) {
+  const str = String(userid);
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return BG_COLORS[Math.abs(hash) % BG_COLORS.length];
+}
+
 interface SessionModalProps {
   session: any;
   isOpen: boolean;
@@ -50,10 +70,9 @@ const SessionModal: React.FC<SessionModalProps> = ({
       Array.isArray(router.query.id) ? router.query.id[0] : router.query.id
     );
 
-  // Centralized refresh function
-  const refreshSessionData = () => {
-    onUpdate?.(); // Refresh session data from parent
-    setRefreshKey(prev => prev + 1); // Trigger refresh of internal components
+  const refreshSessionData = async () => {
+    onUpdate?.();
+    setRefreshKey(prev => prev + 1);
   };
 
   useEffect(() => {
@@ -284,22 +303,26 @@ const SessionModal: React.FC<SessionModalProps> = ({
             <div className="space-y-3">
               <div className="bg-zinc-50 dark:bg-zinc-700/30 rounded-lg p-4">
                 <h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-2">
-                  Host (1 slot)
+                  Host
                 </h4>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-zinc-600 dark:text-zinc-400 w-16">
-                    Host:
+                    Slot 1:
                   </span>
-                  <HostButton
-                    currentValue={session.owner?.username || ""}
-                    onValueChange={handleHostClaim}
-                    isSubmitting={isSubmitting}
-                    canEdit={canManage}
-                    availableUsers={availableUsers}
-                    currentUserId={login.userId}
-                    currentUserPicture={login.thumbnail}
-                    currentUserUsername={login.username}
-                  />
+                  <div className="flex-1">
+                    <HostButton
+                      currentValue={session.owner?.username || ""}
+                      onValueChange={handleHostClaim}
+                      isSubmitting={isSubmitting}
+                      canEdit={canManage}
+                      availableUsers={availableUsers}
+                      currentUserId={login.userId}
+                      currentUserPicture={login.thumbnail}
+                      currentUserUsername={login.username}
+                      assignedUserPicture={session.owner?.picture}
+                      assignedUserId={session.owner?.userid?.toString()}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -317,8 +340,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
                         className="bg-zinc-50 dark:bg-zinc-700/30 rounded-lg p-4"
                       >
                         <h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-2">
-                          {slotData.name} ({slotData.slots} slot
-                          {slotData.slots !== 1 ? "s" : ""})
+                          {slotData.name}
                         </h4>
                         <div className="space-y-2">
                           {Array.from(Array(slotData.slots)).map((_, i) => {
@@ -334,24 +356,34 @@ const SessionModal: React.FC<SessionModalProps> = ({
                                     assignedUser.userid.toString()
                                 )?.username
                               : null;
-
+                            const userPicture = assignedUser
+                              ? availableUsers.find(
+                                  (user: any) =>
+                                    user.userid ===
+                                    assignedUser.userid.toString()
+                                )?.picture
+                              : null;
                             return (
                               <div key={i} className="flex items-center gap-2">
                                 <span className="text-sm text-zinc-600 dark:text-zinc-400 w-16">
                                   Slot {i + 1}:
                                 </span>
-                                <RoleButton
-                                  currentValue={username || ""}
-                                  onValueChange={(value) =>
-                                    handleSlotClaim(slotData.id, i, value)
-                                  }
-                                  isSubmitting={isSubmitting}
-                                  canEdit={canManage}
-                                  availableUsers={availableUsers}
-                                  currentUserId={login.userId}
-                                  currentUserPicture={login.thumbnail}
-                                  currentUserUsername={login.username}
-                                />
+                                <div className="flex-1">
+                                  <RoleButton
+                                    currentValue={username || ""}
+                                    onValueChange={(value) =>
+                                      handleSlotClaim(slotData.id, i, value)
+                                    }
+                                    isSubmitting={isSubmitting}
+                                    canEdit={canManage}
+                                    availableUsers={availableUsers}
+                                    currentUserId={login.userId}
+                                    currentUserPicture={login.thumbnail}
+                                    currentUserUsername={login.username}
+                                    assignedUserPicture={userPicture}
+                                    assignedUserId={assignedUser?.userid?.toString()}
+                                  />
+                                </div>
                               </div>
                             );
                           })}
@@ -391,6 +423,8 @@ const AutocompleteInput: React.FC<{
   currentUserPicture?: string;
   currentUserUsername?: string;
   placeholder?: string;
+  assignedUserPicture?: string;
+  assignedUserId?: string;
 }> = ({
   currentValue,
   onValueChange,
@@ -401,6 +435,8 @@ const AutocompleteInput: React.FC<{
   currentUserPicture,
   currentUserUsername,
   placeholder = "Enter username",
+  assignedUserPicture,
+  assignedUserId,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState(currentValue);
@@ -510,7 +546,19 @@ const AutocompleteInput: React.FC<{
 
   if (!canEdit) {
     return (
-      <div className="px-4 py-2 bg-zinc-100 dark:bg-zinc-700 rounded-lg">
+      <div className="flex items-center gap-2 px-4 py-2 bg-zinc-100 dark:bg-zinc-700 rounded-lg">
+        {currentValue && assignedUserPicture && assignedUserId && (
+          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${getRandomBg(assignedUserId)}`}>
+            <img
+              src={assignedUserPicture || "/default-avatar.png"}
+              alt={currentValue}
+              className="w-6 h-6 rounded-full object-cover"
+              onError={(e) => {
+                e.currentTarget.src = "/default-avatar.png";
+              }}
+            />
+          </div>
+        )}
         <span className="text-zinc-700 dark:text-white">
           {currentValue || "No assignment"}
         </span>
@@ -605,9 +653,23 @@ const AutocompleteInput: React.FC<{
       disabled={isSubmitting}
       className="w-full px-4 py-2 text-left bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-600 transition-colors disabled:opacity-50"
     >
-      <span className="text-zinc-700 dark:text-white">
-        {currentValue || "Unclaimed"}
-      </span>
+      <div className="flex items-center gap-2">
+        {currentValue && assignedUserPicture && assignedUserId && (
+          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${getRandomBg(assignedUserId)}`}>
+            <img
+              src={assignedUserPicture || "/default-avatar.png"}
+              alt={currentValue}
+              className="w-6 h-6 rounded-full object-cover"
+              onError={(e) => {
+                e.currentTarget.src = "/default-avatar.png";
+              }}
+            />
+          </div>
+        )}
+        <span className="text-zinc-700 dark:text-white">
+          {currentValue || "Unclaimed"}
+        </span>
+      </div>
     </button>
   );
 };
@@ -621,6 +683,8 @@ const HostButton: React.FC<{
   currentUserId: number;
   currentUserPicture?: string;
   currentUserUsername?: string;
+  assignedUserPicture?: string;
+  assignedUserId?: string;
 }> = ({
   currentValue,
   onValueChange,
@@ -630,6 +694,8 @@ const HostButton: React.FC<{
   currentUserId,
   currentUserPicture,
   currentUserUsername,
+  assignedUserPicture,
+  assignedUserId,
 }) => {
   return (
     <AutocompleteInput
@@ -642,6 +708,8 @@ const HostButton: React.FC<{
       currentUserPicture={currentUserPicture}
       currentUserUsername={currentUserUsername}
       placeholder="Enter username to assign host"
+      assignedUserPicture={assignedUserPicture}
+      assignedUserId={assignedUserId}
     />
   );
 };
@@ -655,6 +723,8 @@ const RoleButton: React.FC<{
   currentUserId: number;
   currentUserPicture?: string;
   currentUserUsername?: string;
+  assignedUserPicture?: string;
+  assignedUserId?: string;
 }> = ({
   currentValue,
   onValueChange,
@@ -664,6 +734,8 @@ const RoleButton: React.FC<{
   currentUserId,
   currentUserPicture,
   currentUserUsername,
+  assignedUserPicture,
+  assignedUserId,
 }) => {
   return (
     <AutocompleteInput
@@ -676,6 +748,8 @@ const RoleButton: React.FC<{
       currentUserPicture={currentUserPicture}
       currentUserUsername={currentUserUsername}
       placeholder="Enter username to assign role"
+      assignedUserPicture={assignedUserPicture}
+      assignedUserId={assignedUserId}
     />
   );
 };
@@ -720,7 +794,7 @@ const NotesSection: React.FC<{
       );
       setNewNote("");
       fetchNotes();
-      onDataChange?.(); // Trigger parent refresh
+      onDataChange?.();
       toast.success("Note added successfully");
     } catch (error: any) {
       console.error("Failed to add note:", error);
