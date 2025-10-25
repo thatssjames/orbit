@@ -27,7 +27,7 @@ export async function handler(
 
 	// Basic validation
 	if (!authorization) return res.status(400).json({ success: false, error: 'Authorization key missing' });
-	if (isNaN(Number(req.body?.userid))) return res.status(400).json({ success: false, error: 'Invalid or missing userid', body: req.body });
+	if (isNaN(Number(req.body?.userid))) return res.status(400).json({ success: false, error: 'Invalid or missing userid' });
 	if (!type || typeof type !== 'string') return res.status(400).json({ success: false, error: 'Missing query type (create or end)' });
 
 	try {
