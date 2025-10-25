@@ -31,14 +31,10 @@ export async function handler(
 	if (!type || typeof type !== 'string') return res.status(400).json({ success: false, error: 'Missing query type (create or end)' });
 
 	try {
-		// Step 1: Get config by auth key
 		const config = await prisma.config.findFirst({
-			where: {
-				value: {
-					path: ['key'],
-					equals: authorization
-				}
-			}
+		  where: {
+		    key: authorization
+		  }
 		});
 
 		if (!config) {
