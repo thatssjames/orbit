@@ -21,6 +21,8 @@ import {
   IconSun,
   IconMoon,
   IconX,
+  IconCalendarTime,
+  IconTrophy,
 } from "@tabler/icons-react"
 import axios from "axios"
 import clsx from "clsx"
@@ -65,7 +67,19 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       name: "Activity",
       href: "/workspace/[id]/activity",
       icon: IconClipboardList,
+      accessible: true,
+    },
+    {
+      name: "Leaderboard",
+      href: "/workspace/[id]/leaderboard",
+      icon: IconTrophy,
       accessible: workspace.yourPermission.includes("view_entire_groups_activity"),
+    },
+    {
+      name: "Notices",
+      href: "/workspace/[id]/notices",
+      icon: IconCalendarTime,
+      accessible: true,
     },
     ...(alliesEnabled ? [{
       name: "Allies",
@@ -352,19 +366,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                   )}
                 </Menu.Button>
                 <Menu.Items className="absolute bottom-14 left-0 w-full bg-white dark:bg-zinc-700 rounded-lg shadow-lg z-50 py-2">
-                  <Menu.Item>
-                    {({ active }) => (
-                      <button
-                        onClick={() => router.push(`/workspace/${workspace.groupId}/profile/${login.userId}`)}
-                        className={clsx(
-                          "w-full text-left px-4 py-2 text-sm dark:text-white",
-                          active ? "bg-zinc-100 dark:bg-zinc-600 dark:text-white" : "",
-                        )}
-                      >
-                        View Profile
-                      </button>
-                    )}
-                  </Menu.Item>
                   <Menu.Item>
                     {({ active }) => (
                       <button

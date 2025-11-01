@@ -111,7 +111,7 @@ const Wall: pageWithLayout<pageProps> = (props) => {
       setPostToDelete(null);
     }
   };
-  
+
   function sendPost() {
     setLoading(true);
     axios
@@ -189,14 +189,14 @@ const Wall: pageWithLayout<pageProps> = (props) => {
   };
 
   const BG_COLORS = [
-    "bg-orange-200",
-    "bg-amber-200",
-    "bg-lime-200",
-    "bg-purple-200",
-    "bg-violet-200",
-    "bg-fuchsia-200",
-    "bg-rose-200",
+    "bg-red-200",
     "bg-green-200",
+    "bg-blue-200",
+    "bg-yellow-200",
+    "bg-pink-200",
+    "bg-indigo-200",
+    "bg-teal-200",
+    "bg-orange-200",
   ];
 
   function getRandomBg(userid: string | number) {
@@ -225,7 +225,11 @@ const Wall: pageWithLayout<pageProps> = (props) => {
 
       <div className="bg-white dark:bg-zinc-800 border-zinc-100 dark:border-zinc-70 rounded-xl shadow-sm p-4 mb-8">
         <div className="flex items-start gap-4">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(login.userId)}`}>
+          <div
+            className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(
+              login.userId
+            )}`}
+          >
             <img
               src={login.thumbnail}
               alt="Your avatar"
@@ -334,7 +338,11 @@ const Wall: pageWithLayout<pageProps> = (props) => {
               className="bg-white dark:bg-zinc-800 border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow"
             >
               <div className="flex items-start gap-4">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${getRandomBg(post.authorId)}`}>
+                <div
+                  className={`w-12 h-12 rounded-full flex items-center justify-center ${getRandomBg(
+                    post.authorId
+                  )}`}
+                >
                   <img
                     alt="avatar headshot"
                     src={post.author.picture}
@@ -354,14 +362,24 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                         )}
                       </p>
                     </div>
-					{(post.authorId === login.userId || workspace.yourPermission.includes("manage_wall") || login.canMakeWorkspace) && (
-                      <button onClick={() => { setPostToDelete(post.id); setShowDeleteModal(true); }} className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                    {(post.authorId === login.userId ||
+                      workspace.yourPermission.includes("manage_wall") ||
+                      login.canMakeWorkspace) && (
+                      <button
+                        onClick={() => {
+                          setPostToDelete(post.id);
+                          setShowDeleteModal(true);
+                        }}
+                        className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                      >
                         <IconTrash size={18} />
                       </button>
                     )}
                   </div>
                   <div className="prose text-zinc-800 dark:text-zinc-200 dark:prose-invert max-w-none mt-3">
-                    <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{post.content}</ReactMarkdown>
+                    <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
+                      {post.content}
+                    </ReactMarkdown>
                   </div>
                   {post.image && (
                     <div className="mt-4">
@@ -389,11 +407,22 @@ const Wall: pageWithLayout<pageProps> = (props) => {
               Confirm Deletion
             </h2>
             <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-6">
-              Are you sure you want to delete this post? This action cannot be undone.
+              Are you sure you want to delete this post? This action cannot be
+              undone.
             </p>
             <div className="flex justify-center gap-4">
-              <button onClick={() => setShowDeleteModal(false)} className="px-4 py-2 rounded-md bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white">Cancel</button>
-              <button onClick={confirmDelete} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">Delete</button>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 rounded-md bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>

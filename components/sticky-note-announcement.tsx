@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { IconX, IconPin } from "@tabler/icons-react"
-const ANNOUNCEMENT_KEY = "announcementDismissed_v2_1_0b2";
+const ANNOUNCEMENT_KEY = "announcementDismissed_v2_1_2b1";
 
 export default function StickyNoteAnnouncement() {
   const [isVisible, setIsVisible] = useState(false)
@@ -33,29 +33,25 @@ export default function StickyNoteAnnouncement() {
     <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0"></p>
     <div className="text-zinc-800 dark:text-zinc-300 text-sm space-y-2">
       <p>
-        👋 <strong>Orbit v2.1.1beta1 is live!</strong> — Sessions ⏱️
+        👋 <strong>Orbit v2.1.2 is live!</strong> — Activity & Users 🎖️
         <br />
         Here’s what’s new since the last announcement:
       </p>
 
       <p className="mt-4 font-semibold">Introduction</p>
       <p>
-        Our new system is LIVE. You can now create sessions (shifts, trainings, events, and more) that your team can view and book right from Orbit. 
-		Sessions can be made up to a year in advance, and can be one-time or recurring.
-		Like before, you can still create as many session roles as required for your team.
+        We've revamped our Activity & Users system to give you deeper insights into your team's engagement and contributions within Orbit.
+		The features you know and love have been reimagined and designed to provide a more intuitive and powerful experience.
       </p>
 
       <p className="mt-4 font-semibold">Features</p>
       <ul className="list-disc list-inside space-y-1">
-        <li>Calendar Overview</li>
-        <li>Session Names, Types, Descriptions</li>
-        <li>Scheduled and unscheduled sessions</li>
-        <li>Manage individual or recurring</li>
-        <li>Statuses and Roles</li>
-        <li>Session Notes</li>
-        <li>Activity Log</li>
-        <li>New API Endpoints</li>
-        <li>Session Tag Color Picker</li>
+        <li>Activity Reset</li>
+        <li>Activity History</li>
+        <li>Session Statistics</li>
+        <li>Activity Leaderboard</li>
+        <li>Separated Notices page</li>
+        <li>External Intergration (Ranking)</li>
       </ul>
 
       <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">

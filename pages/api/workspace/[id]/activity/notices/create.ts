@@ -26,7 +26,7 @@ export async function handler(
 	try {
 		const session = await prisma.inactivityNotice.create({
 			data: {
-				userId: req.session.userid,
+				userId: BigInt(req.session.userid),
 				startTime: new Date(req.body.startTime),
 				endTime: new Date(req.body.endTime),
 				reason: req.body.reason,

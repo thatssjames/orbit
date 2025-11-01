@@ -2,13 +2,14 @@
 
 import type { pageWithLayout } from "@/layoutTypes"
 import { loginState } from "@/state"
-import { IconChevronRight, IconHome, IconLock, IconFlag, IconKey } from "@tabler/icons-react"
+import { IconChevronRight, IconHome, IconLock, IconFlag, IconKey, IconServer } from "@tabler/icons-react"
 import Permissions from "@/components/settings/permissions"
 import Workspace from "@/layouts/workspace"
 import { useRecoilState } from "recoil"
 import type { GetServerSideProps } from "next"
 import * as All from "@/components/settings/general"
 import * as Api from "@/components/settings/api"
+import * as Instance from "@/components/settings/instance"
 import toast, { Toaster } from "react-hot-toast"
 import * as noblox from "noblox.js"
 import { withPermissionCheckSsr } from "@/utils/permissionsManager"
@@ -126,6 +127,16 @@ const SECTIONS = {
     icon: IconLock,
     description: "Manage roles and user permissions",
     components: [],
+  },
+  instance: {
+    name: "Services",
+    icon: IconServer,
+    description: "Configure external services and integrations",
+    components: Object.entries(Instance).map(([key, Component]) => ({
+      key,
+      component: Component,
+      title: Component.title,
+    })),
   },
 }
 

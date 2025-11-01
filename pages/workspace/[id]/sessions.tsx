@@ -10,6 +10,7 @@ import {
   IconTrash,
   IconArrowLeft,
   IconEdit,
+  IconUsers,
 } from "@tabler/icons-react";
 import prisma, { Session, user, SessionType } from "@/utils/database";
 import { useRecoilState } from "recoil";
@@ -23,73 +24,167 @@ import { withPermissionCheckSsr } from "@/utils/permissionsManager";
 import toast, { Toaster } from "react-hot-toast";
 import SessionTemplate from "@/components/sessionpreview";
 
-export const getServerSideProps = withPermissionCheckSsr(async ({ query }) => {
-  const activeSessions = await prisma.session.findMany({
-    where: {
-      startedAt: {
-        lte: new Date(),
-      },
-      ended: null,
-      sessionType: {
-        workspaceGroupId: parseInt(query.id as string),
-      },
-    },
-    include: {
-      owner: true,
-      sessionType: true,
-    },
-  });
-
-  const currentDate = new Date();
-  const monday = new Date(currentDate);
-  const day = monday.getDay();
-  const diff = monday.getDate() - day + (day === 0 ? -6 : 1);
-  monday.setDate(diff);
-  monday.setHours(0, 0, 0, 0);
-
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  sunday.setHours(23, 59, 59, 999);
-
-  const allSessions = await prisma.session.findMany({
-    where: {
-      sessionType: {
-        workspaceGroupId: parseInt(query.id as string),
-      },
-      date: {
-        gte: monday,
-        lte: sunday,
-      },
-    },
-    include: {
-      owner: true,
-      sessionType: true,
-      users: {
-        include: {
-          user: true,
+export const getServerSideProps = withPermissionCheckSsr(
+  async ({ query, req }) => {
+    const activeSessions = await prisma.session.findMany({
+      where: {
+        startedAt: {
+          lte: new Date(),
+        },
+        ended: null,
+        sessionType: {
+          workspaceGroupId: parseInt(query.id as string),
         },
       },
-    },
-    orderBy: {
-      date: "asc",
-    },
-  });
+      include: {
+        owner: true,
+        sessionType: true,
+      },
+    });
 
-  return {
-    props: {
-      sessions: JSON.parse(
-        JSON.stringify(activeSessions, (key, value) =>
-          typeof value === "bigint" ? value.toString() : value
-        )
-      ) as typeof activeSessions,
-      allSessions: JSON.parse(
-        JSON.stringify(allSessions, (key, value) =>
-          typeof value === "bigint" ? value.toString() : value
-        )
-      ) as typeof allSessions,
-    },
-  };
-});
+    const currentDate = new Date();
+    const monday = new Date(currentDate);
+    const day = monday.getDay();
+    const diff = monday.getDate() - day + (day === 0 ? -6 : 1);
+    monday.setDate(diff);
+    monday.setHours(0, 0, 0, 0);
+
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+
+    const allSessions = await prisma.session.findMany({
+      where: {
+        sessionType: {
+          workspaceGroupId: parseInt(query.id as string),
+        },
+        date: {
+          gte: monday,
+          lte: sunday,
+        },
+      },
+      include: {
+        owner: true,
+        sessionType: true,
+        users: {
+          include: {
+            user: true,
+          },
+        },
+      },
+      orderBy: {
+        date: "asc",
+      },
+    });
+
+    let userSessionMetrics = null;
+    if (req.session?.userid) {
+      const userId = BigInt(req.session.userid);
+      const lastReset = await prisma.activityReset.findFirst({
+        where: {
+          workspaceGroupId: parseInt(query.id as string),
+        },
+        orderBy: {
+          resetAt: "desc",
+        },
+      });
+
+      const startDate = lastReset?.resetAt || new Date("2025-01-01");
+      const ownedSessions = await prisma.session.findMany({
+        where: {
+          ownerId: userId,
+          sessionType: {
+            workspaceGroupId: parseInt(query.id as string),
+          },
+          date: {
+            gte: startDate,
+            lte: currentDate,
+          },
+        },
+      });
+
+      const allSessionParticipations = await prisma.sessionUser.findMany({
+        where: {
+          userid: userId,
+          session: {
+            sessionType: {
+              workspaceGroupId: parseInt(query.id as string),
+            },
+            date: {
+              gte: startDate,
+              lte: currentDate,
+            },
+          },
+        },
+        include: {
+          session: {
+            select: {
+              id: true,
+              sessionType: {
+                select: {
+                  slots: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const roleBasedHostedSessions = allSessionParticipations.filter(
+        (participation) => {
+          const slots = participation.session.sessionType.slots as any[];
+          const slotIndex = participation.slot;
+          const slotName = slots[slotIndex]?.name || "";
+          return (
+            participation.roleID.toLowerCase().includes("host") ||
+            participation.roleID.toLowerCase().includes("co-host") ||
+            slotName.toLowerCase().includes("host") ||
+            slotName.toLowerCase().includes("co-host")
+          );
+        }
+      ).length;
+
+      const sessionsHosted = ownedSessions.length + roleBasedHostedSessions;
+      const ownedSessionIds = new Set(ownedSessions.map((s) => s.id));
+      const sessionsAttended = allSessionParticipations.filter(
+        (participation) => {
+          const slots = participation.session.sessionType.slots as any[];
+          const slotIndex = participation.slot;
+          const slotName = slots[slotIndex]?.name || "";
+          const isHosting =
+            participation.roleID.toLowerCase().includes("host") ||
+            participation.roleID.toLowerCase().includes("co-host") ||
+            slotName.toLowerCase().includes("host") ||
+            slotName.toLowerCase().includes("co-host");
+
+          return !isHosting && !ownedSessionIds.has(participation.sessionid);
+        }
+      ).length;
+
+      userSessionMetrics = {
+        sessionsHosted,
+        sessionsAttended,
+      };
+    }
+
+    return {
+      props: {
+        sessions: JSON.parse(
+          JSON.stringify(activeSessions, (key, value) =>
+            typeof value === "bigint" ? value.toString() : value
+          )
+        ) as typeof activeSessions,
+        allSessions: JSON.parse(
+          JSON.stringify(allSessions, (key, value) =>
+            typeof value === "bigint" ? value.toString() : value
+          )
+        ) as typeof allSessions,
+        userSessionMetrics,
+      },
+    };
+  }
+);
 
 const getMonday = (date: Date): Date => {
   const d = new Date(date);
@@ -274,6 +369,10 @@ type pageProps = {
       slot: number;
     })[];
   })[];
+  userSessionMetrics: {
+    sessionsHosted: number;
+    sessionsAttended: number;
+  } | null;
 };
 
 const Home: pageWithLayout<pageProps> = (props) => {
@@ -289,6 +388,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [workspaceMembers, setWorkspaceMembers] = useState<any[]>([]);
   const router = useRouter();
+  const { userSessionMetrics } = props;
 
   const handleEditSession = (sessionId: string) => {
     router.push(`/workspace/${router.query.id}/sessions/edit/${sessionId}`);
@@ -530,82 +630,87 @@ const Home: pageWithLayout<pageProps> = (props) => {
         </div>
 
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-primary/10 p-2 rounded-lg">
-              <IconCalendarEvent className="w-5 h-5 text-primary" />
+          <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
+            <div className="flex items-center gap-3 p-4 border-b dark:border-zinc-700">
+              <div className="bg-primary/10 p-2 rounded-lg">
+                <IconCalendarEvent className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-lg font-medium text-zinc-900 dark:text-white">
+                  Weekly Schedule
+                </h2>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  View scheduled sessions for the week
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-lg font-medium text-zinc-900 dark:text-white">
-                Weekly Schedule
-              </h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                View scheduled sessions for the week
-              </p>
-            </div>
-          </div>
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      const previousWeek = new Date(currentWeek);
+                      previousWeek.setDate(currentWeek.getDate() - 7);
+                      setCurrentWeek(previousWeek);
+                    }}
+                    className="p-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
+                  >
+                    <IconChevronLeft className="w-4 h-4" />
+                  </button>
+                  <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 min-w-[120px] text-center">
+                    {(() => {
+                      const monday = getMonday(currentWeek);
+                      const sunday = new Date(monday);
+                      sunday.setDate(monday.getDate() + 6);
+                      return `${monday.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })} - ${sunday.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}`;
+                    })()}
+                  </span>
+                  <button
+                    onClick={() => {
+                      const nextWeek = new Date(currentWeek);
+                      nextWeek.setDate(currentWeek.getDate() + 7);
+                      setCurrentWeek(nextWeek);
+                    }}
+                    className="p-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
+                  >
+                    <IconChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+                {workspace.yourPermission?.includes("manage_sessions") && (
+                  <button
+                    onClick={() =>
+                      router.push(`/workspace/${router.query.id}/sessions/new`)
+                    }
+                    className="inline-flex items-center px-4 py-2 shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
+                  >
+                    <IconPlus className="w-4 h-4 mr-2" />
+                    New Session
+                  </button>
+                )}
+              </div>
 
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  const previousWeek = new Date(currentWeek);
-                  previousWeek.setDate(currentWeek.getDate() - 7);
-                  setCurrentWeek(previousWeek);
-                }}
-                className="p-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
-              >
-                <IconChevronLeft className="w-4 h-4" />
-              </button>
-              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 min-w-[120px] text-center">
-                {(() => {
-                  const monday = getMonday(currentWeek);
-                  const sunday = new Date(monday);
-                  sunday.setDate(monday.getDate() + 6);
-                  return `${monday.toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                  })} - ${sunday.toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                  })}`;
-                })()}
-              </span>
-              <button
-                onClick={() => {
-                  const nextWeek = new Date(currentWeek);
-                  nextWeek.setDate(currentWeek.getDate() + 7);
-                  setCurrentWeek(nextWeek);
-                }}
-                className="p-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
-              >
-                <IconChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-            {workspace.yourPermission?.includes("manage_sessions") && (
-              <button
-                onClick={() =>
-                  router.push(`/workspace/${router.query.id}/sessions/new`)
+              <WeeklyCalendar
+                currentWeek={currentWeek}
+                sessions={allSessions}
+                canManage={workspace.yourPermission?.includes(
+                  "manage_sessions"
+                )}
+                onEditSession={handleEditSession}
+                onSessionClick={handleSessionClick}
+                workspaceId={
+                  Array.isArray(router.query.id)
+                    ? router.query.id[0]
+                    : router.query.id
                 }
-                className="inline-flex items-center px-4 py-2 shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
-              >
-                <IconPlus className="w-4 h-4 mr-2" />
-                New Session
-              </button>
-            )}
+              />
+            </div>
           </div>
-
-          <WeeklyCalendar
-            currentWeek={currentWeek}
-            sessions={allSessions}
-            canManage={workspace.yourPermission?.includes("manage_sessions")}
-            onEditSession={handleEditSession}
-            onSessionClick={handleSessionClick}
-            workspaceId={
-              Array.isArray(router.query.id)
-                ? router.query.id[0]
-                : router.query.id
-            }
-          />
         </div>
 
         {selectedSession && (
@@ -621,7 +726,9 @@ const Home: pageWithLayout<pageProps> = (props) => {
             onUpdate={async () => {
               const freshSessions = await loadWeekSessions(currentWeek);
               if (freshSessions && selectedSession) {
-                const updatedSession = freshSessions.find((s: any) => s.id === selectedSession.id);
+                const updatedSession = freshSessions.find(
+                  (s: any) => s.id === selectedSession.id
+                );
                 if (updatedSession) {
                   setSelectedSession(updatedSession);
                 }

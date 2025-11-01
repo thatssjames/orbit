@@ -139,7 +139,7 @@ const Quotas: pageWithLayout<pageProps> = (props) => {
 					</div>
 				</div>
 
-				<div className="bg-white dark:bg-zinc-700 rounded-xl shadow-sm overflow-hidden mb-6">
+				<div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden mb-6">
 					<div className="p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div className="flex items-center gap-3">

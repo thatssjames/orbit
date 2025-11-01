@@ -1,309 +1,533 @@
 import workspace from "@/layouts/workspace";
 import { pageWithLayout } from "@/layoutTypes";
-import { loginState } from "@/state";
+import { loginState, workspacestate } from "@/state";
 import axios from "axios";
 import { useRouter } from "next/router";
-import { useState, Fragment, useMemo } from "react";
+import { useState, useMemo } from "react";
 import randomText from "@/utils/randomText";
 import { useRecoilState } from "recoil";
-import toast, { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from "react-hot-toast";
 import { InferGetServerSidePropsType } from "next";
-import { withSessionSsr } from "@/lib/withSession";
-import moment from "moment";
-import { Dialog, Transition } from "@headlessui/react";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
-import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
-import Input from "@/components/input";
-import prisma, { inactivityNotice } from "@/utils/database";
-import { IconCalendarTime, IconPlus, IconCheck, IconX, IconClock, IconClipboardList, IconArrowLeft } from "@tabler/icons-react";
+import prisma, { inactivityNotice, user } from "@/utils/database";
+import moment from "moment";
+import {
+  IconCalendarTime,
+  IconCheck,
+  IconX,
+  IconPlus,
+  IconUsers,
+  IconUserCircle,
+} from "@tabler/icons-react";
 
-type Form = {
-	startTime: string;
-	endTime: string;
-	reason: string;
+const BG_COLORS = [
+  "bg-red-200",
+  "bg-green-200",
+  "bg-blue-200",
+  "bg-yellow-200",
+  "bg-pink-200",
+  "bg-indigo-200",
+  "bg-teal-200",
+  "bg-orange-200",
+];
+
+function getRandomBg(userid: string) {
+  let hash = 0;
+  for (let i = 0; i < userid.length; i++) {
+    hash = userid.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return BG_COLORS[Math.abs(hash) % BG_COLORS.length];
 }
+
+type NoticeWithUser = inactivityNotice & {
+  user: user;
+  reviewComment?: string | null;
+};
 
 export const getServerSideProps = withPermissionCheckSsr(
-	async ({ req, res, params }) => {
-		const notices: inactivityNotice[] = await prisma.inactivityNotice.findMany({
-			where: {
-				userId: req.session.userid,
-				workspaceGroupId: parseInt(params?.id as string),
-			},
-			orderBy: [
-				{
-					startTime: "desc"
-				}
-			]
-		});
+  async ({ params, req }) => {
+    const userId = req.session?.userid;
+    if (!userId) {
+      return {
+        props: {
+          userNotices: [],
+          allNotices: [],
+        },
+      };
+    }
 
-		return {
-			props: {
-				notices: (JSON.parse(JSON.stringify(notices, (key, value) => (typeof value === 'bigint' ? value.toString() : value))) as typeof notices)
-			}
-		}
-	}
-)
+    const workspaceId = parseInt(params?.id as string);
+    const userNotices = await prisma.inactivityNotice.findMany({
+      where: {
+        workspaceGroupId: workspaceId,
+        userId: BigInt(userId),
+      },
+      orderBy: {
+        startTime: "desc",
+      },
+      include: {
+        user: true,
+      },
+    });
 
-type pageProps = InferGetServerSidePropsType<typeof getServerSideProps>
+    let allNotices: any[] = [];
+    const user = await prisma.user.findFirst({
+      where: {
+        userid: BigInt(userId),
+      },
+      include: {
+        roles: {
+          where: {
+            workspaceGroupId: workspaceId,
+          },
+          orderBy: {
+            isOwnerRole: "desc",
+          },
+        },
+      },
+    });
 
-const Notices: pageWithLayout<pageProps> = (props) => {
-	const router = useRouter();
-	const { id } = router.query;
-	const [notices, setNotices] = useState<inactivityNotice[]>(props.notices as inactivityNotice[]);
-	const [login, setLogin] = useRecoilState(loginState);
-	const text = useMemo(() => randomText(login.displayname), []);
-	
-	const form = useForm<Form>();
-	const { register, handleSubmit, setError } = form;
+    const hasManagePermission = user?.roles.some(
+      (role) => role.isOwnerRole || role.permissions.includes("manage_activity")
+    );
+    if (hasManagePermission) {
+      allNotices = await prisma.inactivityNotice.findMany({
+        where: {
+          workspaceGroupId: workspaceId,
+        },
+        orderBy: {
+          startTime: "desc",
+        },
+        include: {
+          user: true,
+        },
+      });
+    }
 
-	const onSubmit: SubmitHandler<Form> = async ({ startTime, endTime, reason }) => {
-		const start = new Date();
-		const end = new Date();
-		start.setDate(parseInt(startTime.split("-")[2]));
-		start.setMonth(parseInt(startTime.split("-")[1]) - 1);
-		start.setFullYear(parseInt(startTime.split("-")[0]));
-		end.setDate(parseInt(endTime.split("-")[2]));
-		end.setMonth(parseInt(endTime.split("-")[1]) - 1);
-		end.setFullYear(parseInt(endTime.split("-")[0]));
+    return {
+      props: {
+        userNotices: JSON.parse(
+          JSON.stringify(userNotices, (key, value) =>
+            typeof value === "bigint" ? value.toString() : value
+          )
+        ) as NoticeWithUser[],
+        allNotices: JSON.parse(
+          JSON.stringify(allNotices, (key, value) =>
+            typeof value === "bigint" ? value.toString() : value
+          )
+        ) as NoticeWithUser[],
+        canManageNotices: hasManagePermission,
+      },
+    };
+  }
+);
 
-		const axiosPromise = axios.post(
-			`/api/workspace/${id}/activity/notices/create`,
-			{ startTime: start.getTime(), endTime: end.getTime(), reason }
-		).then(req => {
-			setNotices([...notices, req.data.notice])
-		});
-		toast.promise(
-			axiosPromise,
-			{
-				loading: "Creating your inactivity notice...",
-				success: () => {
-					setIsOpen(false);
-					return "Inactivity notice submitted!";
-				},
-				error: "Inactivity notice was not created due to an unknown error."
-			}
-		);
-	}
+type pageProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 
-	const [isOpen, setIsOpen] = useState(false);
-
-	const getStatusIcon = (status: string) => {
-		switch (status) {
-			case "approved":
-				return <IconCheck className="w-5 h-5 text-green-500" />;
-			case "declined":
-				return <IconX className="w-5 h-5 text-red-500" />;
-			default:
-				return <IconClock className="w-5 h-5 text-yellow-500" />;
-		}
-	};
-
-	const getStatusText = (status: string) => {
-		switch (status) {
-			case "approved":
-				return "Approved";
-			case "declined":
-				return "Declined";
-			default:
-				return "Under Review";
-		}
-	};
-
-	return <>
-		<Toaster position="bottom-center" />
-
-		<div className="pagePadding">
-			<div className="max-w-7xl mx-auto">
-				<div className="flex items-center gap-3 mb-6">
-					<button onClick={() => router.back()} className="p-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-white rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
-						<IconArrowLeft className="w-5 h-5" />
-					</button>
-					<div>
-						<h1 className="text-2xl font-medium text-zinc-900 dark:text-white">Notices</h1>
-					</div>
-				</div>
-
-				<div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden mb-6">
-					<div className="p-6">
-						<div className="flex items-center justify-between mb-6">
-							<div className="flex items-center gap-3">
-								<div className="bg-primary/10 p-2 rounded-lg">
-									<IconCalendarTime className="w-5 h-5 text-primary" />
-								</div>
-								<div>
-									<h2 className="text-lg font-medium text-zinc-900 dark:text-white">Inactivity Notices</h2>
-									<p className="text-sm text-zinc-500 dark:text-zinc-400">Manage your inactivity periods</p>
-								</div>
-							</div>
-							<button
-								onClick={() => setIsOpen(true)}
-								className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-							>
-								<IconPlus className="w-4 h-4" />
-								<span className="text-sm font-medium">New Notice</span>
-							</button>
-						</div>
-
-						{notices.length === 0 ? (
-							<div className="text-center py-12">
-								<div className="bg-zinc-50 dark:bg-zinc-700 rounded-xl p-8 max-w-md mx-auto">
-									<div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-										<IconClipboardList className="w-8 h-8 text-primary" />
-									</div>
-									<h3 className="text-lg font-medium text-zinc-900 mb-1 dark:text-white">No Notices</h3>
-									<p className="text-sm text-zinc-500 mb-4">You haven't submitted any inactivity notices yet</p>
-									<button
-										onClick={() => setIsOpen(true)}
-										className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-									>
-										<IconPlus className="w-4 h-4" />
-										<span className="text-sm font-medium">Create Notice</span>
-									</button>
-								</div>
-							</div>
-						) : (
-							<div className="space-y-4">
-								{notices.map((notice: any) => (
-									<div key={notice.id} className="flex gap-4 p-4 bg-zinc-50 dark:bg-zinc-700 rounded-lg">
-										<div className="flex-shrink-0">
-											{getStatusIcon(notice.approved ? "approved" : notice.reviewed ? "declined" : "pending")}
-										</div>
-										<div className="flex-grow">
-											<div className="flex items-center justify-between mb-1">
-												<div className="flex items-center gap-2">
-													<span className={`text-sm font-medium ${
-														notice.approved ? "text-green-600" : 
-														notice.reviewed ? "text-red-600" : 
-														"text-yellow-600"
-													}`}>
-														{getStatusText(notice.approved ? "approved" : notice.reviewed ? "declined" : "pending")}
-													</span>
-													<span className="text-xs text-zinc-500">
-														{moment(new Date(notice.startTime)).format("MMM Do")} - {moment(new Date(notice.endTime)).format("MMM Do YYYY")}
-													</span>
-												</div>
-											</div>
-											<p className="text-sm text-zinc-600 dark:text-zinc-300">{notice.reason}</p>
-										</div>
-									</div>
-								))}
-							</div>
-						)}
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<Transition appear show={isOpen} as={Fragment}>
-			<Dialog as="div" className="relative z-10" onClose={() => setIsOpen(false)}>
-				<Transition.Child
-					as={Fragment}
-					enter="ease-out duration-300"
-					enterFrom="opacity-0"
-					enterTo="opacity-100"
-					leave="ease-in duration-200"
-					leaveFrom="opacity-100"
-					leaveTo="opacity-0"
-				>
-					<div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
-				</Transition.Child>
-
-				<div className="fixed inset-0 overflow-y-auto">
-					<div className="flex min-h-full items-center justify-center p-4 text-center">
-						<Transition.Child
-							as={Fragment}
-							enter="ease-out duration-300"
-							enterFrom="opacity-0 scale-95"
-							enterTo="opacity-100 scale-100"
-							leave="ease-in duration-200"
-							leaveFrom="opacity-100 scale-100"
-							leaveTo="opacity-0 scale-95"
-						>
-							<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-zinc-800 p-6 text-left align-middle shadow-xl transition-all">
-								<Dialog.Title as="h3" className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
-									Create Inactivity Notice
-								</Dialog.Title>
-
-								<div className="mt-2">
-									<FormProvider {...form}>
-										<form onSubmit={handleSubmit(onSubmit)}>
-											<div className="grid gap-3 grid-cols-2">
-												<Input 
-													label="Start Date" 
-													type="date" 
-													id="startTime" 
-													{...register("startTime", { 
-														required: { value: true, message: "This field is required" }, 
-														validate: {
-															future: (value) => {
-																const date = new Date();
-																date.setMilliseconds(0);
-																date.setSeconds(0);
-																date.setMinutes(0);
-																date.setHours(0);
-																date.setDate(parseInt(value.split("-")[2]));
-																date.setMonth(parseInt(value.split("-")[1]) - 1);
-																date.setFullYear(parseInt(value.split("-")[0]));
-
-																if (date.getTime() < new Date().getTime()) return "Please select a date in the future";
-															}
-														} 
-													})} 
-												/>
-												<Input 
-													label="End Date" 
-													type="date" 
-													id="endTime" 
-													{...register("endTime", { 
-														required: { value: true, message: "This field is required" }, 
-														validate: {
-															afterStart: (value) => {
-																if (new Date(value).getTime() < new Date(form.getValues().startTime).getTime()) return "Please select a date after the start date";
-															}
-														}
-													})} 
-												/>
-											</div>
-											<Input 
-												label="Reason" 
-												type="text" 
-												id="reason" 
-												placeholder="Enter your reason for inactivity..."
-												{...register("reason", { 
-													required: { value: true, message: "This field is required" } 
-												})} 
-											/>
-											<input type="submit" className="hidden" />
-										</form>
-									</FormProvider>
-								</div>
-
-								<div className="mt-6 flex gap-3">
-									<button
-										type="button"
-										className="flex-1 justify-center rounded-lg bg-zinc-100 dark:bg-zinc-700 dark:hover:bg-zinc-600 px-4 py-2 text-sm font-medium text-zinc-900 dark:text-white hover:bg-zinc-200 transition-colors"
-										onClick={() => setIsOpen(false)}
-									>
-										Cancel
-									</button>
-									<button
-										type="button"
-										className="flex-1 justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
-										onClick={handleSubmit(onSubmit)}
-									>
-										Submit
-									</button>
-								</div>
-							</Dialog.Panel>
-						</Transition.Child>
-					</div>
-				</div>
-			</Dialog>
-		</Transition>
-	</>;
+interface NoticesPageProps {
+  userNotices: NoticeWithUser[];
+  allNotices: NoticeWithUser[];
+  canManageNotices: boolean;
 }
 
-Notices.layout = workspace
+const Notices: pageWithLayout<NoticesPageProps> = ({
+  userNotices: initialUserNotices,
+  allNotices: initialAllNotices,
+  canManageNotices: canManageNoticesProp,
+}) => {
+  const router = useRouter();
+  const { id } = router.query;
+  const [login] = useRecoilState(loginState);
+  const [workspace] = useRecoilState(workspacestate);
+  const [userNotices, setUserNotices] = useState<NoticeWithUser[]>(
+    initialUserNotices as NoticeWithUser[]
+  );
+  const [allNotices, setAllNotices] = useState<NoticeWithUser[]>(
+    initialAllNotices as NoticeWithUser[]
+  );
+  const [activeTab, setActiveTab] = useState<"my-notices" | "manage-notices">(
+    "my-notices"
+  );
 
-export default Notices
+  const text = useMemo(() => randomText(login.displayname), []);
+  const canManageNotices: boolean = canManageNoticesProp || false;
+  const [reason, setReason] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+
+  const createNotice = async () => {
+    if (!reason.trim() || !startTime || !endTime) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    if (new Date(startTime) >= new Date(endTime)) {
+      toast.error("End time must be after start time");
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      const start = new Date(startTime);
+      const end = new Date(endTime);
+
+      const res = await axios.post(
+        `/api/workspace/${id}/activity/notices/create`,
+        {
+          startTime: start.getTime(),
+          endTime: end.getTime(),
+          reason: reason.trim(),
+        }
+      );
+
+      if (res.data.success) {
+        toast.success("Notice submitted for review!");
+        setReason("");
+        setStartTime("");
+        setEndTime("");
+
+        const updatedUserNotices = await axios.get(
+          `/api/workspace/${id}/activity/notices/${login.userId}`
+        );
+        setUserNotices(updatedUserNotices.data.notices || []);
+
+        if (canManageNotices) {
+          window.location.reload();
+        }
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to create notice");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const updateNotice = async (
+    noticeId: string,
+    status: "approve" | "deny" | "cancel"
+  ) => {
+    if (!id) return;
+
+    try {
+      const res = await axios.post(
+        `/api/workspace/${id}/activity/notices/update`,
+        {
+          id: noticeId,
+          status,
+        }
+      );
+
+      if (res.data.success) {
+        if (status === "cancel") {
+          setAllNotices((prev) => prev.filter((n) => n.id !== noticeId));
+        } else {
+          window.location.reload();
+        }
+        toast.success("Notice updated!");
+      }
+    } catch {
+      toast.error("Failed to update notice");
+    }
+  };
+
+  const now = new Date();
+  const myPendingNotices = userNotices.filter((n) => !n.reviewed);
+  const myUpcomingNotices = userNotices.filter(
+    (n) => n.reviewed && n.approved && new Date(n.startTime) > now
+  );
+  const myActiveNotices = userNotices.filter(
+    (n) =>
+      n.approved &&
+      n.startTime &&
+      n.endTime &&
+      new Date(n.startTime) <= now &&
+      new Date(n.endTime) >= now
+  );
+  const pendingNotices = allNotices.filter((n) => !n.reviewed);
+  const upcomingNotices = allNotices.filter(
+    (n) => n.reviewed && n.approved && new Date(n.startTime) > now
+  );
+  const activeNotices = allNotices.filter(
+    (n) =>
+      n.approved &&
+      n.startTime &&
+      n.endTime &&
+      new Date(n.startTime) <= now &&
+      new Date(n.endTime) >= now
+  );
+
+  const renderManageNoticeSection = (
+    title: string,
+    list: NoticeWithUser[],
+    showCancel: boolean
+  ) => (
+    <div className="mb-10">
+      <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
+        {title}
+      </h3>
+      {list.length === 0 ? (
+        <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm p-6 text-center text-zinc-500 dark:text-zinc-400">
+          No {title.toLowerCase()}
+        </div>
+      ) : (
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+          {list.map((notice) => (
+            <div
+              key={notice.id}
+              className="bg-white dark:bg-zinc-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-all"
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(
+                    notice.user?.userid?.toString() ?? ""
+                  )} ring-2 ring-transparent hover:ring-primary transition overflow-hidden`}
+                >
+                  <img
+                    src={notice.user?.picture ?? "/default-avatar.png"}
+                    alt={notice.user?.username ?? "User"}
+                    className="w-10 h-10 object-cover rounded-full border-2 border-white"
+                  />
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-zinc-900 dark:text-white">
+                    {notice.user?.username}
+                  </h4>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    {title.split(" ")[0]} period
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-zinc-50 dark:bg-zinc-600 rounded-lg p-3 mb-3">
+                <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300 mb-1">
+                  <IconCalendarTime className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
+                  <span>
+                    {moment(notice.startTime!).format("MMM Do")} -{" "}
+                    {moment(notice.endTime!).format("MMM Do YYYY")}
+                  </span>
+                </div>
+                <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                  {notice.reason}
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                {showCancel ? (
+                  <button
+                    onClick={() => updateNotice(notice.id, "cancel")}
+                    className="flex-1 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 text-sm font-medium"
+                  >
+                    Revoke
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => updateNotice(notice.id, "approve")}
+                      className="flex-1 px-3 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 text-sm font-medium"
+                    >
+                      <IconCheck className="w-4 h-4 inline-block mr-1 text-primary" />
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => updateNotice(notice.id, "deny")}
+                      className="flex-1 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 text-sm font-medium"
+                    >
+                      <IconX className="w-4 h-4 inline-block mr-1 text-red-600" />
+                      Deny
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <>
+      <Toaster position="bottom-center" />
+      <div className="pagePadding">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center gap-3 mb-6">
+            <div>
+              <h1 className="text-2xl font-medium text-zinc-900 dark:text-white">
+                Notices
+              </h1>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                Manage your inactivity notices
+              </p>
+            </div>
+          </div>
+          {canManageNotices && (
+            <div className="flex space-x-1 mb-6 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg w-fit">
+              <button
+                onClick={() => setActiveTab("my-notices")}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  activeTab === "my-notices"
+                    ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm"
+                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                }`}
+              >
+                <IconUserCircle className="w-4 h-4 inline-block mr-2 text-zinc-600 dark:text-zinc-400" />
+                My Notices
+              </button>
+              <button
+                onClick={() => setActiveTab("manage-notices")}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  activeTab === "manage-notices"
+                    ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm"
+                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                }`}
+              >
+                <IconUsers className="w-4 h-4 inline-block mr-2 text-zinc-600 dark:text-zinc-400" />
+                Manage Notices
+              </button>
+            </div>
+          )}
+          {(!canManageNotices || activeTab === "my-notices") && (
+            <>
+              <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 shadow-sm mb-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-primary/10 p-2 rounded-lg">
+                    <IconPlus className="w-5 h-5 text-primary" />
+                  </div>
+                  <h2 className="text-lg font-medium text-zinc-900 dark:text-white">
+                    Request Inactivity Notice
+                  </h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                      Start Date
+                    </label>
+                    <input
+                      type="date"
+                      value={startTime}
+                      onChange={(e) => setStartTime(e.target.value)}
+                      className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                      min={moment().format("YYYY-MM-DD")}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                      End Date
+                    </label>
+                    <input
+                      type="date"
+                      value={endTime}
+                      onChange={(e) => setEndTime(e.target.value)}
+                      className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                      min={startTime || moment().format("YYYY-MM-DD")}
+                    />
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                    Reason for Inactivity
+                  </label>
+                  <textarea
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white resize-none"
+                    rows={3}
+                    placeholder="Please provide a brief explanation for your requested inactivity period..."
+                  />
+                </div>
+
+                <button
+                  onClick={createNotice}
+                  disabled={
+                    isCreating || !reason.trim() || !startTime || !endTime
+                  }
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCreating ? "Submitting..." : "Submit Notice"}
+                </button>
+              </div>
+              <div className="mb-8">
+                <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
+                  My Submitted Notices
+                </h3>
+                {userNotices.length === 0 ? (
+                  <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm p-6 text-center text-zinc-500 dark:text-zinc-400">
+                    No notices submitted yet
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    {userNotices.map((notice) => (
+                      <div
+                        key={notice.id}
+                        className="bg-white dark:bg-zinc-700 rounded-xl p-5 shadow-sm"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300">
+                            <IconCalendarTime className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
+                            <span>
+                              {moment(notice.startTime!).format("MMM Do")} -{" "}
+                              {moment(notice.endTime!).format("MMM Do YYYY")}
+                            </span>
+                          </div>
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              !notice.reviewed
+                                ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
+                                : notice.approved
+                                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                                : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+                            }`}
+                          >
+                            {!notice.reviewed
+                              ? "Pending"
+                              : notice.approved
+                              ? "Approved"
+                              : "Denied"}
+                          </span>
+                        </div>
+                        <p className="text-sm text-zinc-700 dark:text-zinc-300 mb-3">
+                          {notice.reason}
+                        </p>
+                        {notice.reviewed &&
+                          !notice.approved &&
+                          notice.reviewComment && (
+                            <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                              <p className="text-sm text-red-700 dark:text-red-300">
+                                <strong>Review comment:</strong>{" "}
+                                {notice.reviewComment}
+                              </p>
+                            </div>
+                          )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+          {canManageNotices && activeTab === "manage-notices" && (
+            <>
+              {renderManageNoticeSection(
+                "Pending Notices",
+                pendingNotices,
+                false
+              )}
+              {renderManageNoticeSection(
+                "Upcoming Notices",
+                upcomingNotices,
+                true
+              )}
+              {renderManageNoticeSection("Active Notices", activeNotices, true)}
+            </>
+          )}
+        </div>
+      </div>
+    </>
+  );
+};
+
+Notices.layout = workspace;
+export default Notices;

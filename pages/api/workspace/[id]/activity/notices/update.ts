@@ -22,7 +22,7 @@ export async function handler(
     return res.status(401).json({ success: false, error: 'Not logged in' });
   }
 
-  const { status, id } = req.body;
+  const { status, id, reviewComment } = req.body;
 
   if (!['approve', 'deny', 'cancel'].includes(status)) {
     return res.status(400).json({ success: false, error: 'Invalid status' });
@@ -51,6 +51,7 @@ export async function handler(
         data: {
           approved: status === 'approve',
           reviewed: true,
+          reviewComment: reviewComment || null,
         },
       });
     }
