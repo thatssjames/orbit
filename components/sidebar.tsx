@@ -7,13 +7,20 @@ import { Menu, Listbox, Dialog } from "@headlessui/react"
 import { useRouter } from "next/router"
 import {
   IconHome,
-  IconWall,
+  IconHomeFilled,
+  IconMessage2,
+  IconMessage2Filled,
   IconClipboardList,
-  IconSpeakerphone,
-  IconUsers,
+  IconClipboardListFilled,
+  IconBell,
+  IconBellFilled,
+  IconUser,
+  IconUserFilled,
   IconSettings,
+  IconSettingsFilled,
   IconChevronDown,
   IconFileText,
+  IconFileTextFilled,
   IconCheck,
   IconBuildingCommunity,
   IconChevronLeft,
@@ -21,8 +28,10 @@ import {
   IconSun,
   IconMoon,
   IconX,
-  IconCalendarTime,
+  IconClock,
+  IconClockFilled,
   IconTrophy,
+  IconTrophyFilled,
 } from "@tabler/icons-react"
 import axios from "axios"
 import clsx from "clsx"
@@ -62,57 +71,17 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   }, [isMobileMenuOpen])
 
   const pages = [
-    { name: "Home", href: "/workspace/[id]", icon: IconHome },
-    { name: "Wall", href: "/workspace/[id]/wall", icon: IconWall },
-    {
-      name: "Activity",
-      href: "/workspace/[id]/activity",
-      icon: IconClipboardList,
-      accessible: true,
-    },
-    {
-      name: "Leaderboard",
-      href: "/workspace/[id]/leaderboard",
-      icon: IconTrophy,
-      accessible: workspace.yourPermission.includes("view_entire_groups_activity"),
-    },
-    {
-      name: "Notices",
-      href: "/workspace/[id]/notices",
-      icon: IconCalendarTime,
-      accessible: true,
-    },
-    ...(alliesEnabled ? [{
-      name: "Allies",
-      href: "/workspace/[id]/allies",
-      icon: IconBuildingCommunity,
-      accessible: true,
-    }] : []),
-    ...(sessionsEnabled ? [{
-      name: "Sessions",
-      href: "/workspace/[id]/sessions",
-      icon: IconSpeakerphone,
-      accessible: true,
-    }] : []),
-    {
-      name: "Staff",
-      href: "/workspace/[id]/views",
-      icon: IconUsers,
-      accessible: workspace.yourPermission.includes("view_members"),
-    },
-    ...(docsEnabled ? [{
-      name: "Docs",
-      href: "/workspace/[id]/docs",
-      icon: IconFileText,
-      accessible: true,
-    }] : []),
-    {
-      name: "Settings",
-      href: "/workspace/[id]/settings",
-      icon: IconSettings,
-      accessible: workspace.yourPermission.includes("admin"),
-    },
-  ]
+    { name: "Home", href: "/workspace/[id]", icon: IconHome, filledIcon: IconHomeFilled },
+    { name: "Wall", href: "/workspace/[id]/wall", icon: IconMessage2, filledIcon: IconMessage2Filled },
+    { name: "Activity", href: "/workspace/[id]/activity", icon: IconClipboardList, filledIcon: IconClipboardListFilled, accessible: true },
+    { name: "Leaderboard", href: "/workspace/[id]/leaderboard", icon: IconTrophy, filledIcon: IconTrophyFilled, accessible: workspace.yourPermission.includes("view_entire_groups_activity") },
+    { name: "Notices", href: "/workspace/[id]/notices", icon: IconClock, filledIcon: IconClockFilled, accessible: true },
+    ...(alliesEnabled ? [{ name: "Allies", href: "/workspace/[id]/allies", icon: IconBuildingCommunity, accessible: true }] : []),
+    ...(sessionsEnabled ? [{ name: "Sessions", href: "/workspace/[id]/sessions", icon: IconBell, filledIcon: IconBellFilled, accessible: true }] : []),
+    { name: "Staff", href: "/workspace/[id]/views", icon: IconUser, filledIcon: IconUserFilled, accessible: workspace.yourPermission.includes("view_members") },
+    ...(docsEnabled ? [{ name: "Docs", href: "/workspace/[id]/docs", icon: IconFileText, filledIcon: IconFileTextFilled, accessible: true }] : []),
+    { name: "Settings", href: "/workspace/[id]/settings", icon: IconSettings, filledIcon: IconSettingsFilled, accessible: workspace.yourPermission.includes("admin") },
+  ];
 
   const gotopage = (page: string) => {
     router.push(page.replace("[id]", workspace.groupId.toString()))
@@ -235,18 +204,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
           )}
         >
           <div className="h-full flex flex-col p-3 overflow-y-auto">
-            <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className="grid place-content-center p-2 mb-4 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-all duration-300"
-            >
-              <IconChevronLeft
-                className={clsx(
-                  "w-5 h-5 text-zinc-500 dark:text-white transition-transform duration-300 ease-in-out",
-                  isCollapsed && "rotate-180"
-                )}
-              />
-            </button>
-
             <div className="relative">
               <Listbox
                 value={workspace.groupId}
@@ -334,24 +291,27 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             </div>
 
             <nav className="flex-1 space-y-1 mt-4">
-              {pages.map(
-                (page) =>
-                  (page.accessible === undefined || page.accessible) && (
-                    <button
-                      key={page.name}
-                      onClick={() => gotopage(page.href)}
-                      className={clsx(
-                        "w-full gap-3 px-2 py-2 rounded-lg text-sm font-medium transition-all duration-300",
-                        router.asPath === page.href.replace("[id]", workspace.groupId.toString())
-                          ? "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))] font-semibold"
-                          : "text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-700",
-                        isCollapsed ? "grid place-content-center" : "flex gap-2 items-center",
-                      )}
-                    >
+              {pages.map((page) =>
+                (page.accessible === undefined || page.accessible) && (
+                  <button
+                    key={page.name}
+                    onClick={() => gotopage(page.href)}
+                    className={clsx(
+                      "w-full gap-3 px-2 py-2 rounded-lg text-sm font-medium transition-all duration-300",
+                      router.asPath === page.href.replace("[id]", workspace.groupId.toString())
+                        ? "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))] font-semibold"
+                        : "text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-700",
+                      isCollapsed ? "grid place-content-center" : "flex gap-2 items-center",
+                    )}
+                  >
+                    {router.asPath === page.href.replace("[id]", workspace.groupId.toString()) ? (
+                      <page.filledIcon className="w-5 h-5" />
+                    ) : (
                       <page.icon className="w-5 h-5" />
-                      {!isCollapsed && <span>{page.name}</span>}
-                    </button>
-                  ),
+                    )}
+                    {!isCollapsed && <span>{page.name}</span>}
+                  </button>
+                )
               )}
             </nav>
 
