@@ -280,7 +280,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                   <div className="border-t border-zinc-200 dark:border-zinc-700 my-1"></div>
               
                   <button
-                    onClick={() => router.push("/workspaces")}
+                    onClick={() => router.push("/")}
                     className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-zinc-700 dark:text-white hover:bg-[color:rgb(var(--group-theme)/0.1)] hover:text-[color:rgb(var(--group-theme))] transition duration-200"
                   >
                     <IconBuildingCommunity className="w-5 h-5" />
