@@ -208,14 +208,14 @@ const Leaderboard: pageWithLayout = () => {
                 <div className="flex flex-col items-center">
                   <div className="relative mb-4">
                     <div
-                      className={`w-18 h-18 rounded-full flex items-center justify-center ${getRandomBg(
+                      className={`w-20 h-20 rounded-full flex items-center justify-center ${getRandomBg(
                         topStaff[2].userId
                       )}`}
                     >
                       <img
                         src={topStaff[2].picture}
                         alt={topStaff[2].username}
-                        className="w-18 h-18 rounded-full border-4 border-amber-600 shadow-lg object-cover"
+                        className="w-20 h-20 rounded-full border-4 border-amber-600 shadow-lg object-cover"
                         style={{ background: "transparent" }}
                       />
                     </div>
