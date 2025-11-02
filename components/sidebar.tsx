@@ -70,14 +70,30 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     }
   }, [isMobileMenuOpen])
 
-  const pages = [
+  const pages: {
+    name: string
+    href: string
+    icon: React.ElementType
+    filledIcon?: React.ElementType
+    accessible?: boolean
+  }[] = [
     { name: "Home", href: "/workspace/[id]", icon: IconHome, filledIcon: IconHomeFilled },
     { name: "Wall", href: "/workspace/[id]/wall", icon: IconMessage2, filledIcon: IconMessage2Filled },
     { name: "Activity", href: "/workspace/[id]/activity", icon: IconClipboardList, filledIcon: IconClipboardListFilled, accessible: true },
     { name: "Leaderboard", href: "/workspace/[id]/leaderboard", icon: IconTrophy, filledIcon: IconTrophyFilled, accessible: workspace.yourPermission.includes("view_entire_groups_activity") },
     { name: "Notices", href: "/workspace/[id]/notices", icon: IconClock, filledIcon: IconClockFilled, accessible: true },
-    ...(alliesEnabled ? [{ name: "Allies", href: "/workspace/[id]/allies", icon: IconBuildingCommunity, accessible: true }] : []),
-    ...(sessionsEnabled ? [{ name: "Sessions", href: "/workspace/[id]/sessions", icon: IconBell, filledIcon: IconBellFilled, accessible: true }] : []),
+    ...(alliesEnabled ? [{
+      name: "Allies",
+      href: "/workspace/[id]/allies",
+      icon: IconBuildingCommunity,
+      accessible: true,
+    }] : []),
+    ...(sessionsEnabled ? [{
+      name: "Sessions",
+      href: "/workspace/[id]/sessions",
+      icon: IconBell,
+      accessible: true,
+    }] : []),
     { name: "Staff", href: "/workspace/[id]/views", icon: IconUser, filledIcon: IconUserFilled, accessible: workspace.yourPermission.includes("view_members") },
     ...(docsEnabled ? [{ name: "Docs", href: "/workspace/[id]/docs", icon: IconFileText, filledIcon: IconFileTextFilled, accessible: true }] : []),
     { name: "Settings", href: "/workspace/[id]/settings", icon: IconSettings, filledIcon: IconSettingsFilled, accessible: workspace.yourPermission.includes("admin") },
@@ -305,9 +321,9 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     )}
                   >
                     {(() => {
-                      const IconComponent =
+                      const IconComponent: React.ElementType =
                         router.asPath === page.href.replace("[id]", workspace.groupId.toString())
-                          ? page.filledIcon
+                          ? page.filledIcon || page.icon
                           : page.icon;
                       return <IconComponent className="w-5 h-5" />;
                     })()}
