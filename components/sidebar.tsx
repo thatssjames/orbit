@@ -304,11 +304,13 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       isCollapsed ? "grid place-content-center" : "flex gap-2 items-center",
                     )}
                   >
-                    {router.asPath === page.href.replace("[id]", workspace.groupId.toString()) ? (
-                      <page.filledIcon className="w-5 h-5" />
-                    ) : (
-                      <page.icon className="w-5 h-5" />
-                    )}
+                    {(() => {
+                      const IconComponent =
+                        router.asPath === page.href.replace("[id]", workspace.groupId.toString())
+                          ? page.filledIcon
+                          : page.icon;
+                      return <IconComponent className="w-5 h-5" />;
+                    })()}
                     {!isCollapsed && <span>{page.name}</span>}
                   </button>
                 )
