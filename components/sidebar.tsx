@@ -278,7 +278,14 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                   {!isCollapsed && (
                     <>
                       <div className="flex-1 text-left">
-                        <p className="text-sm font-medium truncate dark:text-white">{workspace.groupName}</p>
+                        <div className="flex-1 text-left min-w-0">
+                          <p className="text-sm font-medium truncate dark:text-white">
+                            {workspace.groupName}
+                          </p>
+                          <p className="text-xs text-zinc-500 dark:text-white truncate">
+                            Switch workspace
+                          </p>
+                        </div>
                         <p className="text-xs text-zinc-500 dark:text-white">Switch workspace</p>
                       </div>
                       <IconChevronDown className="w-4 h-4 text-zinc-400 dark:text-white flex-shrink-0" />
@@ -317,7 +324,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       key={page.name}
                       onClick={() => gotopage(page.href)}
                       className={clsx(
-                        "w-full gap-3 px-2 py-2 rounded-lg text-sm font-medium",
+                        "w-full gap-3 px-2 py-2 rounded-lg text-sm font-medium transition-all duration-300",
                         router.asPath === page.href.replace("[id]", workspace.groupId.toString())
                           ? "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))] font-semibold"
                           : "text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-700",
