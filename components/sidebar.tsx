@@ -340,23 +340,13 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             </nav>
 
             <div className="mt-auto">
-              <button
-                onClick={toggleTheme}
-                className={clsx(
-                  "mb-4 p-2 rounded-lg flex items-center gap-2 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-700",
-                  isCollapsed ? "justify-center" : "justify-start",
-                )}
-              >
-                {theme === "dark" ? <IconSun className="w-5 h-5" /> : <IconMoon className="w-5 h-5" />}
-                {!isCollapsed && <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>}
-              </button>
-
               <Menu as="div" className="relative">
                 <Menu.Button
                   className={clsx(
                     "w-full flex items-center gap-3 p-2 rounded-lg transition-all duration-300",
-                    "hover:bg-zinc-100 dark:hover:bg-zinc-700",
-                    isCollapsed && "justify-center"
+                    "hover:bg-[color:rgb(var(--group-theme)/0.1)] hover:text-[color:rgb(var(--group-theme))]",
+                    "dark:hover:bg-zinc-700",
+                    isCollapsed ? "justify-center" : "justify-start"
                   )}
                 >
                   <img
@@ -369,16 +359,35 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                   />
                   
                   {!isCollapsed && (
-                    <div className="flex-1 text-left min-w-0 transition-all duration-300">
+                    <div className="flex-1 min-w-0 text-left transition-all duration-300">
                       <p className="text-sm font-medium truncate dark:text-white">{login?.displayname}</p>
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">Manage account</p>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
+                        Manage account
+                      </p>
                     </div>
                   )}
-                
+              
                   {!isCollapsed && (
                     <IconChevronDown className="w-4 h-4 text-zinc-400 dark:text-white transition-all duration-300" />
                   )}
                 </Menu.Button>
+              
+                <Menu.Items className="absolute bottom-14 left-0 w-full bg-white dark:bg-zinc-700 rounded-lg shadow-lg z-50 py-2">
+                  <Menu.Item>
+                    {({ active }) => (
+                      <button
+                        onClick={logout}
+                        className={clsx(
+                          "w-full text-left px-4 py-2 text-sm text-red-500 transition-all duration-200",
+                          active && "bg-red-50 dark:bg-red-900/40"
+                        )}
+                      >
+                        Logout
+                      </button>
+                    )}
+                  </Menu.Item>
+                </Menu.Items>
+              </Menu>
                 <Menu.Items className="absolute bottom-14 left-0 w-full bg-white dark:bg-zinc-700 rounded-lg shadow-lg z-50 py-2">
                   <Menu.Item>
                     {({ active }) => (
