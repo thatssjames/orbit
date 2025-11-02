@@ -39,6 +39,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [login, setLogin] = useRecoilState(loginState)
   const [workspace, setWorkspace] = useRecoilState(workspacestate)
   const [theme, setTheme] = useRecoilState(themeState)
+  const [showOrbitInfo, setShowOrbitInfo] = useState(false);
   const [showCopyright, setShowCopyright] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [showChangelog, setShowChangelog] = useState(false);
@@ -353,23 +354,29 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               <Menu as="div" className="relative">
                 <Menu.Button
                   className={clsx(
-                    "w-full flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700",
-                    isCollapsed && "justify-center",
+                    "w-full flex items-center gap-3 p-2 rounded-lg transition-all duration-300",
+                    "hover:bg-zinc-100 dark:hover:bg-zinc-700",
+                    isCollapsed && "justify-center"
                   )}
                 >
                   <img
                     src={login?.thumbnail || "/placeholder.svg"}
                     alt=""
-                    className="w-10 h-10 rounded-lg object-cover"
+                    className={clsx(
+                      "w-10 h-10 rounded-lg object-cover transition-all duration-300",
+                      isCollapsed && "scale-90 opacity-80"
+                    )}
                   />
+                  
                   {!isCollapsed && (
-                    <>
-                      <div className="flex-1 text-left">
-                        <p className="text-sm font-medium dark:text-white truncate">{login?.displayname}</p>
-                        <p className="text-xs text-zinc-500 dark:text-white">Manage account</p>
-                      </div>
-                      <IconChevronDown className="w-4 h-4 text-zinc-400 dark:text-white" />
-                    </>
+                    <div className="flex-1 text-left min-w-0 transition-all duration-300">
+                      <p className="text-sm font-medium truncate dark:text-white">{login?.displayname}</p>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">Manage account</p>
+                    </div>
+                  )}
+                
+                  {!isCollapsed && (
+                    <IconChevronDown className="w-4 h-4 text-zinc-400 dark:text-white transition-all duration-300" />
                   )}
                 </Menu.Button>
                 <Menu.Items className="absolute bottom-14 left-0 w-full bg-white dark:bg-zinc-700 rounded-lg shadow-lg z-50 py-2">
@@ -390,18 +397,12 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               </Menu>
 
               {!isCollapsed && (
-                <>
-                  <button 
-                    onClick={() => setShowCopyright(true)} 
-                    className="mt-4 text-left text-xs text-zinc-500 hover:text-primary"
-                  >
-                    © Copyright Notices
-                  </button>
-
-                  <div className="mt-2 text-xs text-zinc-500">
-                    Orbit v{packageJson.version} - <button onClick={() => setShowChangelog(true)} className="mt-2 text-left text-xs text-zinc-500 hover:text-primary">Changelog</button>
-                  </div>
-                </>
+                <button
+                  onClick={() => setShowOrbitInfo(true)}
+                  className="mt-4 w-full text-left text-xs text-zinc-500 hover:text-primary transition-all duration-300"
+                >
+                  Orbit Information
+                </button>
               )}
             </div>
           </div>
@@ -446,6 +447,79 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     </p>
                   </div>
                 </div>
+              </Dialog.Panel>
+            </div>
+          </Dialog>
+
+          <Dialog
+            open={showOrbitInfo}
+            onClose={() => setShowOrbitInfo(false)}
+            className="relative z-50"
+          >
+            <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+          
+            <div className="fixed inset-0 flex items-center justify-center p-4">
+              <Dialog.Panel className="mx-auto max-w-lg rounded-lg bg-white dark:bg-zinc-800 p-6 shadow-xl transition-all duration-300">
+                
+                <div className="flex items-center justify-between mb-4">
+                  <Dialog.Title className="text-lg font-medium text-zinc-900 dark:text-white">
+                    Orbit Information
+                  </Dialog.Title>
+                  <button
+                    onClick={() => setShowOrbitInfo(false)}
+                    className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-all duration-300"
+                  >
+                    <IconX className="w-5 h-5 text-zinc-500" />
+                  </button>
+                </div>
+                
+                <div className="mb-4">
+                  <p className="text-sm font-medium text-zinc-900 dark:text-white mb-1">
+                    Orbit
+                  </p>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                    © 2025 Planetary — All rights reserved.
+                  </p>
+                </div>
+          
+                <div className="border-t border-zinc-300 dark:border-zinc-700 my-4" />
+                
+                <div className="mb-4">
+                  <p className="text-sm font-medium text-zinc-900 dark:text-white mb-1">
+                    Original Tovy Project
+                  </p>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                    © 2022 Tovy — All rights reserved.
+                  </p>
+                </div>
+          
+                <div className="border-t border-zinc-300 dark:border-zinc-700 my-4" />
+                
+                <div className="max-h-64 overflow-y-auto space-y-4">
+                  <p className="font-semibold text-primary">Changelog</p>
+          
+                  {changelog.length === 0 && (
+                    <p className="text-sm text-zinc-500">Loading...</p>
+                  )}
+          
+                  {changelog.map((entry, idx) => (
+                    <div key={idx}>
+                      <a
+                        href={entry.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-primary hover:underline"
+                      >
+                        {entry.title}
+                      </a>
+                      <div className="text-xs text-zinc-400">{entry.pubDate}</div>
+                      <div className="text-sm text-zinc-700 dark:text-zinc-300">
+                        <ReactMarkdown>{entry.content}</ReactMarkdown>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+          
               </Dialog.Panel>
             </div>
           </Dialog>
