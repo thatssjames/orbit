@@ -355,7 +355,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               )}
             </nav>
 
-            <div className="mt-auto">
             <Menu as="div" className="relative">
               <Menu.Button className="..."> ... </Menu.Button>
           
