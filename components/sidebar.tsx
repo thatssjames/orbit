@@ -503,28 +503,21 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 <div className="max-h-64 overflow-y-auto space-y-4">
                   <p className="font-semibold text-primary">Changelog</p>
           
-                  {changelog.length === 0 && (
-                    <p className="text-sm text-zinc-500">Loading...</p>
-                  )}
-          
-                  {changelog.map((entry, idx) => (
-                    <div key={idx}>
-                      <a
-                        href={entry.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-medium text-primary hover:underline"
-                      >
-                        {entry.title}
-                      </a>
-                      <div className="text-xs text-zinc-400">{entry.pubDate}</div>
-                      <div className="text-sm text-zinc-700 dark:text-zinc-300">
-                        <ReactMarkdown>{entry.content}</ReactMarkdown>
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {changelog.length === 0 && <p className="text-sm text-zinc-500">Loading...</p>}
+                    {changelog.map((entry, idx) => (
+                      <div key={idx}>
+                        <a href={entry.link} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">
+                          {entry.title}
+                        </a>
+                        <div className="text-xs text-zinc-400">{entry.pubDate}</div>
+                        <div className="text-sm text-zinc-700 dark:text-zinc-300">
+                          <ReactMarkdown>{entry.content}</ReactMarkdown>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-          
               </Dialog.Panel>
             </div>
           </Dialog>
