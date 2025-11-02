@@ -310,42 +310,36 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               
                 <Listbox.Options
                   className={clsx(
-                    "absolute top-0 z-50 w-64 mt-14 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border dark:border-zinc-700 max-h-64 overflow-auto space-y-1"
+                    "absolute top-0 z-50 w-64 mt-14 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border dark:border-zinc-700 max-h-64 overflow-auto"
                   )}
                 >
-                  {login?.workspaces?.map((ws) => (
-                    <Listbox.Option
-                      key={ws.groupId}
-                      value={ws.groupId}
-                      className={({ active }) =>
-                        clsx(
-                          "flex items-center gap-3 px-4 py-2 cursor-pointer rounded-md transition duration-200",
-                          active && "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))]"
-                        )
-                      }
-                    >
-                      <img
-                        src={ws.groupThumbnail || "/placeholder.svg"}
-                        alt=""
-                        className="w-8 h-8 rounded-lg object-cover transition duration-200"
-                      />
-                      <span className="flex-1 truncate text-sm dark:text-white">{ws.groupName}</span>
-                      {workspace.groupId === ws.groupId && <IconCheck className="w-5 h-5 text-primary" />}
-                    </Listbox.Option>
-                  ))}
-                
-                  <div className="border-t border-zinc-200 dark:border-zinc-700 my-1"></div>
-                
-                  {login?.workspaces?.length > 1 ? (
-                    <button
-                      onClick={() => router.push("/workspaces")}
-                      className="w-full flex items-center gap-3 px-4 py-2 rounded-md text-sm text-zinc-700 dark:text-white hover:bg-[color:rgb(var(--group-theme)/0.1)] hover:text-[color:rgb(var(--group-theme))] transition duration-200"
-                    >
-                      <IconBuildingCommunity className="w-5 h-5" />
-                      <span className="flex-1 truncate">View All Workspaces</span>
-                    </button>
+                  {login?.workspaces && login.workspaces.length > 1 ? (
+                    login.workspaces
+                      .filter(ws => ws.groupId !== workspace.groupId)
+                      .map((ws) => (
+                        <Listbox.Option
+                          key={ws.groupId}
+                          value={ws.groupId}
+                          className={({ active }) =>
+                            clsx(
+                              "flex items-center gap-3 px-3 py-2 cursor-pointer rounded-md transition duration-200",
+                              active && "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))]"
+                            )
+                          }
+                        >
+                          <img
+                            src={ws.groupThumbnail || "/placeholder.svg"}
+                            alt=""
+                            className="w-8 h-8 rounded-lg object-cover transition duration-200"
+                          />
+                          <span className="flex-1 truncate text-sm dark:text-white">{ws.groupName}</span>
+                          {workspace.groupId === ws.groupId && <IconCheck className="w-5 h-5 text-primary" />}
+                        </Listbox.Option>
+                      ))
                   ) : (
-                    <p className="px-4 py-2 text-sm text-zinc-500 dark:text-zinc-400">No other workspaces</p>
+                    <div className="px-3 py-2 text-sm text-zinc-500 dark:text-zinc-400">
+                      No other workspaces
+                    </div>
                   )}
                 </Listbox.Options>
               </Listbox>
@@ -451,7 +445,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               <button
                 onClick={() => {
                   setShowOrbitInfo(true);
-                  setShowChangelog(true);
                 }}
                 className="mt-4 w-full text-left text-xs text-zinc-500 hover:text-primary transition-all duration-300"
               >
