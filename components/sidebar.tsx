@@ -236,12 +236,12 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
           <div className="h-full flex flex-col p-3 overflow-y-auto">
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="grid place-content-center p-2 mb-4 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700"
+              className="grid place-content-center p-2 mb-4 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-all duration-300"
             >
               <IconChevronLeft
                 className={clsx(
-                  "w-5 h-5 text-zinc-500 dark:text-white transition-transform",
-                  isCollapsed && "rotate-180",
+                  "w-5 h-5 text-zinc-500 dark:text-white transition-transform duration-300 ease-in-out",
+                  isCollapsed && "rotate-180"
                 )}
               />
             </button>
@@ -264,32 +264,32 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               >
                 <Listbox.Button
                   className={clsx(
-                    "w-full flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700",
-                    isCollapsed && "justify-center",
+                    "w-full flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-all duration-300",
+                    isCollapsed && "justify-center"
                   )}
                 >
-                  <div className="w-10 h-10 flex-shrink-0">
-                    <img
-                      src={workspace.groupThumbnail || "/favicon-32x32.png"}
-                      alt=""
-                      className="w-full h-full rounded-lg object-cover"
-                    />
-                  </div>
+                  <img
+                    src={workspace.groupThumbnail || "/favicon-32x32.png"}
+                    alt=""
+                    className={clsx(
+                      "w-10 h-10 rounded-lg object-cover transition-all duration-300",
+                      isCollapsed && "scale-90 opacity-80"
+                    )}
+                  />
+                
                   {!isCollapsed && (
-                    <>
-                      <div className="flex-1 text-left">
-                        <div className="flex-1 text-left min-w-0">
-                          <p className="text-sm font-medium truncate dark:text-white">
-                            {workspace.groupName}
-                          </p>
-                          <p className="text-xs text-zinc-500 dark:text-white truncate">
-                            Switch workspace
-                          </p>
-                        </div>
-                        <p className="text-xs text-zinc-500 dark:text-white">Switch workspace</p>
-                      </div>
-                      <IconChevronDown className="w-4 h-4 text-zinc-400 dark:text-white flex-shrink-0" />
-                    </>
+                    <div className="flex-1 text-left min-w-0 transition-all duration-300">
+                      <p className="text-sm font-medium truncate dark:text-white max-w-full">
+                        {workspace.groupName}
+                      </p>
+                      <p className="text-xs text-zinc-500 dark:text-white truncate max-w-full">
+                        Switch workspace
+                      </p>
+                    </div>
+                  )}
+                
+                  {!isCollapsed && (
+                    <IconChevronDown className="w-4 h-4 text-zinc-400 dark:text-white transition-all duration-300" />
                   )}
                 </Listbox.Button>
                 <div className={clsx("absolute top-0 z-50 w-64 mt-14", isCollapsed ? "left-full ml-2" : "left-0")}>
