@@ -292,16 +292,20 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       {workspace.groupId === ws.groupId && <IconCheck className="w-5 h-5 text-primary" />}
                     </Listbox.Option>
                   ))}
-              
+                
                   <div className="border-t border-zinc-200 dark:border-zinc-700 my-1"></div>
-              
-                  <button
-                    onClick={() => router.push("/")}
-                    className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-zinc-700 dark:text-white hover:bg-[color:rgb(var(--group-theme)/0.1)] hover:text-[color:rgb(var(--group-theme))] transition duration-200"
-                  >
-                    <IconBuildingCommunity className="w-5 h-5" />
-                    <span className="flex-1 truncate">View All Workspaces</span>
-                  </button>
+                
+                  {login?.workspaces?.length > 1 ? (
+                    <button
+                      onClick={() => router.push("/workspaces")}
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-zinc-700 dark:text-white hover:bg-[color:rgb(var(--group-theme)/0.1)] hover:text-[color:rgb(var(--group-theme))] transition duration-200"
+                    >
+                      <IconBuildingCommunity className="w-5 h-5" />
+                      <span className="flex-1 truncate">View All Workspaces</span>
+                    </button>
+                  ) : (
+                    <p className="px-3 py-2 text-sm text-zinc-500 dark:text-zinc-400">No other workspaces</p>
+                  )}
                 </Listbox.Options>
               </Listbox>
             </div>
@@ -404,10 +408,13 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
           
             {!isCollapsed && (
               <button
-                onClick={() => setShowOrbitInfo(true)}
+                onClick={() => {
+                  setShowOrbitInfo(true);
+                  setShowChangelog(true);
+                }}
                 className="mt-4 w-full text-left text-xs text-zinc-500 hover:text-primary transition-all duration-300"
               >
-                Orbit Information
+                © Copyright Notices
               </button>
             )}
           </div>
@@ -468,7 +475,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 
                 <div className="flex items-center justify-between mb-4">
                   <Dialog.Title className="text-lg font-medium text-zinc-900 dark:text-white">
-                    Orbit Information
+                    © Copyright Notices
                   </Dialog.Title>
                   <button
                     onClick={() => setShowOrbitInfo(false)}
