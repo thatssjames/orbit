@@ -265,7 +265,9 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               >
                 <Listbox.Button
                   className={clsx(
-                    "w-full flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-all duration-300",
+                    "w-full flex items-center gap-3 p-2 rounded-lg transition-all duration-300",
+                    "hover:bg-[color:rgb(var(--group-theme)/0.1)] hover:text-[color:rgb(var(--group-theme))]",
+                    "dark:hover:bg-zinc-700",
                     isCollapsed && "justify-center"
                   )}
                 >
@@ -277,9 +279,8 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       isCollapsed && "scale-90 opacity-80"
                     )}
                   />
-                
                   {!isCollapsed && (
-                    <div className="flex-1 text-left min-w-0 transition-all duration-300">
+                    <div className="flex-1 min-w-0 text-left transition-all duration-300">
                       <p className="text-sm font-medium truncate dark:text-white max-w-full">
                         {workspace.groupName}
                       </p>
@@ -288,32 +289,47 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       </p>
                     </div>
                   )}
-                
                   {!isCollapsed && (
                     <IconChevronDown className="w-4 h-4 text-zinc-400 dark:text-white transition-all duration-300" />
                   )}
                 </Listbox.Button>
-                <div className={clsx("absolute top-0 z-50 w-64 mt-14", isCollapsed ? "left-full ml-2" : "left-0")}>
-                  <Listbox.Options className="bg-white dark:bg-zinc-800 rounded-lg shadow-lg border dark:border-zinc-700 max-h-64 overflow-auto">
-                    {login?.workspaces?.map((ws) => (
-                      <Listbox.Option
-                        key={ws.groupId}
-                        value={ws.groupId}
-                        className={({ active }) =>
-                          clsx("flex items-center gap-3 px-3 py-2 cursor-pointer", active && "bg-primary/10")
-                        }
-                      >
-                        <img
-                          src={ws.groupThumbnail || "/placeholder.svg"}
-                          alt=""
-                          className="w-8 h-8 rounded-lg object-cover"
-                        />
-                        <span className="flex-1 truncate text-sm dark:text-white">{ws.groupName}</span>
-                        {workspace.groupId === ws.groupId && <IconCheck className="w-5 h-5 text-primary" />}
-                      </Listbox.Option>
-                    ))}
-                  </Listbox.Options>
-                </div>
+              
+                <Listbox.Options
+                  className={clsx(
+                    "absolute top-0 z-50 w-64 mt-14 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border dark:border-zinc-700 max-h-64 overflow-auto"
+                  )}
+                >
+                  {login?.workspaces?.map((ws) => (
+                    <Listbox.Option
+                      key={ws.groupId}
+                      value={ws.groupId}
+                      className={({ active }) =>
+                        clsx(
+                          "flex items-center gap-3 px-3 py-2 cursor-pointer rounded-md transition duration-200",
+                          active && "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))]"
+                        )
+                      }
+                    >
+                      <img
+                        src={ws.groupThumbnail || "/placeholder.svg"}
+                        alt=""
+                        className="w-8 h-8 rounded-lg object-cover transition duration-200"
+                      />
+                      <span className="flex-1 truncate text-sm dark:text-white">{ws.groupName}</span>
+                      {workspace.groupId === ws.groupId && <IconCheck className="w-5 h-5 text-primary" />}
+                    </Listbox.Option>
+                  ))}
+              
+                  <div className="border-t border-zinc-200 dark:border-zinc-700 my-1"></div>
+              
+                  <button
+                    onClick={() => router.push("/workspaces")}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-zinc-700 dark:text-white hover:bg-[color:rgb(var(--group-theme)/0.1)] hover:text-[color:rgb(var(--group-theme))] transition duration-200"
+                  >
+                    <IconBuildingCommunity className="w-5 h-5" />
+                    <span className="flex-1 truncate">View All Workspaces</span>
+                  </button>
+                </Listbox.Options>
               </Listbox>
             </div>
 
