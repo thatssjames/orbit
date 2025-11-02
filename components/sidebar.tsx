@@ -356,9 +356,58 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             </nav>
 
             <Menu as="div" className="relative">
-              <Menu.Button className="..."> ... </Menu.Button>
+              <Menu.Button
+                className={clsx(
+                  "w-full flex items-center gap-3 p-2 rounded-lg transition-all duration-300",
+                  "hover:bg-[color:rgb(var(--group-theme)/0.1)] hover:text-[color:rgb(var(--group-theme))]",
+                  "dark:hover:bg-zinc-700",
+                  isCollapsed ? "justify-center" : "justify-start"
+                )}
+              >
+                <img
+                  src={login?.thumbnail || "/placeholder.svg"}
+                  alt=""
+                  className={clsx(
+                    "w-10 h-10 rounded-lg object-cover transition-all duration-300",
+                    isCollapsed && "scale-90 opacity-80"
+                  )}
+                />
+                {!isCollapsed && (
+                  <div className="flex-1 min-w-0 text-left transition-all duration-300">
+                    <p className="text-sm font-medium truncate dark:text-white">{login?.displayname}</p>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
+                      Manage account
+                    </p>
+                  </div>
+                )}
+                {!isCollapsed && (
+                  <IconChevronDown className="w-4 h-4 text-zinc-400 dark:text-white transition-all duration-300" />
+                )}
+              </Menu.Button>
           
               <Menu.Items className="absolute bottom-14 left-0 w-full bg-white dark:bg-zinc-700 rounded-lg shadow-lg z-50 py-2">
+                  <Menu.Item>
+                  {({ active }) => (
+                    <button
+                      onClick={toggleTheme}
+                      className={clsx(
+                        "w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-white transition-all duration-200",
+                        active && "bg-zinc-100 dark:bg-zinc-600"
+                      )}
+                    >
+                      {theme === "dark" ? (
+                        <div className="flex items-center gap-2">
+                          <IconSun className="w-4 h-4" /> Light Mode
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <IconMoon className="w-4 h-4" /> Dark Mode
+                        </div>
+                      )}
+                    </button>
+                  )}
+                </Menu.Item>
+                
                 <Menu.Item>
                   {({ active }) => (
                     <button
