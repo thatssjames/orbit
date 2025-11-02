@@ -356,80 +356,34 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             </nav>
 
             <div className="mt-auto">
-              <Menu as="div" className="relative">
-                <Menu.Button
-                  className={clsx(
-                    "w-full flex items-center gap-3 p-2 rounded-lg transition-all duration-300",
-                    "hover:bg-[color:rgb(var(--group-theme)/0.1)] hover:text-[color:rgb(var(--group-theme))]",
-                    "dark:hover:bg-zinc-700",
-                    isCollapsed ? "justify-center" : "justify-start"
+            <Menu as="div" className="relative">
+              <Menu.Button className="..."> ... </Menu.Button>
+          
+              <Menu.Items className="absolute bottom-14 left-0 w-full bg-white dark:bg-zinc-700 rounded-lg shadow-lg z-50 py-2">
+                <Menu.Item>
+                  {({ active }) => (
+                    <button
+                      onClick={logout}
+                      className={clsx(
+                        "w-full text-left px-4 py-2 text-sm text-red-500 transition-all duration-200",
+                        active && "bg-red-50 dark:bg-red-900/40"
+                      )}
+                    >
+                      Logout
+                    </button>
                   )}
-                >
-                  <img
-                    src={login?.thumbnail || "/placeholder.svg"}
-                    alt=""
-                    className={clsx(
-                      "w-10 h-10 rounded-lg object-cover transition-all duration-300",
-                      isCollapsed && "scale-90 opacity-80"
-                    )}
-                  />
-                  
-                  {!isCollapsed && (
-                    <div className="flex-1 min-w-0 text-left transition-all duration-300">
-                      <p className="text-sm font-medium truncate dark:text-white">{login?.displayname}</p>
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
-                        Manage account
-                      </p>
-                    </div>
-                  )}
-              
-                  {!isCollapsed && (
-                    <IconChevronDown className="w-4 h-4 text-zinc-400 dark:text-white transition-all duration-300" />
-                  )}
-                </Menu.Button>
-              
-                <Menu.Items className="absolute bottom-14 left-0 w-full bg-white dark:bg-zinc-700 rounded-lg shadow-lg z-50 py-2">
-                  <Menu.Item>
-                    {({ active }) => (
-                      <button
-                        onClick={logout}
-                        className={clsx(
-                          "w-full text-left px-4 py-2 text-sm text-red-500 transition-all duration-200",
-                          active && "bg-red-50 dark:bg-red-900/40"
-                        )}
-                      >
-                        Logout
-                      </button>
-                    )}
-                  </Menu.Item>
-                </Menu.Items>
-              </Menu>
-                <Menu.Items className="absolute bottom-14 left-0 w-full bg-white dark:bg-zinc-700 rounded-lg shadow-lg z-50 py-2">
-                  <Menu.Item>
-                    {({ active }) => (
-                      <button
-                        onClick={logout}
-                        className={clsx(
-                          "w-full text-left px-4 py-2 text-sm text-red-500",
-                          active ? "bg-zinc-100 dark:bg-zinc-600" : "",
-                        )}
-                      >
-                        Logout
-                      </button>
-                    )}
-                  </Menu.Item>
-                </Menu.Items>
-              </Menu>
-
-              {!isCollapsed && (
-                <button
-                  onClick={() => setShowOrbitInfo(true)}
-                  className="mt-4 w-full text-left text-xs text-zinc-500 hover:text-primary transition-all duration-300"
-                >
-                  Orbit Information
-                </button>
-              )}
-            </div>
+                </Menu.Item>
+              </Menu.Items>
+            </Menu>
+          
+            {!isCollapsed && (
+              <button
+                onClick={() => setShowOrbitInfo(true)}
+                className="mt-4 w-full text-left text-xs text-zinc-500 hover:text-primary transition-all duration-300"
+              >
+                Orbit Information
+              </button>
+            )}
           </div>
 
           <Dialog
