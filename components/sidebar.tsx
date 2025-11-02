@@ -44,6 +44,47 @@ interface SidebarProps {
   setIsCollapsed: (value: boolean) => void
 }
 
+const ChangelogContent: React.FC<{ workspaceId: number }> = ({ workspaceId }) => {
+  const [entries, setEntries] = useState<
+    { title: string; link: string; pubDate: string; content: string }[]
+  >([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/changelog')
+      .then(res => res.json())
+      .then(data => {
+        setEntries(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [workspaceId]);
+
+  if (loading) return <p className="text-sm text-zinc-500">Loading...</p>;
+  if (!entries.length) return <p className="text-sm text-zinc-500">No entries found.</p>;
+
+  return (
+    <>
+      {entries.map((entry, idx) => (
+        <div key={idx}>
+          <a
+            href={entry.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-primary hover:underline"
+          >
+            {entry.title}
+          </a>
+          <div className="text-xs text-zinc-400">{entry.pubDate}</div>
+          <div className="text-sm text-zinc-700 dark:text-zinc-300">
+            <ReactMarkdown>{entry.content}</ReactMarkdown>
+          </div>
+        </div>
+      ))}
+    </>
+  );
+};
+
 const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [login, setLogin] = useRecoilState(loginState)
   const [workspace, setWorkspace] = useRecoilState(workspacestate)
@@ -269,7 +310,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               
                 <Listbox.Options
                   className={clsx(
-                    "absolute top-0 z-50 w-64 mt-14 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border dark:border-zinc-700 max-h-64 overflow-auto"
+                    "absolute top-0 z-50 w-64 mt-14 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border dark:border-zinc-700 max-h-64 overflow-auto space-y-1"
                   )}
                 >
                   {login?.workspaces?.map((ws) => (
@@ -278,7 +319,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       value={ws.groupId}
                       className={({ active }) =>
                         clsx(
-                          "flex items-center gap-3 px-3 py-2 cursor-pointer rounded-md transition duration-200",
+                          "flex items-center gap-3 px-4 py-2 cursor-pointer rounded-md transition duration-200",
                           active && "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))]"
                         )
                       }
@@ -298,13 +339,13 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                   {login?.workspaces?.length > 1 ? (
                     <button
                       onClick={() => router.push("/workspaces")}
-                      className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-zinc-700 dark:text-white hover:bg-[color:rgb(var(--group-theme)/0.1)] hover:text-[color:rgb(var(--group-theme))] transition duration-200"
+                      className="w-full flex items-center gap-3 px-4 py-2 rounded-md text-sm text-zinc-700 dark:text-white hover:bg-[color:rgb(var(--group-theme)/0.1)] hover:text-[color:rgb(var(--group-theme))] transition duration-200"
                     >
                       <IconBuildingCommunity className="w-5 h-5" />
                       <span className="flex-1 truncate">View All Workspaces</span>
                     </button>
                   ) : (
-                    <p className="px-3 py-2 text-sm text-zinc-500 dark:text-zinc-400">No other workspaces</p>
+                    <p className="px-4 py-2 text-sm text-zinc-500 dark:text-zinc-400">No other workspaces</p>
                   )}
                 </Listbox.Options>
               </Listbox>
@@ -472,7 +513,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
           
             <div className="fixed inset-0 flex items-center justify-center p-4">
               <Dialog.Panel className="mx-auto max-w-lg rounded-lg bg-white dark:bg-zinc-800 p-6 shadow-xl transition-all duration-300">
-                
                 <div className="flex items-center justify-between mb-4">
                   <Dialog.Title className="text-lg font-medium text-zinc-900 dark:text-white">
                     © Copyright Notices
@@ -484,7 +524,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     <IconX className="w-5 h-5 text-zinc-500" />
                   </button>
                 </div>
-                
+          
                 <div className="mb-4">
                   <p className="text-sm font-medium text-zinc-900 dark:text-white mb-1">
                     Orbit
@@ -495,7 +535,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 </div>
           
                 <div className="border-t border-zinc-300 dark:border-zinc-700 my-4" />
-                
+          
                 <div className="mb-4">
                   <p className="text-sm font-medium text-zinc-900 dark:text-white mb-1">
                     Original Tovy Project
@@ -506,24 +546,11 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 </div>
           
                 <div className="border-t border-zinc-300 dark:border-zinc-700 my-4" />
-                
+          
                 <div className="max-h-64 overflow-y-auto space-y-4">
                   <p className="font-semibold text-primary">Changelog</p>
-          
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
-                    {changelog.length === 0 && <p className="text-sm text-zinc-500">Loading...</p>}
-                    {changelog.map((entry, idx) => (
-                      <div key={idx}>
-                        <a href={entry.link} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">
-                          {entry.title}
-                        </a>
-                        <div className="text-xs text-zinc-400">{entry.pubDate}</div>
-                        <div className="text-sm text-zinc-700 dark:text-zinc-300">
-                          <ReactMarkdown>{entry.content}</ReactMarkdown>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  
+                  <ChangelogContent workspaceId={workspace.groupId} />
                 </div>
               </Dialog.Panel>
             </div>
