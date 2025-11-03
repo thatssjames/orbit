@@ -7,13 +7,20 @@ import { Menu, Listbox, Dialog } from "@headlessui/react"
 import { useRouter } from "next/router"
 import {
   IconHome,
-  IconWall,
+  IconHomeFilled,
+  IconMessage2,
+  IconMessage2Filled,
   IconClipboardList,
-  IconSpeakerphone,
-  IconUsers,
+  IconClipboardListFilled,
+  IconBell,
+  IconBellFilled,
+  IconUser,
+  IconUserFilled,
   IconSettings,
+  IconSettingsFilled,
   IconChevronDown,
   IconFileText,
+  IconFileTextFilled,
   IconCheck,
   IconBuildingCommunity,
   IconChevronLeft,
@@ -21,8 +28,10 @@ import {
   IconSun,
   IconMoon,
   IconX,
-  IconCalendarTime,
+  IconClock,
+  IconClockFilled,
   IconTrophy,
+  IconTrophyFilled,
 } from "@tabler/icons-react"
 import axios from "axios"
 import clsx from "clsx"
@@ -35,10 +44,52 @@ interface SidebarProps {
   setIsCollapsed: (value: boolean) => void
 }
 
+const ChangelogContent: React.FC<{ workspaceId: number }> = ({ workspaceId }) => {
+  const [entries, setEntries] = useState<
+    { title: string; link: string; pubDate: string; content: string }[]
+  >([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/changelog')
+      .then(res => res.json())
+      .then(data => {
+        setEntries(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [workspaceId]);
+
+  if (loading) return <p className="text-sm text-zinc-500">Loading...</p>;
+  if (!entries.length) return <p className="text-sm text-zinc-500">No entries found.</p>;
+
+  return (
+    <>
+      {entries.map((entry, idx) => (
+        <div key={idx}>
+          <a
+            href={entry.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-primary hover:underline"
+          >
+            {entry.title}
+          </a>
+          <div className="text-xs text-zinc-400">{entry.pubDate}</div>
+          <div className="text-sm text-zinc-700 dark:text-zinc-300">
+            <ReactMarkdown>{entry.content}</ReactMarkdown>
+          </div>
+        </div>
+      ))}
+    </>
+  );
+};
+
 const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [login, setLogin] = useRecoilState(loginState)
   const [workspace, setWorkspace] = useRecoilState(workspacestate)
   const [theme, setTheme] = useRecoilState(themeState)
+  const [showOrbitInfo, setShowOrbitInfo] = useState(false);
   const [showCopyright, setShowCopyright] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [showChangelog, setShowChangelog] = useState(false);
@@ -60,27 +111,18 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     }
   }, [isMobileMenuOpen])
 
-  const pages = [
-    { name: "Home", href: "/workspace/[id]", icon: IconHome },
-    { name: "Wall", href: "/workspace/[id]/wall", icon: IconWall },
-    {
-      name: "Activity",
-      href: "/workspace/[id]/activity",
-      icon: IconClipboardList,
-      accessible: true,
-    },
-    {
-      name: "Leaderboard",
-      href: "/workspace/[id]/leaderboard",
-      icon: IconTrophy,
-      accessible: workspace.yourPermission.includes("view_entire_groups_activity"),
-    },
-    {
-      name: "Notices",
-      href: "/workspace/[id]/notices",
-      icon: IconCalendarTime,
-      accessible: true,
-    },
+  const pages: {
+    name: string
+    href: string
+    icon: React.ElementType
+    filledIcon?: React.ElementType
+    accessible?: boolean
+  }[] = [
+    { name: "Home", href: "/workspace/[id]", icon: IconHome, filledIcon: IconHomeFilled },
+    { name: "Wall", href: "/workspace/[id]/wall", icon: IconMessage2, filledIcon: IconMessage2Filled },
+    { name: "Activity", href: "/workspace/[id]/activity", icon: IconClipboardList, filledIcon: IconClipboardListFilled, accessible: true },
+    { name: "Leaderboard", href: "/workspace/[id]/leaderboard", icon: IconTrophy, filledIcon: IconTrophyFilled, accessible: workspace.yourPermission.includes("view_entire_groups_activity") },
+    { name: "Notices", href: "/workspace/[id]/notices", icon: IconClock, filledIcon: IconClockFilled, accessible: true },
     ...(alliesEnabled ? [{
       name: "Allies",
       href: "/workspace/[id]/allies",
@@ -90,28 +132,13 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     ...(sessionsEnabled ? [{
       name: "Sessions",
       href: "/workspace/[id]/sessions",
-      icon: IconSpeakerphone,
+      icon: IconBell,
       accessible: true,
     }] : []),
-    {
-      name: "Staff",
-      href: "/workspace/[id]/views",
-      icon: IconUsers,
-      accessible: workspace.yourPermission.includes("view_members"),
-    },
-    ...(docsEnabled ? [{
-      name: "Docs",
-      href: "/workspace/[id]/docs",
-      icon: IconFileText,
-      accessible: true,
-    }] : []),
-    {
-      name: "Settings",
-      href: "/workspace/[id]/settings",
-      icon: IconSettings,
-      accessible: workspace.yourPermission.includes("admin"),
-    },
-  ]
+    { name: "Staff", href: "/workspace/[id]/views", icon: IconUser, filledIcon: IconUserFilled, accessible: workspace.yourPermission.includes("view_members") },
+    ...(docsEnabled ? [{ name: "Docs", href: "/workspace/[id]/docs", icon: IconFileText, filledIcon: IconFileTextFilled, accessible: true }] : []),
+    { name: "Settings", href: "/workspace/[id]/settings", icon: IconSettings, filledIcon: IconSettingsFilled, accessible: workspace.yourPermission.includes("admin") },
+  ];
 
   const gotopage = (page: string) => {
     router.push(page.replace("[id]", workspace.groupId.toString()))
@@ -234,18 +261,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
           )}
         >
           <div className="h-full flex flex-col p-3 overflow-y-auto">
-            <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className="grid place-content-center p-2 mb-4 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700"
-            >
-              <IconChevronLeft
-                className={clsx(
-                  "w-5 h-5 text-zinc-500 dark:text-white transition-transform",
-                  isCollapsed && "rotate-180",
-                )}
-              />
-            </button>
-
             <div className="relative">
               <Listbox
                 value={workspace.groupId}
@@ -264,139 +279,178 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               >
                 <Listbox.Button
                   className={clsx(
-                    "w-full flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700",
-                    isCollapsed && "justify-center",
+                    "w-full flex items-center gap-3 p-2 rounded-lg transition-all duration-300",
+                    "hover:bg-[color:rgb(var(--group-theme)/0.1)] hover:text-[color:rgb(var(--group-theme))]",
+                    "dark:hover:bg-zinc-700",
+                    isCollapsed && "justify-center"
                   )}
                 >
-                  <div className="w-10 h-10 flex-shrink-0">
-                    <img
-                      src={workspace.groupThumbnail || "/favicon-32x32.png"}
-                      alt=""
-                      className="w-full h-full rounded-lg object-cover"
-                    />
-                  </div>
+                  <img
+                    src={workspace.groupThumbnail || "/favicon-32x32.png"}
+                    alt=""
+                    className={clsx(
+                      "w-10 h-10 rounded-lg object-cover transition-all duration-300",
+                      isCollapsed && "scale-90 opacity-80"
+                    )}
+                  />
                   {!isCollapsed && (
-                    <>
-                      <div className="flex-1 text-left">
-                        <p className="text-sm font-medium truncate dark:text-white">{workspace.groupName}</p>
-                        <p className="text-xs text-zinc-500 dark:text-white">Switch workspace</p>
-                      </div>
-                      <IconChevronDown className="w-4 h-4 text-zinc-400 dark:text-white flex-shrink-0" />
-                    </>
+                    <div className="flex-1 min-w-0 text-left transition-all duration-300">
+                      <p className="text-sm font-medium truncate dark:text-white max-w-full">
+                        {workspace.groupName}
+                      </p>
+                      <p className="text-xs text-zinc-500 dark:text-white truncate max-w-full">
+                        Switch workspace
+                      </p>
+                    </div>
+                  )}
+                  {!isCollapsed && (
+                    <IconChevronDown className="w-4 h-4 text-zinc-400 dark:text-white transition-all duration-300" />
                   )}
                 </Listbox.Button>
-                <div className={clsx("absolute top-0 z-50 w-64 mt-14", isCollapsed ? "left-full ml-2" : "left-0")}>
-                  <Listbox.Options className="bg-white dark:bg-zinc-800 rounded-lg shadow-lg border dark:border-zinc-700 max-h-64 overflow-auto">
-                    {login?.workspaces?.map((ws) => (
-                      <Listbox.Option
-                        key={ws.groupId}
-                        value={ws.groupId}
-                        className={({ active }) =>
-                          clsx("flex items-center gap-3 px-3 py-2 cursor-pointer", active && "bg-primary/10")
-                        }
-                      >
-                        <img
-                          src={ws.groupThumbnail || "/placeholder.svg"}
-                          alt=""
-                          className="w-8 h-8 rounded-lg object-cover"
-                        />
-                        <span className="flex-1 truncate text-sm dark:text-white">{ws.groupName}</span>
-                        {workspace.groupId === ws.groupId && <IconCheck className="w-5 h-5 text-primary" />}
-                      </Listbox.Option>
-                    ))}
-                  </Listbox.Options>
-                </div>
+              
+                <Listbox.Options
+                  className={clsx(
+                    "absolute top-0 z-50 w-64 mt-14 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border dark:border-zinc-700 max-h-64 overflow-auto"
+                  )}
+                >
+                  {login?.workspaces && login.workspaces.length > 1 ? (
+                    login.workspaces
+                      .filter(ws => ws.groupId !== workspace.groupId)
+                      .map((ws) => (
+                        <Listbox.Option
+                          key={ws.groupId}
+                          value={ws.groupId}
+                          className={({ active }) =>
+                            clsx(
+                              "flex items-center gap-3 px-3 py-2 cursor-pointer rounded-md transition duration-200",
+                              active && "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))]"
+                            )
+                          }
+                        >
+                          <img
+                            src={ws.groupThumbnail || "/placeholder.svg"}
+                            alt=""
+                            className="w-8 h-8 rounded-lg object-cover transition duration-200"
+                          />
+                          <span className="flex-1 truncate text-sm dark:text-white">{ws.groupName}</span>
+                          {workspace.groupId === ws.groupId && <IconCheck className="w-5 h-5 text-primary" />}
+                        </Listbox.Option>
+                      ))
+                  ) : (
+                    <div className="px-3 py-2 text-sm text-zinc-500 dark:text-zinc-400">
+                      No other workspaces
+                    </div>
+                  )}
+                </Listbox.Options>
               </Listbox>
             </div>
 
             <nav className="flex-1 space-y-1 mt-4">
-              {pages.map(
-                (page) =>
-                  (page.accessible === undefined || page.accessible) && (
-                    <button
-                      key={page.name}
-                      onClick={() => gotopage(page.href)}
-                      className={clsx(
-                        "w-full gap-3 px-2 py-2 rounded-lg text-sm font-medium",
+              {pages.map((page) =>
+                (page.accessible === undefined || page.accessible) && (
+                  <button
+                    key={page.name}
+                    onClick={() => gotopage(page.href)}
+                    className={clsx(
+                      "w-full gap-3 px-2 py-2 rounded-lg text-sm font-medium transition-all duration-300",
+                      router.asPath === page.href.replace("[id]", workspace.groupId.toString())
+                        ? "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))] font-semibold"
+                        : "text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-700",
+                      isCollapsed ? "grid place-content-center" : "flex gap-2 items-center",
+                    )}
+                  >
+                    {(() => {
+                      const IconComponent: React.ElementType =
                         router.asPath === page.href.replace("[id]", workspace.groupId.toString())
-                          ? "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))] font-semibold"
-                          : "text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-700",
-                        isCollapsed ? "grid place-content-center" : "flex gap-2 items-center",
-                      )}
-                    >
-                      <page.icon className="w-5 h-5" />
-                      {!isCollapsed && <span>{page.name}</span>}
-                    </button>
-                  ),
+                          ? page.filledIcon || page.icon
+                          : page.icon;
+                      return <IconComponent className="w-5 h-5" />;
+                    })()}
+                    {!isCollapsed && <span>{page.name}</span>}
+                  </button>
+                )
               )}
             </nav>
 
-            <div className="mt-auto">
-              <button
-                onClick={toggleTheme}
+            <Menu as="div" className="relative">
+              <Menu.Button
                 className={clsx(
-                  "mb-4 p-2 rounded-lg flex items-center gap-2 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-700",
-                  isCollapsed ? "justify-center" : "justify-start",
+                  "w-full flex items-center gap-3 p-2 rounded-lg transition-all duration-300",
+                  "hover:bg-[color:rgb(var(--group-theme)/0.1)] hover:text-[color:rgb(var(--group-theme))]",
+                  "dark:hover:bg-zinc-700",
+                  isCollapsed ? "justify-center" : "justify-start"
                 )}
               >
-                {theme === "dark" ? <IconSun className="w-5 h-5" /> : <IconMoon className="w-5 h-5" />}
-                {!isCollapsed && <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>}
-              </button>
-
-              <Menu as="div" className="relative">
-                <Menu.Button
+                <img
+                  src={login?.thumbnail || "/placeholder.svg"}
+                  alt=""
                   className={clsx(
-                    "w-full flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700",
-                    isCollapsed && "justify-center",
+                    "w-10 h-10 rounded-lg object-cover transition-all duration-300",
+                    isCollapsed && "scale-90 opacity-80"
                   )}
-                >
-                  <img
-                    src={login?.thumbnail || "/placeholder.svg"}
-                    alt=""
-                    className="w-10 h-10 rounded-lg object-cover"
-                  />
-                  {!isCollapsed && (
-                    <>
-                      <div className="flex-1 text-left">
-                        <p className="text-sm font-medium dark:text-white truncate">{login?.displayname}</p>
-                        <p className="text-xs text-zinc-500 dark:text-white">Manage account</p>
-                      </div>
-                      <IconChevronDown className="w-4 h-4 text-zinc-400 dark:text-white" />
-                    </>
-                  )}
-                </Menu.Button>
-                <Menu.Items className="absolute bottom-14 left-0 w-full bg-white dark:bg-zinc-700 rounded-lg shadow-lg z-50 py-2">
-                  <Menu.Item>
-                    {({ active }) => (
-                      <button
-                        onClick={logout}
-                        className={clsx(
-                          "w-full text-left px-4 py-2 text-sm text-red-500",
-                          active ? "bg-zinc-100 dark:bg-zinc-600" : "",
-                        )}
-                      >
-                        Logout
-                      </button>
-                    )}
-                  </Menu.Item>
-                </Menu.Items>
-              </Menu>
-
-              {!isCollapsed && (
-                <>
-                  <button 
-                    onClick={() => setShowCopyright(true)} 
-                    className="mt-4 text-left text-xs text-zinc-500 hover:text-primary"
-                  >
-                    © Copyright Notices
-                  </button>
-
-                  <div className="mt-2 text-xs text-zinc-500">
-                    Orbit v{packageJson.version} - <button onClick={() => setShowChangelog(true)} className="mt-2 text-left text-xs text-zinc-500 hover:text-primary">Changelog</button>
+                />
+                {!isCollapsed && (
+                  <div className="flex-1 min-w-0 text-left transition-all duration-300">
+                    <p className="text-sm font-medium truncate dark:text-white">{login?.displayname}</p>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
+                      Manage account
+                    </p>
                   </div>
-                </>
-              )}
-            </div>
+                )}
+                {!isCollapsed && (
+                  <IconChevronDown className="w-4 h-4 text-zinc-400 dark:text-white transition-all duration-300" />
+                )}
+              </Menu.Button>
+          
+              <Menu.Items className="absolute bottom-14 left-0 w-full bg-white dark:bg-zinc-700 rounded-lg shadow-lg z-50 py-2">
+                  <Menu.Item>
+                  {({ active }) => (
+                    <button
+                      onClick={toggleTheme}
+                      className={clsx(
+                        "w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-white transition-all duration-200",
+                        active && "bg-zinc-100 dark:bg-zinc-600"
+                      )}
+                    >
+                      {theme === "dark" ? (
+                        <div className="flex items-center gap-2">
+                          <IconSun className="w-4 h-4" /> Light Mode
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <IconMoon className="w-4 h-4" /> Dark Mode
+                        </div>
+                      )}
+                    </button>
+                  )}
+                </Menu.Item>
+                
+                <Menu.Item>
+                  {({ active }) => (
+                    <button
+                      onClick={logout}
+                      className={clsx(
+                        "w-full text-left px-4 py-2 text-sm text-red-500 transition-all duration-200",
+                        active && "bg-red-50 dark:bg-red-900/40"
+                      )}
+                    >
+                      Logout
+                    </button>
+                  )}
+                </Menu.Item>
+              </Menu.Items>
+            </Menu>
+          
+            {!isCollapsed && (
+              <button
+                onClick={() => {
+                  setShowOrbitInfo(true);
+                }}
+                className="mt-4 w-full text-left text-xs text-zinc-500 hover:text-primary transition-all duration-300"
+              >
+                © Copyright Notices
+              </button>
+            )}
           </div>
 
           <Dialog
@@ -438,6 +492,58 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       Copyright © 2022 Tovy. All rights reserved.
                     </p>
                   </div>
+                </div>
+              </Dialog.Panel>
+            </div>
+          </Dialog>
+
+          <Dialog
+            open={showOrbitInfo}
+            onClose={() => setShowOrbitInfo(false)}
+            className="relative z-50"
+          >
+            <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+          
+            <div className="fixed inset-0 flex items-center justify-center p-4">
+              <Dialog.Panel className="mx-auto max-w-lg rounded-lg bg-white dark:bg-zinc-800 p-6 shadow-xl transition-all duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <Dialog.Title className="text-lg font-medium text-zinc-900 dark:text-white">
+                    © Copyright Notices
+                  </Dialog.Title>
+                  <button
+                    onClick={() => setShowOrbitInfo(false)}
+                    className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-all duration-300"
+                  >
+                    <IconX className="w-5 h-5 text-zinc-500" />
+                  </button>
+                </div>
+          
+                <div className="mb-4">
+                  <p className="text-sm font-medium text-zinc-900 dark:text-white mb-1">
+                    Orbit
+                  </p>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                    © 2025 Planetary — All rights reserved.
+                  </p>
+                </div>
+          
+                <div className="border-t border-zinc-300 dark:border-zinc-700 my-4" />
+          
+                <div className="mb-4">
+                  <p className="text-sm font-medium text-zinc-900 dark:text-white mb-1">
+                    Original Tovy Project
+                  </p>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                    © 2022 Tovy — All rights reserved.
+                  </p>
+                </div>
+          
+                <div className="border-t border-zinc-300 dark:border-zinc-700 my-4" />
+          
+                <div className="max-h-64 overflow-y-auto space-y-4">
+                  <p className="font-semibold text-primary">Changelog</p>
+                  
+                  <ChangelogContent workspaceId={workspace.groupId} />
                 </div>
               </Dialog.Panel>
             </div>
