@@ -454,6 +454,13 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 © Copyright Notices
               </button>
             )}
+
+            {!isCollapsed && (
+              <div className="mt-2 text-xs text-zinc-500">
+                Orbit v{packageJson.version} - <button onClick={() => setShowChangelog(true)} className="mt-2 text-left text-xs text-zinc-500 hover:text-primary">Changelog</button>
+              </div>
+            )}
+			
           </div>
 
           <Dialog
@@ -540,14 +547,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     © 2022 Tovy — All rights reserved.
                   </p>
                 </div>
-          
-                <div className="border-t border-zinc-300 dark:border-zinc-700 my-4" />
-          
-                <div className="max-h-64 overflow-y-auto space-y-4">
-                  <p className="font-semibold text-primary">Changelog</p>
-                  
-                  <ChangelogContent workspaceId={workspace.groupId} />
-                </div>
               </Dialog.Panel>
             </div>
           </Dialog>
@@ -566,8 +565,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                   </Dialog.Title>
                   <button
                     onClick={() => setShowChangelog(false)}
-                    className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700"
-                  >
+                    className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700">
                     <IconX className="w-5 h-5 text-zinc-500" />
                   </button>
                 </div>
