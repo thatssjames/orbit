@@ -29,6 +29,10 @@ type Data = {
 	}[]
 }
 
+// Simple in-memory cache to prevent excessive database queries
+const userCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_DURATION = 30000; // 30 seconds
+
 export default withSessionRoute(handler);
 
 export async function handler(
@@ -38,33 +42,38 @@ export async function handler(
 	if (req.method !== 'GET') return res.status(405).json({ success: false, error: 'Method not allowed' })
 	if (!await prisma.workspace.count()) return res.status(400).json({ success: false, error: 'Workspace not setup' })
 	if (!req.session.userid) return res.status(401).json({ success: false, error: 'Not logged in' });
+	
+	const userId = req.session.userid;
+	const cacheKey = `user_${userId}`;
+	const now = Date.now();
+	const cached = userCache.get(cacheKey);
+	if (cached && (now - cached.timestamp) < CACHE_DURATION) {
+		return res.status(200).json(cached.data);
+	}
+
 	const dbuser = await prisma.user.findUnique({
 		where: {
-			userid: req.session.userid
-		}
-	});
-
-	const user: User = {
-		userId: req.session.userid,
-		username: await getUsername(req.session.userid),
-		displayname: await getDisplayName(req.session.userid),
-		canMakeWorkspace: dbuser?.isOwner || false,
-		thumbnail: await getThumbnail(req.session.userid),
-		registered: dbuser?.registered || false,
-		birthdayDay: dbuser?.birthdayDay ?? null,
-		birthdayMonth: dbuser?.birthdayMonth ?? null,
-	}
-	const tovyuser = await prisma.user.findUnique({
-		where: {
-			userid: req.session.userid
+			userid: userId
 		},
 		include: {
 			roles: true
 		}
-	})
+	});
+
+	const user: User = {
+		userId: userId,
+		username: await getUsername(userId),
+		displayname: await getDisplayName(userId),
+		canMakeWorkspace: dbuser?.isOwner || false,
+		thumbnail: await getThumbnail(userId),
+		registered: dbuser?.registered || false,
+		birthdayDay: dbuser?.birthdayDay ?? null,
+		birthdayMonth: dbuser?.birthdayMonth ?? null,
+	}
+	
 	let roles: any[] = [];
-	if (tovyuser?.roles.length) {
-		for (const role of tovyuser.roles) {
+	if (dbuser?.roles?.length) {
+		for (const role of dbuser.roles) {
 			roles.push({
 				groupId: role.workspaceGroupId,
 				groupThumbnail: await noblox.getLogo(role.workspaceGroupId),
@@ -74,15 +83,26 @@ export async function handler(
 	};
 
 	await getRegistry((req.headers.host as string))
-	res.status(200).json({ success: true, user, workspaces: roles })
-	await prisma.user.update({
-		where: {
-			userid: req.session.userid
-		},
-		data: {
-			picture: await getThumbnail(req.session.userid),
-			username: await getUsername(req.session.userid),
-			registered: true
+	
+	const response = { success: true, user, workspaces: roles };
+	userCache.set(cacheKey, { data: response, timestamp: now });
+	
+	res.status(200).json(response);
+	setImmediate(async () => {
+		try {
+			await prisma.user.update({
+				where: {
+					userid: userId
+				},
+				data: {
+					picture: await getThumbnail(userId),
+					username: await getUsername(userId),
+					registered: true
+				}
+			});
+			userCache.delete(cacheKey);
+		} catch (error) {
+			console.error('Error updating user info:', error);
 		}
 	});
 }

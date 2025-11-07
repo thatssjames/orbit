@@ -95,14 +95,7 @@ function getRGBFromTailwindColor(tw: any): string {
 
 function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<any>(null);
   const Layout = Component.layout || (({ children }: { children: React.ReactNode }) => <>{children}</>)
-
-  useEffect(() => {
-    axios.get("/api/@me").then(res => {
-      setUser(res.data.user || res.data);
-    });
-  }, []);
 
   return (
     <RecoilRoot>

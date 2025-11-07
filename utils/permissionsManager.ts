@@ -10,6 +10,9 @@ import * as noblox from "noblox.js";
 import { getConfig } from "./configEngine";
 import { getThumbnail } from "./userinfoEngine";
 
+const permissionsCache = new Map<string, { data: any; timestamp: number }>();
+const PERMISSIONS_CACHE_DURATION = 120000;
+
 type MiddlewareData = {
   handler: NextApiHandler;
   next: any;
@@ -45,6 +48,16 @@ export function withPermissionCheck(
         .status(400)
         .json({ success: false, error: "Missing required fields" });
     const workspaceId = parseInt(req.query.id as string);
+    const cacheKey = `permissions_${uid}_${workspaceId}`;
+    const now = Date.now();
+    const cached = permissionsCache.get(cacheKey);
+    if (cached && (now - cached.timestamp) < PERMISSIONS_CACHE_DURATION) {
+      const userrole = cached.data;
+      if (userrole.isOwnerRole) return handler(req, res);
+      if (!permission) return handler(req, res);
+      if (userrole.permissions?.includes(permission)) return handler(req, res);
+      return res.status(401).json({ success: false, error: "Unauthorized" });
+    }
 
     const user = await prisma.user.findFirst({
       where: {
@@ -68,6 +81,8 @@ export function withPermissionCheck(
     console.log("User role:", userrole);
     if (!userrole)
       return res.status(401).json({ success: false, error: "Unauthorized" });
+    permissionsCache.set(cacheKey, { data: userrole, timestamp: now });
+    
     if (userrole.isOwnerRole) return handler(req, res);
     if (!permission) return handler(req, res);
     if (userrole.permissions?.includes(permission)) return handler(req, res);
@@ -82,7 +97,6 @@ export function withPermissionCheckSsr(
   return withSessionSsr(async (context) => {
     const { req, res, query } = context;
     const uid = req.session.userid;
-
     const PLANETARY_CLOUD_URL = process.env.PLANETARY_CLOUD_URL;
     const PLANETARY_CLOUD_SERVICE_KEY = process.env.PLANETARY_CLOUD_SERVICE_KEY;
     if (
@@ -112,6 +126,21 @@ export function withPermissionCheckSsr(
         },
       };
     const workspaceId = parseInt(query.id as string);
+    const cacheKey = `permissions_${uid}_${workspaceId}`;
+    const now = Date.now();
+    const cached = permissionsCache.get(cacheKey);
+    if (cached && (now - cached.timestamp) < PERMISSIONS_CACHE_DURATION) {
+      const userrole = cached.data;
+      if (userrole.isOwnerRole) return handler(context);
+      if (!permission) return handler(context);
+      if (userrole.permissions?.includes(permission)) return handler(context);
+      return {
+        redirect: {
+          destination: "/",
+          permanent: false,
+        },
+      };
+    }
 
     const user = await prisma.user.findFirst({
       where: {
@@ -129,7 +158,25 @@ export function withPermissionCheckSsr(
       },
     });
 
-    // Check if any role has the required permission
+    if (!user) {
+      return {
+        redirect: {
+          destination: "/",
+          permanent: false,
+        },
+      };
+    }
+
+    const userrole = user.roles[0];
+    if (!userrole) {
+      return {
+        redirect: {
+          destination: "/",
+          permanent: false,
+        },
+      };
+    }
+    permissionsCache.set(cacheKey, { data: userrole, timestamp: now });
     const hasPermission =
       !permission ||
       user?.roles.some(
@@ -245,8 +292,6 @@ export async function checkGroupRoles(groupID: number) {
               );
               return [];
             });
-
-          // Update ranks for existing users
           for (const user of users) {
             try {
               if (
@@ -290,7 +335,6 @@ export async function checkGroupRoles(groupID: number) {
           }
 
           if (role) {
-            // Remove roles from users who no longer have them
             for (const user of users) {
               try {
                 if (!user.roles.find((r) => r.id === role?.id)) continue;
@@ -334,7 +378,6 @@ export async function checkGroupRoles(groupID: number) {
               }
             }
 
-            // Add roles to new members
             for (const member of members) {
               try {
                 if (

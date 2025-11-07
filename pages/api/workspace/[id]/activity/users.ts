@@ -4,6 +4,11 @@ import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager'
 import { withSessionRoute } from '@/lib/withSession'
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
+import { getConfig } from '@/utils/configEngine'
+
+const activityUsersCache = new Map<string, { data: any; timestamp: number }>();
+const ACTIVITY_CACHE_DURATION = 30000;
+
 type Data = {
 	success: boolean
 	message?: object;
@@ -29,16 +34,26 @@ export async function handler(
 	if (req.method !== 'GET') return res.status(405).json({ success: false, error: 'Method not allowed' });
 	if (!req.session.userid) return res.status(401).json({ success: false, error: 'Not logged in' });
 
+	const workspaceId = parseInt(req.query.id as string);
+	const cacheKey = `activity_users_${workspaceId}`;
+	const now = Date.now();
+	const cached = activityUsersCache.get(cacheKey);
+	if (cached && (now - cached.timestamp) < ACTIVITY_CACHE_DURATION) {
+		return res.status(200).json({ success: true, message: cached.data });
+	}
+	const activityConfig = await getConfig('activity', workspaceId);
+	const leaderboardRank = activityConfig?.leaderboardRole;
+
 	const sessions = await prisma.activitySession.findMany({
 		where: {
-			workspaceGroupId: parseInt(req.query.id as string)
+			workspaceGroupId: workspaceId
 		}
 	});
 	
 	const activeSession = await prisma.activitySession.findMany({
 		where: {
 			active: true,
-			workspaceGroupId: parseInt(req.query.id as string)
+			workspaceGroupId: workspaceId
 		},
 		select: {
 			userId: true
@@ -64,15 +79,33 @@ export async function handler(
 		}
 	})
 
-	const users = await prisma.user.findMany({
-		where: {},
+	let userQuery: any = {
 		select: {
 			userid: true,
 			username: true,
 			picture: true
 		}
-	})
+	};
 
+	if (leaderboardRank) {
+		userQuery = {
+			select: {
+				userid: true,
+				username: true,
+				picture: true,
+				ranks: {
+					where: {
+						workspaceGroupId: parseInt(req.query.id as string)
+					},
+					select: {
+						rankId: true
+					}
+				}
+			}
+		};
+	}
+
+	const users = await prisma.user.findMany(userQuery);
 
 	var activeUsers: {
 		userId: number, username: string, picture: string
@@ -127,6 +160,13 @@ export async function handler(
 	for (const min of combinedMinutes) {
 		const minSum = min.ms.reduce((partial, a) => partial + a, 0);
 		const found = users.find(x => x.userid === BigInt(min.userId));
+		if (leaderboardRank && found) {
+			const userRank = (found as any).ranks?.[0]?.rankId;
+			if (!userRank || Number(userRank) < leaderboardRank) {
+				continue;
+			}
+		}
+		
 		topStaff.push({
 			userId: min.userId,
 			username: found?.username || "Unknown",
@@ -137,6 +177,8 @@ export async function handler(
 	}
 
 	 const bestStaff = topStaff.sort((a, b) => b.ms - a.ms)
+	 const responseData = { activeUsers, inactiveUsers, topStaff: bestStaff };
+	 activityUsersCache.set(cacheKey, { data: responseData, timestamp: now });
 
-	return res.status(200).json({ success: true, message: { activeUsers, inactiveUsers, topStaff: bestStaff } });
+	return res.status(200).json({ success: true, message: responseData });
 }
