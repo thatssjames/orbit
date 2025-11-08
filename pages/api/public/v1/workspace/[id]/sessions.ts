@@ -80,38 +80,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       take: Number(limit),
     })
 
-    const formattedSessions = sessions.map((session) => ({
-      id: session.id,
-      date: session.date,
-      startedAt: session.startedAt,
-      ended: session.ended,
-      type: {
-        id: session.sessionType.id,
-        name: session.sessionType.name,
-        gameId: session.sessionType.gameId ? Number(session.sessionType.gameId) : null,
-      },
-      host: session.owner
-        ? {
-            userId: Number(session.owner.userid),
-            username: session.owner.username,
-            thumbnail: session.owner.picture,
-          }
-        : null,
-      participants: session.users.map((user) => ({
-        userId: Number(user.user.userid),
-        username: user.user.username,
-        thumbnail: user.user.picture,
-        slot: user.slot,
-        role: user.roleID,
-      })),
-      status: session.ended
-        ? "ended"
-        : session.startedAt
-          ? "in-progress"
-          : session.date < new Date()
-            ? "missed"
-            : "scheduled",
-    }))
+    const formattedSessions = sessions.map((session) => {
+      // Calculate end time based on session duration (use duration from session or default 30 minutes)
+      const sessionDuration = (session as any).duration || 30;
+      const endTime = new Date(new Date(session.date).getTime() + (sessionDuration * 60 * 1000));
+      
+      return {
+        id: session.id,
+        date: session.date,
+        endTime: endTime,
+        duration: sessionDuration,
+        startedAt: session.startedAt,
+        ended: session.ended,
+        type: {
+          id: session.sessionType.id,
+          name: session.sessionType.name,
+          gameId: session.sessionType.gameId ? Number(session.sessionType.gameId) : null,
+        },
+        host: session.owner
+          ? {
+              userId: Number(session.owner.userid),
+              username: session.owner.username,
+              thumbnail: session.owner.picture,
+            }
+          : null,
+        participants: session.users.map((user) => ({
+          userId: Number(user.user.userid),
+          username: user.user.username,
+          thumbnail: user.user.picture,
+          slot: user.slot,
+          role: user.roleID,
+        })),
+        status: session.ended
+          ? "ended"
+          : session.startedAt
+            ? "in-progress"
+            : session.date < new Date()
+              ? "missed"
+              : "scheduled",
+      };
+    });
 
     return res.status(200).json({
       success: true,

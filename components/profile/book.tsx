@@ -276,9 +276,11 @@ const Book: FC<Props> = ({ userBook, onRefetch }) => {
                     className="block w-full rounded-lg border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-600 text-zinc-900 dark:text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                   >
                     <option value="">Select a rank...</option>
-                    {ranks.map((rank) => (
+                    {ranks
+                      .filter((rank) => rank.rank > 0)
+                      .map((rank) => (
                       <option key={rank.id} value={rank.id}>
-                        {rank.name} (Rank {rank.rank})
+                        {rank.name}
                       </option>
                     ))}
                   </select>

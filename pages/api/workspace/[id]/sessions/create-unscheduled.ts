@@ -44,7 +44,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       .status(405)
       .json({ success: false, error: "Method not allowed" });
 
-  const { sessionTypeId, date, time, name, type, timezoneOffset } = req.body;
+  const { sessionTypeId, date, time, name, type, timezoneOffset, duration } = req.body;
 
   if (!sessionTypeId || !date || !time || !name || !type) {
     return res
@@ -85,14 +85,17 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     const offsetMinutes = timezoneOffset || 0;
     const utcDate = new Date(localDateTime.getTime() + (offsetMinutes * 60000));
 
+    const sessionData: any = {
+      name,
+      type,
+      date: utcDate,
+      sessionTypeId: sessionTypeId,
+      scheduleId: null,
+    };
+
+    sessionData.duration = duration || 30;
     const session = await prisma.session.create({
-      data: {
-        name,
-        type,
-        date: utcDate,
-        sessionTypeId: sessionTypeId,
-        scheduleId: null,
-      },
+      data: sessionData,
       include: {
         sessionType: {
           include: {

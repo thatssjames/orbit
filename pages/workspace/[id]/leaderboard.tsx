@@ -5,6 +5,9 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import { useEffect, useState, useMemo } from "react";
 import { useRecoilState } from "recoil";
+import { GetServerSideProps } from "next";
+import { withPermissionCheckSsr } from "@/utils/permissionsManager";
+import prisma from "@/utils/database";
 import {
   IconTrophy,
   IconUsers,
@@ -25,6 +28,80 @@ interface StaffMember {
   ms: number;
   messages?: number;
 }
+
+export const getServerSideProps = withPermissionCheckSsr(
+  async (context: any) => {
+    const { id } = context.query;
+    const userid = context.req.session.userid;
+
+    if (!userid) {
+      return {
+        redirect: {
+          destination: "/login",
+        },
+      };
+    }
+
+    if (!id) {
+      return {
+        notFound: true,
+      };
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        userid: userid,
+      },
+      include: {
+        roles: {
+          where: {
+            workspaceGroupId: parseInt(id as string),
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return {
+        redirect: {
+          destination: "/login",
+        },
+      };
+    }
+
+    const config = await prisma.config.findFirst({
+      where: {
+        workspaceGroupId: parseInt(id as string),
+        key: "leaderboard",
+      },
+    });
+
+    let leaderboardEnabled = false;
+    if (config?.value) {
+      let val = config.value;
+      if (typeof val === "string") {
+        try {
+          val = JSON.parse(val);
+        } catch {
+          val = {};
+        }
+      }
+      leaderboardEnabled =
+        typeof val === "object" && val !== null && "enabled" in val
+          ? (val as { enabled?: boolean }).enabled ?? false
+          : false;
+    }
+
+    if (!leaderboardEnabled) {
+      return { notFound: true };
+    }
+
+    return {
+      props: {},
+    };
+  },
+  "view_entire_groups_activity"
+);
 
 const Leaderboard: pageWithLayout = () => {
   const router = useRouter();
@@ -160,7 +237,10 @@ const Leaderboard: pageWithLayout = () => {
                       {topStaff[1].username}
                     </p>
                     <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      {Math.floor(topStaff[1].ms / 1000 / 60)} minutes
+                      {(() => {
+                        const minutes = Math.floor(topStaff[1].ms / 1000 / 60);
+                        return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+                      })()}
                     </p>
                   </div>
                 </div>
@@ -200,7 +280,10 @@ const Leaderboard: pageWithLayout = () => {
                     {topStaff[0].username}
                   </p>
                   <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                    {Math.floor(topStaff[0].ms / 1000 / 60)} minutes
+                    {(() => {
+                      const minutes = Math.floor(topStaff[0].ms / 1000 / 60);
+                      return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+                    })()}
                   </p>
                 </div>
               </div>
@@ -235,7 +318,10 @@ const Leaderboard: pageWithLayout = () => {
                       {topStaff[2].username}
                     </p>
                     <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      {Math.floor(topStaff[2].ms / 1000 / 60)} minutes
+                      {(() => {
+                        const minutes = Math.floor(topStaff[2].ms / 1000 / 60);
+                        return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+                      })()}
                     </p>
                   </div>
                 </div>
@@ -272,7 +358,10 @@ const Leaderboard: pageWithLayout = () => {
                           {user.username}
                         </p>
                         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                          {Math.floor(user.ms / 1000 / 60)} minutes
+                          {(() => {
+                            const minutes = Math.floor(user.ms / 1000 / 60);
+                            return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+                          })()}
                         </p>
                       </div>
                     </div>
@@ -330,7 +419,10 @@ const Leaderboard: pageWithLayout = () => {
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-xl text-zinc-900 dark:text-white">
-                        {Math.floor(user.ms / 1000 / 60)} minutes
+                        {(() => {
+                          const minutes = Math.floor(user.ms / 1000 / 60);
+                          return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+                        })()}
                       </p>
                     </div>
                   </div>

@@ -1,15 +1,16 @@
-"use client"
+"use client";
 
-import type React from "react"
-import type { pageWithLayout } from "@/layoutTypes"
-import { loginState, workspacestate } from "@/state"
-import Button from "@/components/button"
-import Input from "@/components/input"
-import { v4 as uuidv4 } from "uuid"
-import Workspace from "@/layouts/workspace"
-import { useRecoilState } from "recoil"
-import { useEffect, useState } from "react"
-import { Listbox } from "@headlessui/react"
+import type React from "react";
+import type { pageWithLayout } from "@/layoutTypes";
+import { loginState, workspacestate } from "@/state";
+import Button from "@/components/button";
+import Input from "@/components/input";
+import { v4 as uuidv4 } from "uuid";
+import Workspace from "@/layouts/workspace";
+import { useRecoilState } from "recoil";
+import { useEffect, useState } from "react";
+import { Listbox, Dialog, Transition } from "@headlessui/react";
+import { Fragment } from "react";
 import {
   IconCheck,
   IconChevronDown,
@@ -23,81 +24,89 @@ import {
   IconUserPlus,
   IconArrowLeft,
   IconDeviceFloppy,
-} from "@tabler/icons-react"
-import { withPermissionCheckSsr } from "@/utils/permissionsManager"
-import * as noblox from "noblox.js"
-import { useRouter } from "next/router"
-import axios from "axios"
-import prisma from "@/utils/database"
-import Switchcomponenet from "@/components/switch"
-import { useForm, FormProvider } from "react-hook-form"
-import type { GetServerSideProps, InferGetServerSidePropsType } from "next"
+} from "@tabler/icons-react";
+import { withPermissionCheckSsr } from "@/utils/permissionsManager";
+import * as noblox from "noblox.js";
+import { useRouter } from "next/router";
+import axios from "axios";
+import prisma from "@/utils/database";
+import Switchcomponenet from "@/components/switch";
+import { useForm, FormProvider } from "react-hook-form";
+import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
 
-export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(async (context) => {
-  const { id } = context.query
+export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
+  async (context) => {
+    const { id } = context.query;
 
-  let games: Array<{ name: string; id: number }> = []
-  let fallbackToManual = false
+    let games: Array<{ name: string; id: number }> = [];
+    let fallbackToManual = false;
 
-  try {
-    const fetchedGames = await noblox.getGroupGames(Number(id))
-    games = fetchedGames.map((game) => ({
-      name: game.name,
-      id: game.id,
-    }))
-  } catch (err) {
-    console.error("Failed to fetch games from noblox:", err)
-    fallbackToManual = true
-  }
-
-  const roles = await prisma.role.findMany({
-    where: {
-      workspaceGroupId: Number(id)
-    },
-    orderBy: {
-      isOwnerRole: 'desc'
+    try {
+      const fetchedGames = await noblox.getGroupGames(Number(id));
+      games = fetchedGames.map((game) => ({
+        name: game.name,
+        id: game.id,
+      }));
+    } catch (err) {
+      console.error("Failed to fetch games from noblox:", err);
+      fallbackToManual = true;
     }
-  })
 
-  return {
-    props: {
-      games,
-      roles,
-      fallbackToManual,
-    },
-  }
-}, "manage_sessions")
+    const roles = await prisma.role.findMany({
+      where: {
+        workspaceGroupId: Number(id),
+      },
+      orderBy: {
+        isOwnerRole: "desc",
+      },
+    });
 
-const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({ games, roles, fallbackToManual }) => {
-  const [login, setLogin] = useRecoilState(loginState)
-  const [activeTab, setActiveTab] = useState("basic")
-  const [enabled, setEnabled] = useState(false)
-  const [days, setDays] = useState<string[]>([])
+    return {
+      props: {
+        games,
+        roles,
+        fallbackToManual,
+      },
+    };
+  },
+  "manage_sessions"
+);
+
+const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
+  games,
+  roles,
+  fallbackToManual,
+}) => {
+  const [login, setLogin] = useRecoilState(loginState);
+  const [activeTab, setActiveTab] = useState("basic");
+  const [enabled, setEnabled] = useState(false);
+  const [days, setDays] = useState<string[]>([]);
   const form = useForm({
     mode: "onChange",
-  })
-  const [workspace, setWorkspace] = useRecoilState(workspacestate)
-  const [allowUnscheduled, setAllowUnscheduled] = useState(false)
-  const [selectedGame, setSelectedGame] = useState("")
-  const [selectedRoles, setSelectedRoles] = useState<string[]>([])
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formError, setFormError] = useState("")
-  const [frequency, setFrequency] = useState("weekly")
-  const [unscheduledDate, setUnscheduledDate] = useState("")
-  const [unscheduledTime, setUnscheduledTime] = useState("")
+  });
+  const [workspace, setWorkspace] = useRecoilState(workspacestate);
+  const [allowUnscheduled, setAllowUnscheduled] = useState(false);
+  const [selectedGame, setSelectedGame] = useState("");
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [frequency, setFrequency] = useState("weekly");
+  const [sessionLength, setSessionLength] = useState(30); // Default to 30 minutes
+  const [unscheduledDate, setUnscheduledDate] = useState("");
+  const [unscheduledTime, setUnscheduledTime] = useState("");
   const [statues, setStatues] = useState<
     {
-      name: string
-      timeAfter: number
-      color: string
-      id: string
+      name: string;
+      timeAfter: number;
+      color: string;
+      id: string;
     }[]
-  >([])
+  >([]);
   const [slots, setSlots] = useState<
     {
-      name: string
-      slots: number
-      id: string
+      name: string;
+      slots: number;
+      id: string;
     }[]
   >([
     {
@@ -105,81 +114,254 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
       slots: 1,
       id: uuidv4(),
     },
-  ])
-  const router = useRouter()
+  ]);
+  const [showOverlapModal, setShowOverlapModal] = useState(false);
+  const [overlapMessage, setOverlapMessage] = useState("");
+  const [pendingCreation, setPendingCreation] = useState<
+    (() => Promise<void>) | null
+  >(null);
+  const router = useRouter();
+
+  const checkOverlaps = async (sessionDate: Date, duration: number) => {
+    try {
+      const response = await axios.get(
+        `/api/workspace/${workspace.groupId}/sessions/all`
+      );
+      const allSessions = response.data;
+
+      const sessionStart = sessionDate.getTime();
+      const sessionEnd = sessionStart + duration * 60 * 1000;
+
+      const overlapping = allSessions.filter((session: any) => {
+        const existingStart = new Date(session.date).getTime();
+        const existingEnd =
+          existingStart + (session.duration || 30) * 60 * 1000;
+        return sessionStart < existingEnd && sessionEnd > existingStart;
+      });
+
+      return overlapping;
+    } catch (error) {
+      return [];
+    }
+  };
 
   const createSession = async () => {
-    setIsSubmitting(true)
-    setFormError("")
+    setIsSubmitting(true);
+    setFormError("");
 
     try {
       const timeValue = form.getValues().time || "00:00";
-      const [localHours, localMinutes] = timeValue.split(':').map(Number);
+      const [localHours, localMinutes] = timeValue.split(":").map(Number);
       const selectedDays: number[] = days.map((day) => {
         const dayMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         return dayMap.indexOf(day);
       });
 
-      const sessionTypeResponse = await axios.post(`/api/workspace/${workspace.groupId}/sessions/manage/new`, {
-        name: form.getValues().name,
-        description: form.getValues().description,
-        gameId: fallbackToManual ? form.getValues().gameId : selectedGame,
-        schedule: {
-          enabled,
-          days: selectedDays,
-          hours: localHours,
-          minutes: localMinutes,
-          allowUnscheduled,
-        },
-        slots,
-        statues,
-        permissions: selectedRoles,
-      })
+      const sessionTypeResponse = await axios.post(
+        `/api/workspace/${workspace.groupId}/sessions/manage/new`,
+        {
+          name: form.getValues().name,
+          description: form.getValues().description,
+          gameId: fallbackToManual ? form.getValues().gameId : selectedGame,
+          schedule: {
+            enabled,
+            days: selectedDays,
+            hours: localHours,
+            minutes: localMinutes,
+            allowUnscheduled,
+          },
+          slots,
+          statues,
+          permissions: selectedRoles,
+        }
+      );
 
       const createdSessionType = sessionTypeResponse.data.session;
 
       if (enabled && selectedDays.length > 0) {
-        await axios.post(`/api/workspace/${workspace.groupId}/sessions/create-scheduled`, {
-          sessionTypeId: createdSessionType.id,
-          name: form.getValues().name,
-          type: form.getValues().type,
-          schedule: {
-            days: selectedDays,
-            hours: localHours,
-            minutes: localMinutes,
-            frequency: frequency,
-          },
-          timezoneOffset: new Date().getTimezoneOffset(),
-        });
+        for (const dayOfWeek of selectedDays) {
+          const today = new Date();
+          const currentDay = today.getDay();
+          let daysUntilTarget = (dayOfWeek - currentDay + 7) % 7;
+          if (daysUntilTarget === 0) {
+            const scheduledTime = new Date(today);
+            scheduledTime.setHours(localHours, localMinutes, 0, 0);
+            if (today.getTime() >= scheduledTime.getTime()) {
+              daysUntilTarget = 7;
+            }
+          }
+
+          const nextOccurrence = new Date(today);
+          nextOccurrence.setDate(today.getDate() + daysUntilTarget);
+          nextOccurrence.setHours(localHours, localMinutes, 0, 0);
+
+          const overlapping = await checkOverlaps(
+            nextOccurrence,
+            sessionLength
+          );
+
+          if (overlapping.length > 0) {
+            const dayName = [
+              "Sunday",
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+            ][dayOfWeek];
+            const message = `The scheduled session on ${dayName} at ${nextOccurrence.toLocaleString()} overlaps with ${
+              overlapping.length
+            } existing session(s):\n${overlapping
+              .map(
+                (s: any) => `• ${s.name} (${new Date(s.date).toLocaleString()})`
+              )
+              .join(
+                "\n"
+              )}\n\nDo you want to create this recurring session anyway?`;
+
+            setPendingCreation(async () => {
+              await axios.post(
+                `/api/workspace/${workspace.groupId}/sessions/create-scheduled`,
+                {
+                  sessionTypeId: createdSessionType.id,
+                  name: form.getValues().name,
+                  type: form.getValues().type,
+                  schedule: {
+                    days: selectedDays,
+                    hours: localHours,
+                    minutes: localMinutes,
+                    frequency: frequency,
+                  },
+                  duration: sessionLength,
+                  timezoneOffset: new Date().getTimezoneOffset(),
+                }
+              );
+            });
+            setOverlapMessage(message);
+            setShowOverlapModal(true);
+            setIsSubmitting(false);
+            return;
+          }
+        }
+
+        await axios.post(
+          `/api/workspace/${workspace.groupId}/sessions/create-scheduled`,
+          {
+            sessionTypeId: createdSessionType.id,
+            name: form.getValues().name,
+            type: form.getValues().type,
+            schedule: {
+              days: selectedDays,
+              hours: localHours,
+              minutes: localMinutes,
+              frequency: frequency,
+            },
+            duration: sessionLength,
+            timezoneOffset: new Date().getTimezoneOffset(),
+          }
+        );
       }
 
       if (allowUnscheduled && unscheduledDate && unscheduledTime) {
-        await axios.post(`/api/workspace/${workspace.groupId}/sessions/create-unscheduled`, {
-          sessionTypeId: createdSessionType.id,
-          name: form.getValues().name,
-          type: form.getValues().type,
-          date: unscheduledDate,
-          time: unscheduledTime,
-          timezoneOffset: new Date().getTimezoneOffset(),
-        });
+        const localDateTime = new Date(
+          unscheduledDate + "T" + unscheduledTime + ":00"
+        );
+        const overlapping = await checkOverlaps(localDateTime, sessionLength);
+
+        if (overlapping.length > 0) {
+          const message = `This session overlaps with ${
+            overlapping.length
+          } existing session(s):\n${overlapping
+            .map(
+              (s: any) => `• ${s.name} (${new Date(s.date).toLocaleString()})`
+            )
+            .join("\n")}\n\nDo you want to create this session anyway?`;
+
+          setPendingCreation(async () => {
+            await axios.post(
+              `/api/workspace/${workspace.groupId}/sessions/create-unscheduled`,
+              {
+                sessionTypeId: createdSessionType.id,
+                name: form.getValues().name,
+                type: form.getValues().type,
+                date: unscheduledDate,
+                time: unscheduledTime,
+                duration: sessionLength,
+                timezoneOffset: new Date().getTimezoneOffset(),
+              }
+            );
+          });
+          setOverlapMessage(message);
+          setShowOverlapModal(true);
+          setIsSubmitting(false);
+          return;
+        }
+
+        await axios.post(
+          `/api/workspace/${workspace.groupId}/sessions/create-unscheduled`,
+          {
+            sessionTypeId: createdSessionType.id,
+            name: form.getValues().name,
+            type: form.getValues().type,
+            date: unscheduledDate,
+            time: unscheduledTime,
+            duration: sessionLength,
+            timezoneOffset: new Date().getTimezoneOffset(),
+          }
+        );
       }
 
-      router.push(`/workspace/${workspace.groupId}/sessions?refresh=true`)
+      router.push(`/workspace/${workspace.groupId}/sessions?refresh=true`);
     } catch (err: any) {
-      setFormError(err?.response?.data?.error || "Failed to create session. Please try again.")
-      window.scrollTo({ top: 0, behavior: "smooth" })
+      setFormError(
+        err?.response?.data?.error ||
+          "Failed to create session. Please try again."
+      );
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
+
+  const handleOverlapConfirm = async () => {
+    setShowOverlapModal(false);
+    setIsSubmitting(true);
+
+    try {
+      if (pendingCreation) {
+        await pendingCreation();
+        router.push(`/workspace/${workspace.groupId}/sessions?refresh=true`);
+      }
+    } catch (err: any) {
+      setFormError(
+        err?.response?.data?.error ||
+          "Failed to create session. Please try again."
+      );
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } finally {
+      setIsSubmitting(false);
+      setPendingCreation(null);
+    }
+  };
+
+  const handleOverlapCancel = () => {
+    setShowOverlapModal(false);
+    setPendingCreation(null);
+    setIsSubmitting(false);
+  };
 
   const toggleRole = (role: string) => {
-    setSelectedRoles((prev) => (prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]))
-  }
+    setSelectedRoles((prev) =>
+      prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]
+    );
+  };
 
   const toggleDay = (day: string) => {
-    setDays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]))
-  }
+    setDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+    );
+  };
 
   const newStatus = () => {
     setStatues((prev) => [
@@ -190,18 +372,27 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
         color: "green",
         id: uuidv4(),
       },
-    ])
-  }
+    ]);
+  };
 
   const deleteStatus = (id: string) => {
-    setStatues((prev) => prev.filter((status) => status.id !== id))
-  }
+    setStatues((prev) => prev.filter((status) => status.id !== id));
+  };
 
-  const updateStatus = (id: string, name: string, color: string, timeafter: number) => {
+  const updateStatus = (
+    id: string,
+    name: string,
+    color: string,
+    timeafter: number
+  ) => {
     setStatues((prev) =>
-      prev.map((status) => (status.id === id ? { ...status, name, color, timeAfter: timeafter } : status)),
-    )
-  }
+      prev.map((status) =>
+        status.id === id
+          ? { ...status, name, color, timeAfter: timeafter }
+          : status
+      )
+    );
+  };
 
   const newSlot = () => {
     setSlots((prev) => [
@@ -211,70 +402,97 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
         slots: 1,
         id: uuidv4(),
       },
-    ])
-  }
+    ]);
+  };
 
   const deleteSlot = (id: string) => {
-    setSlots((prev) => prev.filter((slot) => slot.id !== id))
-  }
+    setSlots((prev) => prev.filter((slot) => slot.id !== id));
+  };
 
   const updateSlot = (id: string, name: string, slotsAvailble: number) => {
-    setSlots((prev) => prev.map((slot) => (slot.id === id ? { ...slot, slots: slotsAvailble, name } : slot)))
-  }
+    setSlots((prev) =>
+      prev.map((slot) =>
+        slot.id === id ? { ...slot, slots: slotsAvailble, name } : slot
+      )
+    );
+  };
 
   const tabs = [
     { id: "basic", label: "Basic Info", icon: <IconInfoCircle size={18} /> },
-    { id: "scheduling", label: "Scheduling", icon: <IconCalendarEvent size={18} /> },
+    {
+      id: "scheduling",
+      label: "Scheduling",
+      icon: <IconCalendarEvent size={18} />,
+    },
     { id: "permissions", label: "Permissions", icon: <IconUsers size={18} /> },
-    { id: "statuses", label: "Statuses", icon: <IconClipboardList size={18} /> },
+    {
+      id: "statuses",
+      label: "Statuses",
+      icon: <IconClipboardList size={18} />,
+    },
     { id: "slots", label: "Slots", icon: <IconUserPlus size={18} /> },
-  ]
+  ];
 
   const isFormValid = () => {
-    if (!form.getValues().name) return false
-    if (!form.getValues().type) return false
-    if (fallbackToManual && !form.getValues().gameId) return false
-    if (!allowUnscheduled && !enabled) return false
-    if (allowUnscheduled && enabled) return false
-    if (enabled && !form.getValues().time) return false
-    if (enabled && days.length === 0) return false
-    if (allowUnscheduled && (!unscheduledDate || !unscheduledTime)) return false
+    if (!form.getValues().name) return false;
+    if (!form.getValues().type) return false;
+    if (fallbackToManual && !form.getValues().gameId) return false;
+    if (!allowUnscheduled && !enabled) return false;
+    if (allowUnscheduled && enabled) return false;
+    if (enabled && !form.getValues().time) return false;
+    if (enabled && days.length === 0) return false;
+    if (allowUnscheduled && (!unscheduledDate || !unscheduledTime))
+      return false;
 
-    return true
-  }
+    return true;
+  };
 
   const getCompletionStatus = () => {
-    let completed = 0
-    const total = 5
+    let completed = 0;
+    const total = 5;
 
-    if (form.getValues().name && (selectedGame || (fallbackToManual && form.getValues().gameId))) {
-      completed++
+    if (
+      form.getValues().name &&
+      (selectedGame || (fallbackToManual && form.getValues().gameId))
+    ) {
+      completed++;
     }
-    completed++
-    completed++
-    completed++
-    completed++
+    completed++;
+    completed++;
+    completed++;
+    completed++;
 
-    return Math.round((completed / total) * 100)
-  }
+    return Math.round((completed / total) * 100);
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold dark:text-white">Create New Session</h1>
-          <p className="text-zinc-500 dark:text-zinc-400 mt-1">Set up a new session for your group's activities</p>
+          <h1 className="text-2xl md:text-3xl font-bold dark:text-white">
+            Create New Session
+          </h1>
+          <p className="text-zinc-500 dark:text-zinc-400 mt-1">
+            Set up a new session for your group's activities
+          </p>
         </div>
       </div>
 
       {/* Error message */}
       {formError && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 dark:bg-red-900/20 dark:border-red-800">
-          <IconAlertCircle className="text-red-500 mt-0.5 flex-shrink-0" size={18} />
+          <IconAlertCircle
+            className="text-red-500 mt-0.5 flex-shrink-0"
+            size={18}
+          />
           <div>
-            <h3 className="font-medium text-red-800 dark:text-red-400">Error</h3>
-            <p className="text-red-600 dark:text-red-300 text-sm">{formError}</p>
+            <h3 className="font-medium text-red-800 dark:text-red-400">
+              Error
+            </h3>
+            <p className="text-red-600 dark:text-red-300 text-sm">
+              {formError}
+            </p>
           </div>
         </div>
       )}
@@ -309,7 +527,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                   <IconInfoCircle className="text-primary" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold dark:text-white">Basic Information</h2>
+                  <h2 className="text-xl font-semibold dark:text-white">
+                    Basic Information
+                  </h2>
                   <p className="text-zinc-500 dark:text-zinc-400 mt-1">
                     Enter the essential details about your session type
                   </p>
@@ -320,13 +540,18 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                 <div>
                   <Input
                     {...form.register("name", {
-                      required: { value: true, message: "Session name is required" },
+                      required: {
+                        value: true,
+                        message: "Session name is required",
+                      },
                     })}
                     label="Session Name"
                     placeholder="Weekly Training Session"
                   />
                   {form.formState.errors.name && (
-                    <p className="mt-1 text-sm text-red-500">{form.formState.errors.name.message as string}</p>
+                    <p className="mt-1 text-sm text-red-500">
+                      {form.formState.errors.name.message as string}
+                    </p>
                   )}
                 </div>
 
@@ -345,9 +570,13 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                   </label>
                   <select
                     {...form.register("type", {
-                      required: { value: true, message: "Session type is required" },
+                      required: {
+                        value: true,
+                        message: "Session type is required",
+                      },
                     })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white">
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white"
+                  >
                     <option value="">Select type...</option>
                     <option value="shift">Shift</option>
                     <option value="training">Training</option>
@@ -355,20 +584,29 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                     <option value="other">Other</option>
                   </select>
                   {form.formState.errors.type && (
-                    <p className="mt-1 text-sm text-red-500">{form.formState.errors.type.message as string}</p>
+                    <p className="mt-1 text-sm text-red-500">
+                      {form.formState.errors.type.message as string}
+                    </p>
                   )}
                 </div>
 
                 {games.length > 0 ? (
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Game</label>
+                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                      Game
+                    </label>
                     <Listbox as="div" className="relative">
                       <Listbox.Button className="flex items-center justify-between w-full px-4 py-2.5 text-left bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm">
                         <span className="block truncate text-zinc-700 dark:text-white">
-                          {games?.find((game: { name: string; id: number }) => game.id === Number(selectedGame))
-                            ?.name || "Select a game"}
+                          {games?.find(
+                            (game: { name: string; id: number }) =>
+                              game.id === Number(selectedGame)
+                          )?.name || "Select a game"}
                         </span>
-                        <IconChevronDown size={18} className="text-zinc-500 dark:text-zinc-400" />
+                        <IconChevronDown
+                          size={18}
+                          className="text-zinc-500 dark:text-zinc-400"
+                        />
                       </Listbox.Button>
                       <Listbox.Options className="absolute z-10 w-full mt-1 overflow-auto bg-white dark:bg-zinc-800 rounded-lg shadow-lg max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none">
                         {games.map((game: { name: string; id: number }) => (
@@ -378,13 +616,19 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                             onClick={() => setSelectedGame(game.id.toString())}
                             className={({ active }) =>
                               `${
-                                active ? "bg-primary/10 text-primary" : "text-zinc-900 dark:text-white"
+                                active
+                                  ? "bg-primary/10 text-primary"
+                                  : "text-zinc-900 dark:text-white"
                               } cursor-pointer select-none relative py-2.5 pl-10 pr-4`
                             }
                           >
                             {({ selected, active }) => (
                               <>
-                                <span className={`${selected ? "font-medium" : "font-normal"} block truncate`}>
+                                <span
+                                  className={`${
+                                    selected ? "font-medium" : "font-normal"
+                                  } block truncate`}
+                                >
                                   {game.name}
                                 </span>
                                 {selectedGame === game.id.toString() && (
@@ -402,13 +646,21 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                           onClick={() => setSelectedGame("")}
                           className={({ active }) =>
                             `${
-                              active ? "bg-primary/10 text-primary" : "text-zinc-900 dark:text-white"
+                              active
+                                ? "bg-primary/10 text-primary"
+                                : "text-zinc-900 dark:text-white"
                             } cursor-pointer select-none relative py-2.5 pl-10 pr-4`
                           }
                         >
                           {({ selected, active }) => (
                             <>
-                              <span className={`${selected ? "font-medium" : "font-normal"} block truncate`}>None</span>
+                              <span
+                                className={`${
+                                  selected ? "font-medium" : "font-normal"
+                                } block truncate`}
+                              >
+                                None
+                              </span>
                               {selectedGame === "" && (
                                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-primary">
                                   <IconCheck size={18} aria-hidden="true" />
@@ -427,7 +679,11 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                   <div>
                     <Input
                       {...form.register("gameId", {
-                        required: { value: true, message: "Game ID is required when games cannot be fetched" },
+                        required: {
+                          value: true,
+                          message:
+                            "Game ID is required when games cannot be fetched",
+                        },
                         pattern: {
                           value: /^[0-9]+$/,
                           message: "Invalid Game ID format",
@@ -437,7 +693,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       placeholder="Enter your game ID manually"
                     />
                     {form.formState.errors.gameId && (
-                      <p className="mt-1 text-sm text-red-500">{form.formState.errors.gameId.message as string}</p>
+                      <p className="mt-1 text-sm text-red-500">
+                        {form.formState.errors.gameId.message as string}
+                      </p>
                     )}
                   </div>
                 )}
@@ -462,7 +720,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                   <IconCalendarEvent className="text-primary" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold dark:text-white">Scheduling Options</h2>
+                  <h2 className="text-xl font-semibold dark:text-white">
+                    Scheduling Options
+                  </h2>
                   <p className="text-zinc-500 dark:text-zinc-400 mt-1">
                     Configure when and how often sessions will occur
                   </p>
@@ -506,12 +766,14 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
 
                 {allowUnscheduled && (
                   <div className="p-4 bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700 space-y-4">
-                    <h3 className="text-lg font-medium dark:text-white">Unscheduled Session</h3>
+                    <h3 className="text-lg font-medium dark:text-white">
+                      Unscheduled Session
+                    </h3>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400">
                       Set the date and time for your single session
                     </p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
                           Session Date
@@ -523,7 +785,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                           className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white"
                         />
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
                           Session Time
@@ -535,10 +797,35 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                           className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white"
                         />
                       </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                          Session Length
+                        </label>
+                        <select
+                          value={sessionLength}
+                          onChange={(e) =>
+                            setSessionLength(Number(e.target.value))
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white"
+                        >
+                          <option value={5}>5 minutes</option>
+                          <option value={10}>10 minutes</option>
+                          <option value={15}>15 minutes</option>
+                          <option value={20}>20 minutes</option>
+                          <option value={30}>30 minutes</option>
+                          <option value={45}>45 minutes</option>
+                          <option value={50}>50 minutes</option>
+                          <option value={60}>1 hour</option>
+                          <option value={90}>1.5 hours</option>
+                          <option value={120}>2 hours</option>
+                        </select>
+                      </div>
                     </div>
-                    
+
                     <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                      Enter date and time in your local timezone. This will create a single session at the specified date and time.
+                      Enter date and time in your local timezone. This will
+                      create a single session at the specified date and time.
                     </p>
                   </div>
                 )}
@@ -546,7 +833,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                 {enabled && (
                   <div className="p-4 bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700 space-y-6">
                     <div>
-                      <h3 className="text-lg font-medium dark:text-white mb-3">Frequency</h3>
+                      <h3 className="text-lg font-medium dark:text-white mb-3">
+                        Frequency
+                      </h3>
                       <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-3">
                         Choose how often this session repeats
                       </p>
@@ -555,7 +844,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                         {[
                           { value: "weekly", label: "Weekly" },
                           { value: "biweekly", label: "Bi-weekly" },
-                          { value: "monthly", label: "Monthly" }
+                          { value: "monthly", label: "Monthly" },
                         ].map((freq) => (
                           <button
                             key={freq.value}
@@ -574,28 +863,32 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                     </div>
 
                     <div>
-                      <h3 className="text-lg font-medium dark:text-white mb-3">Repeating Days</h3>
+                      <h3 className="text-lg font-medium dark:text-white mb-3">
+                        Repeating Days
+                      </h3>
                       <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-3">
                         Select which days of the week this session will repeat
                       </p>
 
                       <div className="grid grid-cols-7 gap-2">
-                        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                          <button
-                            key={day}
-                            type="button"
-                            onClick={() => toggleDay(day)}
-                            className={`py-3 rounded-lg transition-all ${
-                              days.includes(day)
-                                ? "bg-primary text-white"
-                                : "bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-600"
-                            }`}
-                          >
-                            {day}
-                          </button>
-                        ))}
+                        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
+                          (day) => (
+                            <button
+                              key={day}
+                              type="button"
+                              onClick={() => toggleDay(day)}
+                              className={`py-3 rounded-lg transition-all ${
+                                days.includes(day)
+                                  ? "bg-primary text-white"
+                                  : "bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-600"
+                              }`}
+                            >
+                              {day}
+                            </button>
+                          )
+                        )}
                       </div>
-                      
+
                       {days.length > 0 && (
                         <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
                           Selected: {days.join(", ")}
@@ -603,23 +896,56 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       )}
                     </div>
 
-                    <div>
-                      <Input
-                        {...form.register("time", {
-                          required: {
-                            value: enabled,
-                            message: "Time is required for scheduled sessions",
-                          },
-                        })}
-                        label="Session Time"
-                        type="time"
-                      />
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                        Set the time in your local timezone. Will be displayed in local time on the calendar.
-                      </p>
-                      {form.formState.errors.time && (
-                        <p className="mt-1 text-sm text-red-500">{form.formState.errors.time.message as string}</p>
-                      )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Input
+                          {...form.register("time", {
+                            required: {
+                              value: enabled,
+                              message:
+                                "Time is required for scheduled sessions",
+                            },
+                          })}
+                          label="Session Time"
+                          type="time"
+                        />
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                          Set the time in your local timezone. Will be displayed
+                          in local time on the calendar.
+                        </p>
+                        {form.formState.errors.time && (
+                          <p className="mt-1 text-sm text-red-500">
+                            {form.formState.errors.time.message as string}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                          Session Length
+                        </label>
+                        <select
+                          value={sessionLength}
+                          onChange={(e) =>
+                            setSessionLength(Number(e.target.value))
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white"
+                        >
+                          <option value={5}>5 minutes</option>
+                          <option value={10}>10 minutes</option>
+                          <option value={15}>15 minutes</option>
+                          <option value={20}>20 minutes</option>
+                          <option value={30}>30 minutes</option>
+                          <option value={45}>45 minutes</option>
+                          <option value={50}>50 minutes</option>
+                          <option value={60}>1 hour</option>
+                          <option value={90}>1.5 hours</option>
+                          <option value={120}>2 hours</option>
+                        </select>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                          Duration of Session
+                        </p>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -650,7 +976,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                   <IconUsers className="text-primary" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold dark:text-white">Permissions</h2>
+                  <h2 className="text-xl font-semibold dark:text-white">
+                    Permissions
+                  </h2>
                   <p className="text-zinc-500 dark:text-zinc-400 mt-1">
                     Control which roles can host and claim these sessions
                   </p>
@@ -659,7 +987,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
 
               <div className="max-w-2xl">
                 <div className="p-4 bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700">
-                  <h3 className="text-md font-medium dark:text-white mb-3">Roles that can host/claim sessions</h3>
+                  <h3 className="text-md font-medium dark:text-white mb-3">
+                    Roles that can host/claim sessions
+                  </h3>
 
                   {roles.length > 0 ? (
                     <div className="space-y-2 max-h-60 overflow-y-auto p-2">
@@ -690,7 +1020,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                     </div>
                   ) : (
                     <div className="text-center py-8 bg-zinc-50 dark:bg-zinc-700/30 rounded-lg">
-                      <p className="text-zinc-500 dark:text-zinc-400">No roles available</p>
+                      <p className="text-zinc-500 dark:text-zinc-400">
+                        No roles available
+                      </p>
                       <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-1">
                         Create roles in your workspace settings first
                       </p>
@@ -722,7 +1054,6 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
             </div>
           )}
 
-
           {/* Statuses */}
           {activeTab === "statuses" && (
             <div className="p-6">
@@ -731,7 +1062,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                   <IconClipboardList className="text-primary" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold dark:text-white">Session Statuses</h2>
+                  <h2 className="text-xl font-semibold dark:text-white">
+                    Session Statuses
+                  </h2>
                   <p className="text-zinc-500 dark:text-zinc-400 mt-1">
                     Define status updates that occur during a session
                   </p>
@@ -741,7 +1074,8 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
               <div className="max-w-2xl">
                 <div className="flex justify-between items-center mb-4">
                   <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    Statuses automatically update after the specified time has passed
+                    Statuses automatically update after the specified time has
+                    passed
                   </p>
                   <Button
                     onPress={newStatus}
@@ -754,10 +1088,16 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
 
                 {statues.length === 0 ? (
                   <div className="text-center py-10 bg-zinc-50 dark:bg-zinc-700/30 rounded-lg border border-dashed border-gray-300 dark:border-zinc-600">
-                    <IconClipboardList className="mx-auto text-zinc-400 dark:text-zinc-500" size={32} />
-                    <p className="text-zinc-500 dark:text-zinc-400 mt-2">No statuses added yet</p>
+                    <IconClipboardList
+                      className="mx-auto text-zinc-400 dark:text-zinc-500"
+                      size={32}
+                    />
+                    <p className="text-zinc-500 dark:text-zinc-400 mt-2">
+                      No statuses added yet
+                    </p>
                     <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-1 max-w-xs mx-auto">
-                      Add statuses to track session progress (e.g., "Starting Soon", "In Progress", "Completed")
+                      Add statuses to track session progress (e.g., "Starting
+                      Soon", "In Progress", "Completed")
                     </p>
                     <Button
                       onPress={newStatus}
@@ -774,7 +1114,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                         className="border border-gray-200 dark:border-zinc-700 rounded-lg p-4 bg-white dark:bg-zinc-800 shadow-sm"
                       >
                         <Status
-                          updateStatus={(value, mins, color) => updateStatus(status.id, value, color, mins)}
+                          updateStatus={(value, mins, color) =>
+                            updateStatus(status.id, value, color, mins)
+                          }
                           deleteStatus={() => deleteStatus(status.id)}
                           data={status}
                           index={index + 1}
@@ -810,7 +1152,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                   <IconUserPlus className="text-primary" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold dark:text-white">Session Slots</h2>
+                  <h2 className="text-xl font-semibold dark:text-white">
+                    Session Slots
+                  </h2>
                   <p className="text-zinc-500 dark:text-zinc-400 mt-1">
                     Define roles and how many people can claim each role
                   </p>
@@ -820,7 +1164,8 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
               <div className="max-w-2xl">
                 <div className="flex justify-between items-center mb-4">
                   <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    Each session has one Host by default. Add additional roles below.
+                    Each session has one Host by default. Add additional roles
+                    below.
                   </p>
                   <Button
                     onPress={newSlot}
@@ -850,7 +1195,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       className="border border-gray-200 dark:border-zinc-700 rounded-lg p-4 bg-white dark:bg-zinc-800 shadow-sm"
                     >
                       <Slot
-                        updateStatus={(name, openSlots) => updateSlot(slot.id, name, openSlots)}
+                        updateStatus={(name, openSlots) =>
+                          updateSlot(slot.id, name, openSlots)
+                        }
                         deleteStatus={() => deleteSlot(slot.id)}
                         data={slot}
                         index={index + 1}
@@ -876,42 +1223,120 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       : "bg-zinc-300 text-zinc-500 cursor-not-allowed dark:bg-zinc-700 dark:text-zinc-400"
                   }`}
                 >
-                  <IconDeviceFloppy size={16} /> {isSubmitting ? "Creating..." : "Create Session"}
+                  <IconDeviceFloppy size={16} />{" "}
+                  {isSubmitting ? "Creating..." : "Create Session"}
                 </Button>
               </div>
             </div>
           )}
         </div>
       </FormProvider>
-    </div>
-  )
-}
 
-Home.layout = Workspace
+      <Transition appear show={showOverlapModal} as={Fragment}>
+        <Dialog
+          as="div"
+          className="relative z-50"
+          onClose={handleOverlapCancel}
+        >
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 flex items-center justify-center p-4">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="mx-auto max-w-md rounded-lg bg-white dark:bg-zinc-800 p-6 shadow-xl">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    <IconAlertCircle
+                      className="h-6 w-6 text-orange-400"
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <div className="ml-3 w-0 flex-1">
+                    <Dialog.Title
+                      as="h3"
+                      className="text-lg font-medium text-zinc-900 dark:text-white"
+                    >
+                      Session Overlap Detected
+                    </Dialog.Title>
+                    <div className="mt-2">
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400 whitespace-pre-line">
+                        {overlapMessage}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-6 flex gap-3">
+                  <button
+                    type="button"
+                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700"
+                    onClick={handleOverlapCancel}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+                    onClick={handleOverlapConfirm}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Creating..." : "Create Anyway"}
+                  </button>
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </Dialog>
+      </Transition>
+    </div>
+  );
+};
+
+Home.layout = Workspace;
 
 const Status: React.FC<{
-  data: any
-  updateStatus: (value: string, minutes: number, color: string) => void
-  deleteStatus: () => void
-  index?: number
+  data: any;
+  updateStatus: (value: string, minutes: number, color: string) => void;
+  deleteStatus: () => void;
+  index?: number;
 }> = ({ updateStatus, deleteStatus, data, index }) => {
   const methods = useForm<{
-    minutes: number
-    value: string
+    minutes: number;
+    value: string;
   }>({
     defaultValues: {
       value: data.name,
       minutes: data.timeAfter,
     },
-  })
-  const { register, watch } = methods
+  });
+  const { register, watch } = methods;
 
   useEffect(() => {
     const subscription = methods.watch((value) => {
-      updateStatus(methods.getValues().value, Number(methods.getValues().minutes), "green")
-    })
-    return () => subscription.unsubscribe()
-  }, [methods.watch])
+      updateStatus(
+        methods.getValues().value,
+        Number(methods.getValues().minutes),
+        "green"
+      );
+    });
+    return () => subscription.unsubscribe();
+  }, [methods.watch]);
 
   return (
     <FormProvider {...methods}>
@@ -922,7 +1347,9 @@ const Status: React.FC<{
               {index}
             </span>
           )}
-          <h3 className="font-medium dark:text-white">{watch("value") || "New Status"}</h3>
+          <h3 className="font-medium dark:text-white">
+            {watch("value") || "New Status"}
+          </h3>
         </div>
         <Button
           onPress={deleteStatus}
@@ -933,40 +1360,53 @@ const Status: React.FC<{
         </Button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input {...register("value")} label="Status Name" placeholder="In Progress" />
-        <Input {...register("minutes")} label="Time After (minutes)" type="number" placeholder="15" />
+        <Input
+          {...register("value")}
+          label="Status Name"
+          placeholder="In Progress"
+        />
+        <Input
+          {...register("minutes")}
+          label="Time After (minutes)"
+          type="number"
+          placeholder="15"
+        />
         <p className="text-xs text-zinc-500 dark:text-zinc-400 md:col-span-2">
-          Status will activate {watch("minutes") || 0} minutes after session starts
+          Status will activate {watch("minutes") || 0} minutes after session
+          starts
         </p>
       </div>
     </FormProvider>
-  )
-}
+  );
+};
 
 const Slot: React.FC<{
-  data: any
-  updateStatus: (value: string, slots: number) => void
-  deleteStatus: () => void
-  isPrimary?: boolean
-  index?: number
+  data: any;
+  updateStatus: (value: string, slots: number) => void;
+  deleteStatus: () => void;
+  isPrimary?: boolean;
+  index?: number;
 }> = ({ updateStatus, deleteStatus, isPrimary, data, index }) => {
   const methods = useForm<{
-    slots: number
-    value: string
+    slots: number;
+    value: string;
   }>({
     defaultValues: {
       value: data.name,
       slots: data.slots,
     },
-  })
-  const { register, watch } = methods
+  });
+  const { register, watch } = methods;
 
   useEffect(() => {
     const subscription = methods.watch((value) => {
-      updateStatus(methods.getValues().value, Number(methods.getValues().slots))
-    })
-    return () => subscription.unsubscribe()
-  }, [methods.watch])
+      updateStatus(
+        methods.getValues().value,
+        Number(methods.getValues().slots)
+      );
+    });
+    return () => subscription.unsubscribe();
+  }, [methods.watch]);
 
   return (
     <FormProvider {...methods}>
@@ -977,7 +1417,9 @@ const Slot: React.FC<{
               {index}
             </span>
           )}
-          <h3 className="font-medium dark:text-white">{isPrimary ? "Host (Primary)" : watch("value") || "New Slot"}</h3>
+          <h3 className="font-medium dark:text-white">
+            {isPrimary ? "Host (Primary)" : watch("value") || "New Slot"}
+          </h3>
         </div>
         {!isPrimary && (
           <Button
@@ -990,16 +1432,29 @@ const Slot: React.FC<{
         )}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input {...register("value")} disabled={isPrimary} label="Role Name" placeholder="Co-Host" />
-        <Input {...register("slots")} disabled={isPrimary} label="Available Slots" type="number" placeholder="2" />
+        <Input
+          {...register("value")}
+          disabled={isPrimary}
+          label="Role Name"
+          placeholder="Co-Host"
+        />
+        <Input
+          {...register("slots")}
+          disabled={isPrimary}
+          label="Available Slots"
+          type="number"
+          placeholder="2"
+        />
         <p className="text-xs text-zinc-500 dark:text-zinc-400 md:col-span-2">
           {isPrimary
             ? "Primary host role cannot be changed"
-            : `Number of people who can claim this role: ${watch("slots") || 0}`}
+            : `Number of people who can claim this role: ${
+                watch("slots") || 0
+              }`}
         </p>
       </div>
     </FormProvider>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;

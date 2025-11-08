@@ -162,6 +162,7 @@ model Session {
   date          DateTime
   startedAt     DateTime?
   ended         DateTime?
+  duration      Int           @default(30) // Duration in minutes
   sessionTypeId String        @db.Uuid
   scheduleId    String?       @db.Uuid
   name          String?

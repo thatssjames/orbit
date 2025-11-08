@@ -1,18 +1,68 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine'
-import prisma, { inactivityNotice } from '@/utils/database';
+import prisma from '@/utils/database';
 import { withSessionRoute } from '@/lib/withSession'
-import { withPermissionCheck } from '@/utils/permissionsManager'
-import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
-import * as noblox from 'noblox.js'
+
 type Data = {
 	success: boolean
 	error?: string
 	ally?: any
 }
 
-export default withPermissionCheck(handler, 'manage_alliances');
+const withAllyPermissionCheck = (handler: any) => {
+	return withSessionRoute(async (req: NextApiRequest, res: NextApiResponse) => {
+		const uid = req.session.userid;
+		if (!uid) return res.status(401).json({ success: false, error: 'Unauthorized' });
+		if (!req.query.id) return res.status(400).json({ success: false, error: 'Missing required fields' });
+		if (!req.query.aid) return res.status(400).json({ success: false, error: 'Missing ally ID' });
+		
+		const workspaceId = parseInt(req.query.id as string);
+		const allyId = req.query.aid as string;
+
+		const user = await prisma.user.findFirst({
+			where: {
+				userid: BigInt(uid)
+			},
+			include: {
+				roles: {
+					where: {
+						workspaceGroupId: workspaceId
+					},
+					orderBy: {
+						isOwnerRole: 'desc'
+					}
+				}
+			}
+		});
+		
+		if (!user) return res.status(401).json({ success: false, error: 'Unauthorized' });
+		const userrole = user.roles[0];
+		if (!userrole) return res.status(401).json({ success: false, error: 'Unauthorized' });
+		
+		// Check if user has management permissions
+		if (userrole.isOwnerRole) return handler(req, res);
+		if (userrole.permissions?.includes('manage_alliances')) return handler(req, res);
+		
+		// Check if user is a representative of this specific ally
+		const ally = await prisma.ally.findFirst({
+			where: {
+				id: allyId,
+				workspaceGroupId: workspaceId,
+				reps: {
+					some: {
+						userid: BigInt(uid)
+					}
+				}
+			}
+		});
+		
+		if (ally) return handler(req, res);
+		
+		return res.status(401).json({ success: false, error: 'Unauthorized' });
+	});
+};
+
+export default withAllyPermissionCheck(handler);
 
 export async function handler(
 	req: NextApiRequest,

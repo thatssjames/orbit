@@ -23,9 +23,9 @@ const Guide: FC<props> = (props) => {
 			const obj = JSON.parse(JSON.stringify(workspace), (key, value) => (typeof value === 'bigint' ? value.toString() : value));
 			obj.settings.alliesEnabled = !workspace.settings.alliesEnabled;
 			setWorkspace(obj);
-			triggerToast.success("Updated allies");
+			triggerToast.success("Updated alliances!");
 		} else {
-			triggerToast.error("Failed to update allies");
+			triggerToast.error("Failed to update alliances.");
 		}
 	};	
 

@@ -2,12 +2,17 @@ import { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { withPermissionCheck } from "@/utils/permissionsManager";
 
-const sessionEditLimits: { [key: string]: { count: number; resetTime: number } } = {};
+const sessionEditLimits: {
+  [key: string]: { count: number; resetTime: number };
+} = {};
 
-function checkSessionEditRateLimit(req: NextApiRequest, res: NextApiResponse): boolean {
-  const workspaceId = req.query?.id || 'unknown';
-  const sessionId = req.query?.sid || 'unknown';
-  const userId = (req as any).session?.userid || 'anonymous';
+function checkSessionEditRateLimit(
+  req: NextApiRequest,
+  res: NextApiResponse
+): boolean {
+  const workspaceId = req.query?.id || "unknown";
+  const sessionId = req.query?.sid || "unknown";
+  const userId = (req as any).session?.userid || "anonymous";
   const key = `workspace:${workspaceId}:session:${sessionId}:user:${userId}`;
   const now = Date.now();
   const windowMs = 60 * 1000;
@@ -23,7 +28,8 @@ function checkSessionEditRateLimit(req: NextApiRequest, res: NextApiResponse): b
   if (entry.count > maxRequests) {
     res.status(429).json({
       success: false,
-      error: 'Too many edit attempts. Please wait a moment before making more changes.'
+      error:
+        "Too many edit attempts. Please wait a moment before making more changes.",
     });
     return false;
   }
@@ -38,7 +44,16 @@ export default withPermissionCheck(
     const { id, sid } = req.query;
 
     if (req.method === "PUT") {
-      const { date, time, description, updateAll, ownerId, userAssignments, timezoneOffset } = req.body;
+      const {
+        date,
+        time,
+        description,
+        duration,
+        updateAll,
+        ownerId,
+        userAssignments,
+        timezoneOffset,
+      } = req.body;
       if (!date) {
         return res.status(400).json({ error: "Session date is required" });
       }
@@ -46,9 +61,11 @@ export default withPermissionCheck(
       try {
         let sessionDate: Date;
         if (time) {
-          const localDateTime = new Date(date + 'T' + time + ':00');
+          const localDateTime = new Date(date + "T" + time + ":00");
           const offsetMinutes = timezoneOffset || 0;
-          sessionDate = new Date(localDateTime.getTime() + (offsetMinutes * 60000));
+          sessionDate = new Date(
+            localDateTime.getTime() + offsetMinutes * 60000
+          );
         } else {
           sessionDate = new Date(date);
         }
@@ -62,14 +79,24 @@ export default withPermissionCheck(
           return res.status(404).json({ error: "Session not found" });
         }
 
+        const sessionUpdateData: any = {
+          date: sessionDate,
+        };
+
+        if (ownerId !== undefined) {
+          sessionUpdateData.ownerId = ownerId ? BigInt(ownerId) : null;
+        }
+        if (duration !== undefined) {
+          sessionUpdateData.duration = duration;
+        } else if (!(currentSession as any).duration) {
+          sessionUpdateData.duration = 30;
+        }
+
         const updatedSession = await prisma.session.update({
           where: {
             id: sid as string,
           },
-          data: {
-            date: sessionDate,
-            ownerId: ownerId ? BigInt(ownerId) : null,
-          },
+          data: sessionUpdateData,
           include: {
             sessionType: true,
             owner: true,
@@ -95,25 +122,27 @@ export default withPermissionCheck(
           }
         }
 
-        await prisma.sessionUser.deleteMany({
-          where: {
-            sessionid: sid as string,
-          },
-        });
+        if (userAssignments !== undefined) {
+          await prisma.sessionUser.deleteMany({
+            where: {
+              sessionid: sid as string,
+            },
+          });
 
-        if (userAssignments && Array.isArray(userAssignments)) {
-          await Promise.all(
-            userAssignments.map((assignment) =>
-              prisma.sessionUser.create({
-                data: {
-                  userid: BigInt(assignment.userId),
-                  sessionid: sid as string,
-                  roleID: assignment.roleID,
-                  slot: assignment.slot,
-                },
-              })
-            )
-          );
+          if (userAssignments && Array.isArray(userAssignments)) {
+            await Promise.all(
+              userAssignments.map((assignment) =>
+                prisma.sessionUser.create({
+                  data: {
+                    userid: BigInt(assignment.userId),
+                    sessionid: sid as string,
+                    roleID: assignment.roleID,
+                    slot: assignment.slot,
+                  },
+                })
+              )
+            );
+          }
         }
 
         const finalSession = await prisma.session.findUnique({

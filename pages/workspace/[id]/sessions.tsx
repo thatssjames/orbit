@@ -11,6 +11,8 @@ import {
   IconArrowLeft,
   IconEdit,
   IconUsers,
+  IconClock,
+  IconUserCircle,
 } from "@tabler/icons-react";
 import prisma, { Session, user, SessionType } from "@/utils/database";
 import { useRecoilState } from "recoil";
@@ -24,24 +26,28 @@ import { withPermissionCheckSsr } from "@/utils/permissionsManager";
 import toast, { Toaster } from "react-hot-toast";
 import SessionTemplate from "@/components/sessionpreview";
 
+const BG_COLORS = [
+  "bg-red-200",
+  "bg-green-200",
+  "bg-blue-200",
+  "bg-yellow-200",
+  "bg-pink-200",
+  "bg-indigo-200",
+  "bg-teal-200",
+  "bg-orange-200",
+];
+
+function getRandomBg(userid: string | number) {
+  const str = String(userid);
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return BG_COLORS[Math.abs(hash) % BG_COLORS.length];
+}
+
 export const getServerSideProps = withPermissionCheckSsr(
   async ({ query, req }) => {
-    const activeSessions = await prisma.session.findMany({
-      where: {
-        startedAt: {
-          lte: new Date(),
-        },
-        ended: null,
-        sessionType: {
-          workspaceGroupId: parseInt(query.id as string),
-        },
-      },
-      include: {
-        owner: true,
-        sessionType: true,
-      },
-    });
-
     const currentDate = new Date();
     const monday = new Date(currentDate);
     const day = monday.getDay();
@@ -57,10 +63,6 @@ export const getServerSideProps = withPermissionCheckSsr(
       where: {
         sessionType: {
           workspaceGroupId: parseInt(query.id as string),
-        },
-        date: {
-          gte: monday,
-          lte: sunday,
         },
       },
       include: {
@@ -170,11 +172,6 @@ export const getServerSideProps = withPermissionCheckSsr(
 
     return {
       props: {
-        sessions: JSON.parse(
-          JSON.stringify(activeSessions, (key, value) =>
-            typeof value === "bigint" ? value.toString() : value
-          )
-        ) as typeof activeSessions,
         allSessions: JSON.parse(
           JSON.stringify(allSessions, (key, value) =>
             typeof value === "bigint" ? value.toString() : value
@@ -223,6 +220,9 @@ const WeeklyCalendar: React.FC<{
   onEditSession?: (sessionId: string) => void;
   onSessionClick?: (session: any) => void;
   workspaceId?: string | number;
+  onWeekChange?: (newWeek: Date) => void;
+  canCreateSession?: boolean;
+  onCreateSession?: () => void;
 }> = ({
   currentWeek,
   sessions,
@@ -230,9 +230,24 @@ const WeeklyCalendar: React.FC<{
   onEditSession,
   onSessionClick,
   workspaceId,
+  onWeekChange,
+  canCreateSession,
+  onCreateSession,
 }) => {
   const { getSessionTypeColor, getRecurringColor, getTextColorForBackground } =
     useSessionColors(workspaceId);
+
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    const today = new Date();
+    const monday = getMonday(currentWeek);
+    const weekDates = getWeekDates(monday);
+    const todayInWeek = weekDates.find(
+      (date) => date.toDateString() === today.toDateString()
+    );
+
+    return todayInWeek || weekDates[0];
+  });
+
   const monday = getMonday(currentWeek);
   const weekDates = getWeekDates(monday);
   const dayNames = [
@@ -244,6 +259,9 @@ const WeeklyCalendar: React.FC<{
     "Saturday",
     "Sunday",
   ];
+
+  const dayNamesShort = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
   const sessionsByDate = sessions.reduce(
     (acc: { [key: string]: any[] }, session) => {
       const sessionDate = new Date(session.date);
@@ -257,106 +275,335 @@ const WeeklyCalendar: React.FC<{
     {}
   );
 
+  const selectedDateSessions =
+    sessionsByDate[selectedDate.toLocaleDateString()] || [];
+  useEffect(() => {
+    const newWeekDates = getWeekDates(getMonday(currentWeek));
+    const today = new Date();
+    const todayInNewWeek = newWeekDates.find(
+      (date) => date.toDateString() === today.toDateString()
+    );
+
+    if (todayInNewWeek) {
+      setSelectedDate(todayInNewWeek);
+    } else {
+      setSelectedDate(newWeekDates[0]);
+    }
+  }, [currentWeek]);
+
   return (
     <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
-      <div className="overflow-x-auto md:overflow-x-visible">
-        <div className="grid grid-cols-7 divide-x divide-gray-200 dark:divide-zinc-700 min-w-[700px] md:min-w-0">
-          {weekDates.map((date, index) => {
-            const localDateKey = date.toLocaleDateString();
-            const daySessions = sessionsByDate[localDateKey] || [];
-            const isToday = date.toDateString() === new Date().toDateString();
-            return (
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border-b border-zinc-200 dark:border-zinc-700 gap-3">
+        <div className="flex items-center justify-center gap-2">
+          <button
+            onClick={() => {
+              const previousWeek = new Date(currentWeek);
+              previousWeek.setDate(currentWeek.getDate() - 7);
+              onWeekChange?.(previousWeek);
+            }}
+            className="p-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
+          >
+            <IconChevronLeft className="w-4 h-4" />
+          </button>
+          <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 min-w-[120px] text-center">
+            {(() => {
+              const monday = getMonday(currentWeek);
+              const sunday = new Date(monday);
+              sunday.setDate(monday.getDate() + 6);
+              return `${monday.toLocaleDateString("en-US", {
+                month: "long",
+                year: "numeric",
+              })}`;
+            })()}
+          </span>
+          <button
+            onClick={() => {
+              const nextWeek = new Date(currentWeek);
+              nextWeek.setDate(currentWeek.getDate() + 7);
+              onWeekChange?.(nextWeek);
+            }}
+            className="p-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
+          >
+            <IconChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="flex items-center justify-center gap-2">
+          <button
+            onClick={() => {
+              const today = new Date();
+              onWeekChange?.(today);
+              setSelectedDate(today);
+            }}
+            className="px-3 py-1 text-xs font-medium bg-primary/10 text-primary hover:bg-primary/20 rounded-md transition-colors"
+          >
+            Today
+          </button>
+
+          {canCreateSession && onCreateSession && (
+            <button
+              onClick={onCreateSession}
+              className="inline-flex items-center justify-center px-4 py-2 shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
+            >
+              <IconPlus className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">New Session</span>
+              <span className="sm:hidden">New</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-7 border-b border-zinc-200 dark:border-zinc-700">
+        {weekDates.map((date, index) => {
+          const isToday = date.toDateString() === new Date().toDateString();
+          const isSelected =
+            date.toDateString() === selectedDate.toDateString();
+          const daySessionCount = (
+            sessionsByDate[date.toLocaleDateString()] || []
+          ).length;
+
+          return (
+            <button
+              key={date.toDateString()}
+              onClick={() => setSelectedDate(date)}
+              className={`p-3 text-center border-r border-zinc-200 dark:border-zinc-700 last:border-r-0 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-700/50 ${
+                isSelected
+                  ? "bg-primary/10 text-primary dark:bg-primary/20"
+                  : isToday
+                  ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                  : "text-zinc-700 dark:text-zinc-300"
+              }`}
+            >
+              <div className="text-xs font-medium mb-1">
+                <span className="hidden xl:inline">{dayNames[index]}</span>
+                <span className="xl:hidden">{dayNamesShort[index]}</span>
+              </div>
               <div
-                key={date.toDateString()}
-                className={`min-h-[200px] md:min-h-[250px] p-3 ${
-                  isToday ? "bg-primary/5 dark:bg-primary/10" : ""
+                className={`text-lg font-bold mb-1 ${
+                  isSelected
+                    ? "text-primary"
+                    : isToday
+                    ? "text-blue-600 dark:text-blue-400"
+                    : "text-zinc-900 dark:text-white"
                 }`}
               >
-                <div
-                  className={`text-sm font-medium mb-2 ${
-                    isToday ? "text-primary" : "text-zinc-900 dark:text-white"
-                  }`}
-                >
-                  {dayNames[index]}
-                </div>
-                <div
-                  className={`text-lg font-bold mb-3 ${
-                    isToday
-                      ? "text-primary"
-                      : "text-zinc-700 dark:text-zinc-300"
-                  }`}
-                >
-                  {date.getDate()}
-                </div>
-                <div className="space-y-2">
-                  {daySessions.map((session: any) => {
-                    const isRecurring = session.scheduleId !== null;
-                    return (
-                      <div
-                        key={session.id}
-                        className="bg-primary/10 dark:bg-primary/20 rounded-lg p-2 text-xs relative group cursor-pointer hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors"
-                        onClick={() => onSessionClick?.(session)}
-                      >
-                        <div className="font-medium text-primary mb-1 truncate">
-                          {session.name || session.sessionType.name}
-                        </div>
-                        <div className="flex items-center gap-1 mb-1">
+                {date.getDate()}
+              </div>
+              <div
+                className={`w-2 h-2 rounded-full mx-auto ${
+                  daySessionCount > 0
+                    ? isSelected
+                      ? "bg-primary"
+                      : isToday
+                      ? "bg-blue-500"
+                      : "bg-zinc-400"
+                    : "opacity-0"
+                }`}
+              />
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
+              {selectedDate.toLocaleDateString("en-US", {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+              })}
+            </h3>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              {selectedDateSessions.length} session
+              {selectedDateSessions.length !== 1 ? "s" : ""} scheduled
+            </p>
+          </div>
+        </div>
+
+        {selectedDateSessions.length > 0 ? (
+          <div className="h-64 overflow-y-auto space-y-3 pr-2">
+            {selectedDateSessions
+              .sort(
+                (a, b) =>
+                  new Date(a.date).getTime() - new Date(b.date).getTime()
+              )
+              .map((session: any) => {
+                const isRecurring = session.scheduleId !== null;
+                const now = new Date();
+                const sessionStart = new Date(session.date);
+                const sessionDuration = session.duration || 30;
+                const sessionEnd = new Date(
+                  sessionStart.getTime() + sessionDuration * 60 * 1000
+                );
+                const isActive = now >= sessionStart && now <= sessionEnd;
+                const isConcluded = now > sessionEnd;
+                const coHost = session.users?.find((user: any) => {
+                  if (user.roleID?.toLowerCase().includes("co-host"))
+                    return true;
+                  const slots = session.sessionType?.slots || [];
+                  const userSlot = slots[user.slot];
+                  if (userSlot?.name?.toLowerCase().includes("co-host"))
+                    return true;
+                  return false;
+                });
+
+                const participantCount =
+                  session.users?.filter((user: any) => {
+                    if (user.roleID?.toLowerCase().includes("co-host"))
+                      return false;
+                    const slots = session.sessionType?.slots || [];
+                    const userSlot = slots[user.slot];
+                    if (userSlot?.name?.toLowerCase().includes("co-host"))
+                      return false;
+                    return true;
+                  }).length || 0;
+
+                return (
+                  <div
+                    key={session.id}
+                    className={`rounded-lg p-4 cursor-pointer transition-all group ${
+                      isActive
+                        ? "bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-400 dark:border-emerald-500 shadow-[0_0_15px_rgba(34,197,94,0.3)] dark:shadow-[0_0_15px_rgba(34,197,94,0.4)] hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
+                        : "bg-zinc-50 dark:bg-zinc-700/50 border-2 border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                    }`}
+                    onClick={() => onSessionClick?.(session)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h4 className="font-medium text-zinc-900 dark:text-white truncate">
+                            {session.name || session.sessionType.name}
+                          </h4>
+                          {isActive && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 animate-pulse">
+                              • LIVE
+                            </span>
+                          )}
                           {session.type && (
                             <span
                               className={`${getSessionTypeColor(
                                 session.type
                               )} ${getTextColorForBackground(
                                 getSessionTypeColor(session.type)
-                              )} px-1.5 py-0.5 rounded text-xs font-medium`}
+                              )} px-2 py-1 rounded text-xs font-medium`}
                             >
                               {session.type.charAt(0).toUpperCase() +
                                 session.type.slice(1)}
                             </span>
                           )}
-                        </div>
-                        <div className="text-zinc-600 dark:text-zinc-400 truncate">
-                          {new Date(session.date).toLocaleTimeString(
-                            undefined,
-                            {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: true,
-                            }
+                          {isConcluded && (
+                            <span className="bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-400 px-2 py-1 rounded text-xs font-medium">
+                              Concluded
+                            </span>
                           )}
                         </div>
-                        <div className="text-zinc-500 dark:text-zinc-500 truncate">
-                          {session.owner?.username || "Unclaimed"}
+
+                        <div className="flex items-center gap-4 text-sm text-zinc-600 dark:text-zinc-400">
+                          <div className="flex items-center gap-1">
+                            <IconClock className="w-4 h-4" />
+                            {new Date(session.date).toLocaleTimeString(
+                              undefined,
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                              }
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <IconUserCircle className="w-4 h-4" />
+                            {session.owner?.username || "Unclaimed"}
+                          </div>
+                          {participantCount > 0 && (
+                            <div className="flex items-center gap-1">
+                              <IconUsers className="w-4 h-4" />
+                              {participantCount} participant
+                              {participantCount !== 1 ? "s" : ""}
+                            </div>
+                          )}
                         </div>
+                      </div>
+
+                      <div className="relative">
+                        <div className="flex items-center gap-1">
+                          {session.owner && (
+                            <div
+                              className={`w-8 h-8 rounded-full flex items-center justify-center ${getRandomBg(
+                                session.owner.userid
+                              )}`}
+                            >
+                              <img
+                                src={
+                                  session.owner.picture || "/default-avatar.png"
+                                }
+                                className="w-8 h-8 rounded-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.src = "/default-avatar.png";
+                                }}
+                              />
+                            </div>
+                          )}
+
+                          {coHost && (
+                            <div
+                              className={`w-8 h-8 rounded-full flex items-center justify-center ${getRandomBg(
+                                coHost.user.userid
+                              )} ${session.owner ? "-ml-2" : ""}`}
+                            >
+                              <img
+                                src={
+                                  coHost.user.picture || "/default-avatar.png"
+                                }
+                                className="w-8 h-8 rounded-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.src = "/default-avatar.png";
+                                }}
+                              />
+                            </div>
+                          )}
+                        </div>
+
                         {canManage && onEditSession && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               onEditSession(session.id);
                             }}
-                            className="absolute top-1 right-1 p-1 text-zinc-400 hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+                            className="absolute -top-2 -right-2 p-1.5 bg-white dark:bg-zinc-800 text-zinc-400 hover:text-primary transition-colors opacity-0 group-hover:opacity-100 rounded-full shadow-sm border border-zinc-200 dark:border-zinc-600"
                             title="Edit session"
                           >
-                            <IconEdit className="w-3 h-3" />
+                            <IconEdit className="w-3.5 h-3.5" />
                           </button>
                         )}
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        ) : (
+          <div className="h-64 flex items-center justify-center">
+            <div className="text-center">
+              <div className="mx-auto w-12 h-12 bg-zinc-100 dark:bg-zinc-700 rounded-full flex items-center justify-center mb-4">
+                <IconCalendarEvent className="w-6 h-6 text-zinc-400" />
               </div>
-            );
-          })}
-        </div>
+              <h3 className="text-sm font-medium text-zinc-900 dark:text-white mb-1">
+                No Sessions Scheduled
+              </h3>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                There are no sessions scheduled for this date
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 type pageProps = {
-  sessions: (Session & {
-    owner: user;
-    sessionType: SessionType;
-  })[];
   allSessions: (Session & {
     owner: user;
     sessionType: SessionType;
@@ -379,7 +626,6 @@ const Home: pageWithLayout<pageProps> = (props) => {
   const [login, setLogin] = useRecoilState(loginState);
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
-  const [sessions, setSessions] = useState<any[]>(props.sessions);
   const [allSessions, setAllSessions] = useState<any[]>(props.allSessions);
   const [loading, setLoading] = useState(false);
   const text = useMemo(() => randomText(login.displayname), []);
@@ -412,46 +658,31 @@ const Home: pageWithLayout<pageProps> = (props) => {
         const session = allSessions.find((s) => s.id === sessionId);
         if (session?.scheduleId) {
           toast.success("All sessions in series deleted successfully");
-          setSessions(
-            sessions.filter((s) => s.scheduleId !== session.scheduleId)
-          );
           setAllSessions(
             allSessions.filter((s) => s.scheduleId !== session.scheduleId)
           );
         }
       } else {
         toast.success("Session deleted successfully");
-        setSessions(sessions.filter((s) => s.id !== sessionId));
         setAllSessions(allSessions.filter((s) => s.id !== sessionId));
       }
-      await loadWeekSessions(currentWeek);
+      await loadAllSessions();
     } catch (error: any) {
       console.error("Delete session error:", error);
       toast.error(error?.response?.data?.error || "Failed to delete session");
     }
   };
 
-  const loadWeekSessions = async (weekDate: Date) => {
+  const loadAllSessions = async () => {
     setLoading(true);
     try {
-      const monday = getMonday(weekDate);
-      const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
-      sunday.setUTCHours(23, 59, 59, 999);
-
       const response = await axios.get(
-        `/api/workspace/${router.query.id}/sessions/week`,
-        {
-          params: {
-            startDate: monday.toISOString(),
-            endDate: sunday.toISOString(),
-          },
-        }
+        `/api/workspace/${router.query.id}/sessions/all`
       );
       setAllSessions(response.data);
       return response.data;
     } catch (error) {
-      console.error("Failed to load week sessions:", error);
+      console.error("Failed to load sessions:", error);
       return null;
     } finally {
       setLoading(false);
@@ -459,19 +690,19 @@ const Home: pageWithLayout<pageProps> = (props) => {
   };
 
   useEffect(() => {
-    loadWeekSessions(currentWeek);
-  }, [currentWeek, router.query.id]);
+    loadAllSessions();
+  }, [router.query.id]);
   useEffect(() => {
     if (router.query.refresh === "true") {
-      loadWeekSessions(currentWeek);
+      loadAllSessions();
       router.replace(`/workspace/${router.query.id}/sessions`, undefined, {
         shallow: true,
       });
     }
   }, [router.query.refresh]);
 
-  const refreshCurrentWeek = () => {
-    loadWeekSessions(currentWeek);
+  const refreshAllSessions = () => {
+    loadAllSessions();
   };
 
   const loadWorkspaceMembers = async () => {
@@ -500,7 +731,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
     toast.promise(axiosPromise, {
       loading: "Ending session...",
       success: () => {
-        setSessions(sessions.filter((session) => session.id !== id));
+        loadAllSessions();
         return "Session ended successfully";
       },
       error: "Failed to end session",
@@ -510,7 +741,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
   useEffect(() => {
     const getAllStatues = async () => {
       const newStatues = new Map<string, string>();
-      for (const session of sessions) {
+      for (const session of allSessions) {
         for (const e of session.sessionType.statues.sort((a: any, b: any) => {
           const object = JSON.parse(JSON.stringify(a));
           const object2 = JSON.parse(JSON.stringify(b));
@@ -537,7 +768,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
     const interval = setInterval(getAllStatues, 10000);
 
     return () => clearInterval(interval);
-  }, [sessions]);
+  }, [allSessions]);
 
   return (
     <div className="pagePadding">
@@ -552,81 +783,6 @@ const Home: pageWithLayout<pageProps> = (props) => {
               Plan, schedule, and manage sessions for your staff members
             </p>
           </div>
-        </div>
-
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-primary/10 p-2 rounded-lg">
-              <IconCalendarEvent className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h2 className="text-lg font-medium text-zinc-900 dark:text-white">
-                Ongoing Sessions
-              </h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                View and manage currently active sessions
-              </p>
-            </div>
-          </div>
-
-          {sessions.length > 0 ? (
-            <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-              {sessions.map((session) => (
-                <div
-                  key={session.id}
-                  className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden"
-                >
-                  <div className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
-                          {session.sessionType.name}
-                        </h3>
-                        <div className="flex items-center gap-2 mt-2">
-                          <img
-                            src={
-                              (session.owner.picture ||
-                                "/default-avatar.png") as string
-                            }
-                            className="w-8 h-8 rounded-full bg-primary border-2 border-white dark:border-zinc-700"
-                            alt={session.owner.username || "User"}
-                          />
-                          <div>
-                            <p className="text-sm text-zinc-900 dark:text-white">
-                              {session.owner.username}
-                            </p>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                              {statues.get(session.id)}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => endSession(session.id)}
-                        className="p-2 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                      >
-                        <IconTrash className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
-              <div className="p-8 text-center">
-                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                  <IconCalendarEvent className="w-6 h-6 text-primary" />
-                </div>
-                <h3 className="text-sm font-medium text-zinc-900 dark:text-white mb-1">
-                  No Active Sessions
-                </h3>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  There are no sessions currently in progress
-                </p>
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="mb-8">
@@ -645,56 +801,6 @@ const Home: pageWithLayout<pageProps> = (props) => {
               </div>
             </div>
             <div className="p-4">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      const previousWeek = new Date(currentWeek);
-                      previousWeek.setDate(currentWeek.getDate() - 7);
-                      setCurrentWeek(previousWeek);
-                    }}
-                    className="p-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
-                  >
-                    <IconChevronLeft className="w-4 h-4" />
-                  </button>
-                  <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 min-w-[120px] text-center">
-                    {(() => {
-                      const monday = getMonday(currentWeek);
-                      const sunday = new Date(monday);
-                      sunday.setDate(monday.getDate() + 6);
-                      return `${monday.toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })} - ${sunday.toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })}`;
-                    })()}
-                  </span>
-                  <button
-                    onClick={() => {
-                      const nextWeek = new Date(currentWeek);
-                      nextWeek.setDate(currentWeek.getDate() + 7);
-                      setCurrentWeek(nextWeek);
-                    }}
-                    className="p-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
-                  >
-                    <IconChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-                {workspace.yourPermission?.includes("manage_sessions") && (
-                  <button
-                    onClick={() =>
-                      router.push(`/workspace/${router.query.id}/sessions/new`)
-                    }
-                    className="inline-flex items-center px-4 py-2 shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
-                  >
-                    <IconPlus className="w-4 h-4 mr-2" />
-                    New Session
-                  </button>
-                )}
-              </div>
-
               <WeeklyCalendar
                 currentWeek={currentWeek}
                 sessions={allSessions}
@@ -707,6 +813,13 @@ const Home: pageWithLayout<pageProps> = (props) => {
                   Array.isArray(router.query.id)
                     ? router.query.id[0]
                     : router.query.id
+                }
+                onWeekChange={(newWeek) => setCurrentWeek(newWeek)}
+                canCreateSession={workspace.yourPermission?.includes(
+                  "manage_sessions"
+                )}
+                onCreateSession={() =>
+                  router.push(`/workspace/${router.query.id}/sessions/new`)
                 }
               />
             </div>
@@ -724,7 +837,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
             onEdit={handleEditSession}
             onDelete={handleDeleteSession}
             onUpdate={async () => {
-              const freshSessions = await loadWeekSessions(currentWeek);
+              const freshSessions = await loadAllSessions();
               if (freshSessions && selectedSession) {
                 const updatedSession = freshSessions.find(
                   (s: any) => s.id === selectedSession.id

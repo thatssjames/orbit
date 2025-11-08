@@ -26,9 +26,11 @@ const Activity: FC<props> = (props) => {
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
   const [roles, setRoles] = React.useState([]);
   const [selectedRole, setSelectedRole] = React.useState<number>();
+  const [selectedLRole, setSelectedLRole] = React.useState<number>();
   const [lastReset, setLastReset] = useState<any>(null);
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [leaderboardEnabled, setLeaderboardEnabled] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -39,6 +41,7 @@ const Activity: FC<props> = (props) => {
       if (res.status === 200) {
         setRoles(res.data.roles);
         setSelectedRole(res.data.currentRole);
+        setSelectedLRole(res.data.leaderboardRole);
       }
     })();
   }, []);
@@ -47,7 +50,7 @@ const Activity: FC<props> = (props) => {
     (async () => {
       try {
         const res = await axios.get(
-          `/api/workspace/${router.query.id}/activity/last-reset`
+          `/api/workspace/${router.query.id}/activity/lastreset`
         );
         if (res.status === 200 && res.data.success) {
           setLastReset(res.data.lastReset);
@@ -56,6 +59,30 @@ const Activity: FC<props> = (props) => {
         console.error("Error fetching last reset:", error);
       }
     })();
+  }, [router.query.id]);
+
+  useEffect(() => {
+    if (router.query.id) {
+      fetch(`/api/workspace/${router.query.id}/settings/general/leaderboard`)
+        .then(res => res.json())
+        .then(data => {
+          let enabled = false;
+          let val = data.value ?? data;
+          if (typeof val === "string") {
+            try {
+              val = JSON.parse(val);
+            } catch {
+              val = {};
+            }
+          }
+          enabled =
+            typeof val === "object" && val !== null && "enabled" in val
+              ? (val as { enabled?: boolean }).enabled ?? false
+              : false;
+          setLeaderboardEnabled(enabled);
+        })
+        .catch(() => setLeaderboardEnabled(false));
+    }
   }, [router.query.id]);
 
   const downloadLoader = async () => {
@@ -71,7 +98,32 @@ const Activity: FC<props> = (props) => {
       setSelectedRole(
         (roles.find((role: any) => role.rank === id) as any).rank
       );
-      triggerToast.success("Updated role");
+      
+      if (selectedLRole && id > selectedLRole) {
+        const availableRoles = (roles as any[]).filter((role: any) => role.rank >= id);
+        if (availableRoles.length > 0) {
+          const lowestAvailableRole = availableRoles.sort((a: any, b: any) => a.rank - b.rank)[0];
+          await updateLRole(lowestAvailableRole.rank);
+        }
+      }
+      triggerToast.success("Updated activity role!");
+    }
+  };
+
+  const updateLRole = async (id: number | undefined) => {
+    try {
+      const req = await axios.post(
+        `/api/workspace/${workspace.groupId}/settings/activity/setLRole`,
+        { role: id }
+      );
+      if (req.status === 200) {
+        setSelectedLRole(id);
+        triggerToast.success("Updated leaderboard rank!");
+      }
+    } catch (error: any) {
+      triggerToast.error(
+        error?.response?.data?.error || "Failed to update leaderboard rank."
+      );
     }
   };
 
@@ -85,14 +137,14 @@ const Activity: FC<props> = (props) => {
         triggerToast.success("Activity has been reset!");
         setIsResetDialogOpen(false);
         const resetRes = await axios.get(
-          `/api/workspace/${router.query.id}/activity/last-reset`
+          `/api/workspace/${router.query.id}/activity/lastreset`
         );
         if (resetRes.status === 200 && resetRes.data.success) {
           setLastReset(resetRes.data.lastReset);
         }
       }
     } catch (error) {
-      triggerToast.error("Failed to reset activity");
+      triggerToast.error("Failed to reset activity.");
     } finally {
       setIsResetting(false);
     }
@@ -117,7 +169,7 @@ const Activity: FC<props> = (props) => {
           <Listbox.Button className="z-10 h-auto w-full flex flex-row rounded-xl py-1 hover:bg-zinc-200 dark:hover:bg-zinc-800 dark:focus-visible:bg-zinc-800 px-2 transition cursor-pointer outline-1 outline-gray-300 outline mb-1 focus-visible:bg-zinc-200">
             <p className="z-10 my-auto text-lg pl-2 dark:text-white">
               {(roles.find((r: any) => r.rank === selectedRole) as any)?.name ||
-                "Guest"}
+                "Select a role"}
             </p>
             <IconChevronDown
               size={18}
@@ -125,9 +177,11 @@ const Activity: FC<props> = (props) => {
               className="my-auto ml-auto"
             />
           </Listbox.Button>
-          <Listbox.Options className="absolute left-0 z-10 mt-2 w-48 origin-top-left rounded-xl bg-white dark:text-white dark:bg-zinc-800 shadow-lg ring-1 ring-gray-300 focus-visible:outline-none overflow-clip">
+          <Listbox.Options className="absolute left-0 z-20 mt-2 w-48 origin-top-left rounded-xl bg-white dark:text-white dark:bg-zinc-800 shadow-lg ring-1 ring-gray-300 focus-visible:outline-none overflow-clip">
             <div className="">
-              {roles.map((role: any, index) => (
+              {roles
+                .filter((role: any) => role.rank > 0)
+                .map((role: any, index) => (
                 <Listbox.Option
                   className={({ active }) =>
                     `${
@@ -153,8 +207,7 @@ const Activity: FC<props> = (props) => {
 
                       {selected ? (
                         <span
-                          className={`${active ? "text-white" : "text-primary"}
-																	absolute inset-y-0 right-0 flex items-center pr-4`}
+                          className={`${active ? "text-white" : "text-primary"} absolute inset-y-0 right-0 flex items-center pr-4`}
                         >
                           <IconCheck className="h-5 w-5" aria-hidden="true" />
                         </span>
@@ -167,6 +220,117 @@ const Activity: FC<props> = (props) => {
           </Listbox.Options>
         </Listbox>
       </div>
+
+      {leaderboardEnabled && (
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+            Leaderboard Rank
+          </label>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-3">
+            Set the minimum rank that will appear on the leaderboard
+          </p>
+          <Listbox
+            value={selectedLRole}
+            onChange={(value: number | undefined) => updateLRole(value)}
+            as="div"
+            className="relative inline-block w-full text-left mb-2"
+          >
+            <Listbox.Button className="z-10 h-auto w-full flex flex-row rounded-xl py-1 hover:bg-zinc-200 dark:hover:bg-zinc-800 dark:focus-visible:bg-zinc-800 px-2 transition cursor-pointer outline-1 outline-gray-300 outline mb-1 focus-visible:bg-zinc-200">
+              <p className="z-10 my-auto text-lg pl-2 dark:text-white">
+                {selectedLRole
+                  ? (
+                      roles.find(
+                        (r: any) => r.rank === selectedLRole
+                      ) as any
+                    )?.name || "Guest"
+                  : "All ranks"}
+              </p>
+              <IconChevronDown
+                size={18}
+                color="#AAAAAA"
+                className="my-auto ml-auto"
+              />
+            </Listbox.Button>
+            <Listbox.Options className="absolute left-0 z-10 mt-2 w-48 origin-top-left rounded-xl bg-white dark:text-white dark:bg-zinc-800 shadow-lg ring-1 ring-gray-300 focus-visible:outline-none overflow-clip">
+              <div className="">
+                <Listbox.Option
+                  className={({ active }) =>
+                    `${
+                      active
+                        ? "text-white bg-primary"
+                        : "text-zinc-900 dark:text-white"
+                    } relative cursor-pointer select-none py-2 pl-3 pr-9`
+                  }
+                  value={undefined}
+                >
+                  {({ selected, active }) => (
+                    <>
+                      <div className="flex items-center">
+                        <span
+                          className={`${
+                            selected ? "font-semibold" : "font-normal"
+                          } ml-2 block truncate text-lg`}
+                        >
+                          All ranks
+                        </span>
+                      </div>
+
+                      {selected ? (
+                        <span
+                          className={`${active ? "text-white" : "text-primary"} absolute inset-y-0 right-0 flex items-center pr-4`}
+                        >
+                          <IconCheck className="h-5 w-5" aria-hidden="true" />
+                        </span>
+                      ) : null}
+                    </>
+                  )}
+                </Listbox.Option>
+                {roles
+                  .filter(
+                    (role: any) => !selectedRole || role.rank >= selectedRole
+                  )
+                  .map((role: any, index) => (
+                    <Listbox.Option
+                      className={({ active }) =>
+                        `${
+                          active
+                            ? "text-white bg-primary"
+                            : "text-zinc-900 dark:text-white"
+                        } relative cursor-pointer select-none py-2 pl-3 pr-9`
+                      }
+                      key={index}
+                      value={role.rank}
+                    >
+                      {({ selected, active }) => (
+                        <>
+                          <div className="flex items-center">
+                            <span
+                              className={`${
+                                selected ? "font-semibold" : "font-normal"
+                              } ml-2 block truncate text-lg`}
+                            >
+                              {role.name}
+                            </span>
+                          </div>
+
+                          {selected ? (
+                            <span
+                              className={`${
+                                active ? "text-white" : "text-primary"
+                              } absolute inset-y-0 right-0 flex items-center pr-4`}
+                            >
+                              <IconCheck className="h-5 w-5" aria-hidden="true" />
+                            </span>
+                          ) : null}
+                        </>
+                      )}
+                    </Listbox.Option>
+                  ))}
+              </div>
+            </Listbox.Options>
+          </Listbox>
+        </div>
+      )}
 
       <div className="mb-6">
         <button
@@ -191,18 +355,19 @@ const Activity: FC<props> = (props) => {
 
         {lastReset && (
           <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4 mb-4">
-            <div className="flex items-center gap-2 mb-2">
-              <IconCalendarTime className="w-4 h-4 text-zinc-500" />
-              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                Last Reset
-              </span>
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  Last Reset
+                </span>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  {moment(lastReset.resetAt).format("MMMM Do, YYYY [at] h:mm A")}
+                </p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
+                  by {lastReset.resetBy?.username || "Unknown User"}
+                </p>
+              </div>
             </div>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              {moment(lastReset.resetAt).format("MMMM Do, YYYY [at] h:mm A")}
-            </p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
-              by {lastReset.resetBy?.username || "Unknown User"}
-            </p>
           </div>
         )}
 

@@ -223,7 +223,7 @@ const Wall: pageWithLayout<pageProps> = (props) => {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-zinc-800 border-zinc-100 dark:border-zinc-70 rounded-xl shadow-sm p-4 mb-8">
+      <div className="bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-4 mb-8">
         <div className="flex items-start gap-4">
           <div
             className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(
@@ -302,7 +302,7 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                 </div>
               </div>
               <Button
-                classoverride="bg-primary hover:bg-primary/90 text-white dark:text-white px-6 dark:bg-[var(--group-theme)] dark:hover:bg-[var(--group-theme)]/60"
+                classoverride="bg-primary hover:bg-primary/90 text-white dark:text-white px-6 dark:bg-primary dark:hover:bg-primary/80"
                 workspace
                 onPress={sendPost}
                 loading={loading}
@@ -318,7 +318,7 @@ const Wall: pageWithLayout<pageProps> = (props) => {
 
       <div className="space-y-6">
         {posts.length < 1 ? (
-          <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm p-8 text-center">
+          <div className="bg-white dark:bg-zinc-800 border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-8 text-center">
             <img
               className="mx-auto h-48 mb-4"
               alt="No posts yet"
@@ -335,7 +335,7 @@ const Wall: pageWithLayout<pageProps> = (props) => {
           posts.map((post: any) => (
             <div
               key={post.id}
-              className="bg-white dark:bg-zinc-800 border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow"
+              className="bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow"
             >
               <div className="flex items-start gap-4">
                 <div

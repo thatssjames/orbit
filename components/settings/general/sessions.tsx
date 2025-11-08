@@ -15,7 +15,7 @@ const Guide: FC<props> = (props) => {
 	const triggerToast = props.triggerToast;
 	const [workspace, setWorkspace] = useRecoilState(workspacestate);
 
-	const updateColor = async () => {
+	const updateGuide = async () => {
 		const res = await axios.patch(`/api/workspace/${workspace.groupId}/settings/general/sessions`, { 
 			enabled: !workspace.settings.sessionsEnabled
 		});
@@ -23,9 +23,9 @@ const Guide: FC<props> = (props) => {
 			const obj = JSON.parse(JSON.stringify(workspace), (key, value) => (typeof value === 'bigint' ? value.toString() : value));
 			obj.settings.sessionsEnabled = !workspace.settings.sessionsEnabled;
 			setWorkspace(obj);
-			triggerToast.success("Updated sessions");
+			triggerToast.success("Updated sessions!");
 		} else {
-			triggerToast.error("Failed to update sessions");
+			triggerToast.error("Failed to update sessions.");
 		}
 	};	
 
@@ -43,7 +43,7 @@ const Guide: FC<props> = (props) => {
 				</div>
 				<SwitchComponenet 
 					checked={workspace.settings?.sessionsEnabled} 
-					onChange={updateColor} 
+					onChange={updateGuide} 
 					label="" 
 					classoverride="mt-0"
 				/>

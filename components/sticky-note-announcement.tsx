@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { IconX, IconPin } from "@tabler/icons-react"
-const ANNOUNCEMENT_KEY = "announcementDismissed_v2_1_2b1";
+const ANNOUNCEMENT_KEY = "announcementDismissed_v2_1_3b1";
 
 export default function StickyNoteAnnouncement() {
   const [isVisible, setIsVisible] = useState(false)
@@ -18,7 +18,7 @@ export default function StickyNoteAnnouncement() {
   if (!isVisible) return null
 
   return (
-    <div className="z-0 bg-white dark:bg-zinc-800 rounded-xl shadow-sm p-4 flex items-start space-x-4 mb-6 relative">
+    <div className="z-0 bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-4 flex items-start space-x-4 mb-6 relative">
       <img
         src="/favicon-32x32.png"
         alt="Orbit"
@@ -33,25 +33,25 @@ export default function StickyNoteAnnouncement() {
     <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0"></p>
     <div className="text-zinc-800 dark:text-zinc-300 text-sm space-y-2">
       <p>
-        👋 <strong>Orbit v2.1.2 is live!</strong> — Activity & Users 🎖️
+        👋 <strong>Orbit v2.1.3 is live!</strong>
         <br />
         Here’s what’s new since the last announcement:
       </p>
 
       <p className="mt-4 font-semibold">Introduction</p>
       <p>
-        We've revamped our Activity & Users system to give you deeper insights into your team's engagement and contributions within Orbit.
-		The features you know and love have been reimagined and designed to provide a more intuitive and powerful experience.
+        We've taken on feedback and redesigned some core features to enhance your user experience.
       </p>
 
-      <p className="mt-4 font-semibold">Features</p>
+      <p className="mt-4 font-semibold">Changes</p>
       <ul className="list-disc list-inside space-y-1">
-        <li>Activity Reset</li>
-        <li>Activity History</li>
-        <li>Session Statistics</li>
-        <li>Activity Leaderboard</li>
-        <li>Separated Notices page</li>
-        <li>External Intergration (Ranking)</li>
+        <li>Sessions Calendar now shows day-by-day.</li>
+        <li>You can now add a Duration length to Sessions.</li>
+        <li>Leaderboard can now have a minimum rank assigned.</li>
+        <li>Activity Layout has been refreshed based on the old design.</li>
+        <li>You can now check quota completion on the Staff page.</li>
+        <li>Improved mobile UI Compatibility.</li>
+        <li>And more...</li>
       </ul>
 
       <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">

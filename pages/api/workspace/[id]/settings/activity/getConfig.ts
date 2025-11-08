@@ -9,6 +9,7 @@ type Data = {
 	error?: string
 	roles?: any
 	currentRole?: any
+	leaderboardRole?: any
 }
 
 export default withPermissionCheck(handler, 'admin');
@@ -31,6 +32,7 @@ export async function handler(
 	res.status(200).send({
 		roles,
 		currentRole: activityconfig?.role,
+		leaderboardRole: activityconfig?.leaderboardRole,
 		success: true,
 	});
 }

@@ -227,10 +227,18 @@ const SessionModal: React.FC<SessionModalProps> = ({
 
   const sessionDate = new Date(session.date);
   const isRecurring = session.scheduleId !== null;
+  
+  // Calculate session timing
+  const now = new Date();
+  const sessionStart = new Date(session.date);
+  const sessionDuration = session.duration || 30;
+  const sessionEnd = new Date(sessionStart.getTime() + (sessionDuration * 60 * 1000));
+  const isActive = now >= sessionStart && now <= sessionEnd;
+  const isConcluded = now > sessionEnd;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-xl w-full max-w-2xl mx-auto max-h-[90vh] overflow-y-auto lg:mr-0 lg:ml-auto lg:max-w-[calc(100%-280px)]">
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-zinc-700">
           <div className="flex items-center gap-3">
             <div className="bg-primary/10 p-2 rounded-lg">
@@ -248,6 +256,14 @@ const SessionModal: React.FC<SessionModalProps> = ({
                   minute: "2-digit",
                   hour12: true,
                 })}
+                <span className="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">
+                  {session.duration || 30}min
+                </span>
+                {isActive && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 animate-pulse">
+                    • LIVE
+                  </span>
+                )}
                 {isRecurring && (
                   <span
                     className={`${getRecurringColor()} ${getTextColorForBackground(
@@ -267,6 +283,11 @@ const SessionModal: React.FC<SessionModalProps> = ({
                   >
                     {session.type.charAt(0).toUpperCase() +
                       session.type.slice(1)}
+                  </span>
+                )}
+                {isConcluded && (
+                  <span className="bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-400 px-2 py-1 rounded text-xs font-medium">
+                    Concluded
                   </span>
                 )}
               </div>
@@ -953,9 +974,9 @@ const ActivityLogsSection: React.FC<{
           log.metadata?.roleName || "Unknown Role"
         }"`;
       case "host_assigned":
-        return `${actorName} assigned ${targetName} as host`;
+        return `${actorName} assigned ${targetName} as "Host"`;
       case "host_unassigned":
-        return `${actorName} removed ${targetName} as host`;
+        return `${actorName} removed ${targetName} as "Host"`;
       case "session_claimed":
         return `${actorName} claimed this session`;
       default:

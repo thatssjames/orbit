@@ -23,9 +23,9 @@ const Guide: FC<props> = (props) => {
 			const obj = JSON.parse(JSON.stringify(workspace), (key, value) => (typeof value === 'bigint' ? value.toString() : value));
 			obj.settings.guidesEnabled = !workspace.settings.guidesEnabled;
 			setWorkspace(obj);
-			triggerToast.success("Updated documents");
+			triggerToast.success("Updated documents!");
 		} else {
-			triggerToast.error("Failed to update documents");
+			triggerToast.error("Failed to update documents.");
 		}
 	};	
 

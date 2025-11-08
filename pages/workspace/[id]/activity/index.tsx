@@ -17,6 +17,8 @@ import {
   IconTarget,
   IconClipboardList,
   IconChartBar,
+  IconPlayerPlay,
+  IconMoon,
 } from "@tabler/icons-react";
 import Tooltip from "@/components/tooltip";
 import randomText from "@/utils/randomText";
@@ -48,37 +50,36 @@ const Activity: pageWithLayout = () => {
         let totalMinutes = 0;
         let totalMessages = 0;
         let totalIdleTime = 0;
-        let sessionsHosted = 0;
-        let sessionsAttended = 0;
 
-        if (profileData.sessions) {
-          profileData.sessions.forEach((session: any) => {
-            if (session.endTime) {
-              const duration = Math.round(
-                (new Date(session.endTime).getTime() -
-                  new Date(session.startTime).getTime()) /
-                  60000
-              );
-              totalMinutes += duration;
-            }
-            totalMessages += session.messages || 0;
-            totalIdleTime += Number(session.idleTime) || 0;
-          });
-        }
-        if (profileData.adjustments) {
-          totalMinutes += profileData.adjustments.reduce(
-            (sum: number, adj: any) => sum + adj.minutes,
-            0
-          );
-        }
-        sessionsHosted = profileData.roleBasedSessionsHosted || 0;
-        sessionsAttended = profileData.roleBasedSessionsAttended || 0;
+        (profileData.sessions || []).forEach((session: any) => {
+          if (session.endTime) {
+            const duration = Math.round(
+              (new Date(session.endTime).getTime() -
+                new Date(session.startTime).getTime()) /
+                60000
+            );
+            totalMinutes += duration;
+          }
+          totalMessages += session.messages || 0;
+          totalIdleTime += Number(session.idleTime) || 0;
+        });
+        
+        totalMinutes += (profileData.adjustments || []).reduce(
+          (sum: number, adj: any) => sum + adj.minutes,
+          0
+        );
+        
+        const sessionsHosted = profileData.roleBasedSessionsHosted || 0;
+        const sessionsAttended = profileData.roleBasedSessionsAttended || 0;
+        const totalPlaySessions = (profileData.sessions || []).length;
+        
         setMyData({
           minutes: totalMinutes,
           messages: totalMessages,
           idleTime: Math.round(totalIdleTime / 60),
           sessionsHosted,
           sessionsAttended,
+          totalPlaySessions,
           picture: profileData.avatar,
           username: login.displayname,
         });
@@ -166,19 +167,6 @@ const Activity: pageWithLayout = () => {
     }
   }, [id, login.userId]);
 
-  const getQuotaTypeLabel = (type: string) => {
-    switch (type) {
-      case "mins":
-        return "minutes";
-      case "sessions_hosted":
-        return "sessions hosted";
-      case "sessions_attended":
-        return "sessions attended";
-      default:
-        return type;
-    }
-  };
-
   const fetchSessionDetails = async (sessionId: string) => {
     setLoadingSession(true);
     setIsSessionModalOpen(true);
@@ -215,102 +203,149 @@ const Activity: pageWithLayout = () => {
     }
   };
 
+  const getQuotaTypeLabel = (type: string) => {
+    switch (type) {
+      case "mins":
+        return "minutes";
+      case "sessions_hosted":
+        return "sessions hosted";
+      case "sessions_attended":
+        return "sessions attended";
+      default:
+        return type;
+    }
+  };
+
   return (
     <div className="pagePadding">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-medium text-zinc-900 dark:text-white">
-              My Activity
+            <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">
+              Activity Dashboard
             </h1>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-              Your activity metrics and overview
+            <p className="text-zinc-500 dark:text-zinc-400 mt-2">
+              Monitor your gaming performance and track detailed activity metrics
             </p>
           </div>
         </div>
-        <div className="mb-8">
-          <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
-            <div className="flex items-center gap-3 p-4 border-b dark:border-zinc-700">
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <IconUserCircle className="w-5 h-5 text-primary" />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6 mb-8">
+          <div className="bg-white dark:bg-zinc-800 rounded-xl p-4 lg:p-6 border border-white/10 min-w-0">
+            <div className="flex items-center justify-between mb-4 lg:mb-6">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-xs lg:text-sm font-medium text-zinc-900 dark:text-zinc-300 uppercase tracking-wide truncate">
+                  Active Time
+                </h3>
               </div>
-              <div>
-                <h2 className="text-lg font-medium text-zinc-900 dark:text-white">
-                  Your Activity
-                </h2>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  Activity overview this period
-                </p>
+              <div className="bg-emerald-500/20 p-2 lg:p-3 rounded-lg">
+                <IconClock className="w-4 h-4 lg:w-5 lg:h-5 text-emerald-400" />
               </div>
             </div>
-            <div className="p-4">
-              {myData ? (
-                <>
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="bg-zinc-50 dark:bg-zinc-700 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-zinc-900 dark:text-white mb-1">
-                        {myData.minutes}
-                      </div>
-                      <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                        Minutes
-                      </div>
-                    </div>
+            <div className="text-2xl lg:text-3xl font-bold mb-1 lg:mb-2 text-zinc-900 dark:text-white">
+              {myData ? myData.minutes : 0}
+            </div>
+            <div className="text-xs lg:text-sm text-zinc-500 dark:text-zinc-400">
+              Time spent
+            </div>
+          </div>
 
-                    <div className="bg-zinc-50 dark:bg-zinc-700 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-zinc-900 dark:text-white mb-1">
-                        {myData.messages}
-                      </div>
-                      <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                        Messages
-                      </div>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-12">
-                  <p className="text-zinc-500 dark:text-zinc-400">
-                    Loading your activity data...
-                  </p>
-                </div>
-              )}
+          <div className="bg-white dark:bg-zinc-800 rounded-xl p-4 lg:p-6 border border-white/10 min-w-0">
+            <div className="flex items-center justify-between mb-4 lg:mb-6">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-xs lg:text-sm font-medium text-zinc-900 dark:text-zinc-300 uppercase tracking-wide truncate">
+                  AFK Time
+                </h3>
+              </div>
+              <div className="bg-blue-500/20 p-2 lg:p-3 rounded-lg">
+                <IconMoon className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400" />
+              </div>
+            </div>
+            <div className="text-2xl lg:text-3xl font-bold mb-1 lg:mb-2 text-zinc-900 dark:text-white">
+              {myData ? myData.idleTime : 0}
+            </div>
+            <div className="text-xs lg:text-sm text-zinc-500 dark:text-zinc-400">
+              Time spent away from keyboard
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-zinc-800 rounded-xl p-4 lg:p-6 border border-white/10 min-w-0">
+            <div className="flex items-center justify-between mb-4 lg:mb-6">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-xs lg:text-sm font-medium text-zinc-900 dark:text-zinc-300 uppercase tracking-wide truncate">
+                  Messages
+                </h3>
+              </div>
+              <div className="bg-purple-500/20 p-2 lg:p-3 rounded-lg">
+                <IconMessageCircle2 className="w-4 h-4 lg:w-5 lg:h-5 text-purple-400" />
+              </div>
+            </div>
+            <div className="text-2xl lg:text-3xl font-bold mb-1 lg:mb-2 text-zinc-900 dark:text-white">
+              {myData ? myData.messages : 0}
+            </div>
+            <div className="text-xs lg:text-sm text-zinc-500 dark:text-zinc-400">
+              Chat messages
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-zinc-800 rounded-xl p-4 lg:p-6 border border-white/10 min-w-0">
+            <div className="flex items-center justify-between mb-4 lg:mb-6">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-xs lg:text-sm font-medium text-zinc-900 dark:text-zinc-300 uppercase tracking-wide truncate">
+                  Total Sessions
+                </h3>
+              </div>
+              <div className="bg-orange-500/20 p-2 lg:p-3 rounded-lg">
+                <IconPlayerPlay className="w-4 h-4 lg:w-5 lg:h-5 text-orange-400" />
+              </div>
+            </div>
+            <div className="text-2xl lg:text-3xl font-bold mb-1 lg:mb-2 text-zinc-900 dark:text-white">
+              {myData ? myData.totalPlaySessions : 0}
+            </div>
+            <div className="text-sm text-zinc-500 dark:text-zinc-400">
+              Play sessions
             </div>
           </div>
         </div>
 
         {myData && (
           <div className="mb-8">
-            <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
-              <div className="flex items-center gap-3 p-4 border-b dark:border-zinc-700">
-                <div className="bg-primary/10 p-2 rounded-lg">
-                  <IconUsers className="w-5 h-5 text-primary" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-blue-100 uppercase tracking-wide">
+                      Sessions Hosted
+                    </h3>
+                  </div>
+                  <div className="bg-white/20 p-3 rounded-lg">
+                    <IconUsers className="w-6 h-6 text-white" />
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-lg font-medium text-zinc-900 dark:text-white">
-                    Your Sessions
-                  </h2>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    Session participation this period
-                  </p>
+                <div className="text-4xl font-bold mb-2 text-white">
+                  {myData.sessionsHosted}
+                </div>
+                <div className="text-sm text-blue-100">
+                  Sessions you Hosted
                 </div>
               </div>
-              <div className="p-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-zinc-50 dark:bg-zinc-700 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-zinc-900 dark:text-white mb-1">
-                      {myData.sessionsHosted}
-                    </div>
-                    <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Sessions Hosted
-                    </div>
-                  </div>
-                  <div className="bg-zinc-50 dark:bg-zinc-700 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-zinc-900 dark:text-white mb-1">
-                      {myData.sessionsAttended}
-                    </div>
-                    <div className="text-sm text-zinc-600 dark:text-zinc-400">
+
+              <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-emerald-100 uppercase tracking-wide">
                       Sessions Attended
-                    </div>
+                    </h3>
                   </div>
+                  <div className="bg-white/20 p-3 rounded-lg">
+                    <IconChartBar className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+                <div className="text-4xl font-bold mb-2 text-white">
+                  {myData.sessionsAttended}
+                </div>
+                <div className="text-sm text-emerald-100">
+                  Sessions you participated in
                 </div>
               </div>
             </div>
@@ -324,7 +359,7 @@ const Activity: pageWithLayout = () => {
                 <IconTarget className="w-5 h-5 text-primary" />
               </div>
               <h3 className="text-base font-medium text-zinc-900 dark:text-white">
-                Your Quotas
+                Quotas
               </h3>
             </div>
             <div className="grid gap-4">
@@ -428,30 +463,42 @@ const Activity: pageWithLayout = () => {
           </div>
         )}
         <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden mb-8">
-          <div className="flex items-center gap-3 p-4 border-b dark:border-zinc-600">
-            <div className="bg-primary/10 p-2 rounded-lg">
-              <IconCalendarTime className="w-5 h-5 text-primary" />
+          <div className="flex items-center justify-between p-6 border-b dark:border-zinc-700">
+            <div className="flex items-center gap-3">
+              <div className="bg-primary/10 p-3 rounded-xl">
+                <IconCalendarTime className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">
+                  Activity Timeline
+                </h2>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  Recent activity and session history
+                </p>
+              </div>
             </div>
-            <h2 className="text-lg font-medium text-zinc-900 dark:text-white">
-              Activity Timeline
-            </h2>
+            {timeline.length > 0 && (
+              <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                {timeline.length} {timeline.length === 1 ? "entry" : "entries"}
+              </div>
+            )}
           </div>
-          <div className="p-4">
+          <div className="p-6">
             {timeline.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                  <IconClipboardList className="w-8 h-8 text-primary" />
+              <div className="text-center py-16">
+                <div className="mx-auto w-20 h-20 bg-zinc-100 dark:bg-zinc-700 rounded-full flex items-center justify-center mb-6">
+                  <IconClipboardList className="w-10 h-10 text-zinc-400" />
                 </div>
-                <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-1">
-                  No Activity
+                <h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-2">
+                  No Activity Yet
                 </h3>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
-                  No activity has been recorded yet
+                <p className="text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto">
+                  Your activity timeline will appear here once you start participating in sessions and activities.
                 </p>
               </div>
             ) : (
-              <ol className="relative border-l border-gray-200 dark:border-zinc-600 ml-3 mt-3">
-                {timeline.slice(0, 10).map((item: any) => {
+              <div className="space-y-6">
+                {timeline.slice(0, 10).map((item: any, index: number) => {
                   if (item.__type === "session") {
                     const isLive = item.active && !item.endTime;
                     const sessionDuration = isLive
@@ -467,140 +514,164 @@ const Activity: pageWithLayout = () => {
                         );
 
                     return (
-                      <li key={`session-${item.id}`} className="mb-6 ml-6">
-                        <span
-                          className={`flex absolute -left-3 justify-center items-center w-6 h-6 ${
-                            isLive ? "bg-green-500 animate-pulse" : "bg-primary"
-                          } rounded-full ring-4 ring-white dark:ring-zinc-800`}
-                        >
-                          {isLive ? (
-                            <div className="w-3 h-3 bg-white rounded-full"></div>
-                          ) : (
-                            <img
-                              className="rounded-full w-4 h-4"
-                              src={myData?.picture || "/default-avatar.png"}
-                              alt="avatar"
-                            />
+                      <div key={`session-${item.id}`} className="flex gap-4">
+                        <div className="flex flex-col items-center">
+                          <div
+                            className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              isLive 
+                                ? "bg-green-500 animate-pulse shadow-lg shadow-green-500/50" 
+                                : "bg-blue-500 shadow-lg shadow-blue-500/20"
+                            }`}
+                          >
+                            {isLive ? (
+                              <div className="w-4 h-4 bg-white rounded-full"></div>
+                            ) : (
+                              <IconPlayerPlay className="w-5 h-5 text-white" />
+                            )}
+                          </div>
+                          {index < timeline.slice(0, 10).length - 1 && (
+                            <div className="w-px h-12 bg-zinc-200 dark:bg-zinc-700 mt-4"></div>
                           )}
-                        </span>
+                        </div>
                         <div
-                          className={`p-4 ${
+                          className={`flex-1 p-5 rounded-xl border-2 transition-all cursor-pointer ${
                             isLive
-                              ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700"
-                              : "bg-zinc-50 dark:bg-zinc-700 border-zinc-100 dark:border-zinc-600 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-600"
-                          } rounded-lg border transition-colors`}
+                              ? "bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800 shadow-sm"
+                              : "bg-zinc-50 dark:bg-zinc-700/50 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600"
+                          }`}
                           onClick={() => !isLive && fetchSessionDetails(item.id)}
                         >
-                          <div className="flex justify-between items-center mb-1">
-                            <div className="flex items-center gap-2">
-                              <p className="text-sm font-medium text-zinc-900 dark:text-white">
-                                Activity Session
-                              </p>
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <h3 className="font-semibold text-zinc-900 dark:text-white">
+                                Gaming Session
+                              </h3>
                               {isLive && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                  LIVE
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                  • LIVE
                                 </span>
                               )}
                             </div>
-                            <time className="text-xs text-zinc-500 dark:text-zinc-400">
+                            <div className="text-right">
+                              <div className="text-sm font-medium text-zinc-900 dark:text-white">
+                                {sessionDuration}m
+                              </div>
+                              <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                                Duration
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="text-zinc-600 dark:text-zinc-300">
                               {isLive ? (
                                 <>
-                                  Started at{" "}
-                                  {moment(item.startTime).format("HH:mm")} •{" "}
-                                  {sessionDuration}m
+                                  Started at {moment(item.startTime).format("HH:mm")}
                                 </>
                               ) : (
                                 <>
-                                  {moment(item.startTime).format("HH:mm")} -{" "}
-                                  {moment(item.endTime).format("HH:mm")} on{" "}
-                                  {moment(item.startTime).format("DD MMM YYYY")}{" "}
-                                  • {sessionDuration}m
+                                  {moment(item.startTime).format("HH:mm")} - {moment(item.endTime).format("HH:mm")} on {moment(item.startTime).format("MMM DD")}
                                 </>
                               )}
-                            </time>
+                            </div>
+                            {!isLive && (
+                              <div className="text-zinc-400 dark:text-zinc-500 text-xs">
+                                Click for details
+                              </div>
+                            )}
                           </div>
                           {isLive && (
-                            <p className="text-xs text-zinc-600 dark:text-zinc-300">
+                            <div className="mt-2 text-sm text-green-700 dark:text-green-300 font-medium">
                               Currently active in game
-                            </p>
+                            </div>
                           )}
                         </div>
-                      </li>
+                      </div>
                     );
                   }
 
                   if (item.__type === "adjustment") {
                     const positive = item.minutes > 0;
                     return (
-                      <li key={`adjustment-${item.id}`} className="mb-6 ml-6">
-                        <span
-                          className={`flex absolute -left-3 justify-center items-center w-6 h-6 ${
-                            positive ? "bg-green-500" : "bg-red-500"
-                          } rounded-full ring-4 ring-white dark:ring-zinc-800 text-white text-xs font-bold`}
-                        >
-                          {positive ? "+" : "-"}
-                        </span>
-                        <div className="p-4 bg-zinc-50 dark:bg-zinc-700 rounded-lg border border-zinc-100 dark:border-zinc-600">
-                          <div className="flex justify-between items-center mb-1">
-                            <p className="text-sm font-medium text-zinc-900 dark:text-white">
-                              Manual Adjustment
-                            </p>
-                            <time className="text-xs text-zinc-500 dark:text-zinc-400">
-                              {moment(item.createdAt).format(
-                                "DD MMM YYYY HH:mm"
-                              )}
-                            </time>
+                      <div key={`adjustment-${item.id}`} className="flex gap-4">
+                        <div className="flex flex-col items-center">
+                          <div
+                            className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              positive ? "bg-green-500" : "bg-red-500"
+                            } shadow-lg`}
+                          >
+                            <span className="text-white font-bold text-sm">
+                              {positive ? "+" : "-"}
+                            </span>
                           </div>
-                          <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                            {positive ? "Added" : "Removed"}{" "}
-                            {Math.abs(item.minutes)} minutes
-                          </p>
-                          {item.reason && (
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                              {item.reason}
-                            </p>
-                          )}
-                          {item.actor?.username && (
-                            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
-                              by {item.actor.username}
-                            </p>
+                          {index < timeline.slice(0, 10).length - 1 && (
+                            <div className="w-px h-12 bg-zinc-200 dark:bg-zinc-700 mt-4"></div>
                           )}
                         </div>
-                      </li>
+                        <div className="flex-1 p-5 rounded-xl border-2 bg-zinc-50 dark:bg-zinc-700/50 border-zinc-200 dark:border-zinc-700">
+                          <div className="flex items-center justify-between mb-3">
+                            <h3 className="font-semibold text-zinc-900 dark:text-white">
+                              Manual Adjustment
+                            </h3>
+                            <div className="text-right">
+                              <div className="text-sm font-medium text-zinc-900 dark:text-white">
+                                {positive ? "+" : "-"}{Math.abs(item.minutes)}m
+                              </div>
+                              <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                                {positive ? "Added" : "Removed"}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="text-zinc-600 dark:text-zinc-300">
+                              {moment(item.createdAt).format("MMM DD, YYYY at HH:mm")}
+                            </div>
+                            {item.actor?.username && (
+                              <div className="text-zinc-500 dark:text-zinc-400 text-xs">
+                                by {item.actor.username}
+                              </div>
+                            )}
+                          </div>
+                          {item.reason && (
+                            <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-300 italic">
+                              "{item.reason}"
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     );
                   }
 
                   if (item.__type === "notice") {
                     return (
-                      <li key={`notice-${item.id}`} className="mb-6 ml-6">
-                        <span className="flex absolute -left-3 justify-center items-center w-6 h-6 bg-primary rounded-full ring-4 ring-white dark:ring-zinc-800">
-                          <img
-                            className="rounded-full w-4 h-4"
-                            src={myData?.picture || "/default-avatar.png"}
-                            alt="avatar"
-                          />
-                        </span>
-                        <div className="p-4 bg-zinc-50 dark:bg-zinc-700 rounded-lg border border-zinc-100 dark:border-zinc-600">
-                          <div className="flex justify-between items-center mb-1">
-                            <p className="text-sm font-medium text-zinc-900 dark:text-white">
-                              Inactivity Notice
-                            </p>
-                            <time className="text-xs text-zinc-500 dark:text-zinc-400">
-                              {moment(item.from).format("DD MMM")} -{" "}
-                              {moment(item.to).format("DD MMM YYYY")}
-                            </time>
+                      <div key={`notice-${item.id}`} className="flex gap-4">
+                        <div className="flex flex-col items-center">
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-amber-500 shadow-lg">
+                            <IconTarget className="w-5 h-5 text-white" />
                           </div>
-                          <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                            {item.reason}
-                          </p>
+                          {index < timeline.slice(0, 10).length - 1 && (
+                            <div className="w-px h-12 bg-zinc-200 dark:bg-zinc-700 mt-4"></div>
+                          )}
                         </div>
-                      </li>
+                        <div className="flex-1 p-5 rounded-xl border-2 bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800">
+                          <div className="flex items-center justify-between mb-3">
+                            <h3 className="font-semibold text-zinc-900 dark:text-white">
+                              Inactivity Notice
+                            </h3>
+                            <div className="text-sm text-amber-700 dark:text-amber-300">
+                              {moment(item.from).format("MMM DD")} - {moment(item.to).format("MMM DD")}
+                            </div>
+                          </div>
+                          <div className="text-sm text-zinc-600 dark:text-zinc-300">
+                            {item.reason}
+                          </div>
+                        </div>
+                      </div>
                     );
                   }
 
                   return null;
                 })}
-              </ol>
+              </div>
             )}
           </div>
         </div>

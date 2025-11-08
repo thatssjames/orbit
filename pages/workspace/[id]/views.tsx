@@ -61,6 +61,7 @@ type User = {
   sessionsAttended: number;
   messages: number;
   registered: boolean;
+  quota: boolean;
 };
 
 export const getServerSideProps = withPermissionCheckSsr(
@@ -92,6 +93,18 @@ export const getServerSideProps = withPermissionCheckSsr(
         inactivityNotices: true,
         sessions: true,
         ranks: true,
+        roles: {
+          where: {
+            workspaceGroupId,
+          },
+          include: {
+            quotaRoles: {
+              include: {
+                quota: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -215,6 +228,36 @@ export const getServerSideProps = withPermissionCheckSsr(
         },
       });
 
+      const userQuotas = user.roles
+        .flatMap((role) => role.quotaRoles)
+        .map((qr) => qr.quota);
+      
+      let quota = true;
+      if (userQuotas.length > 0) {
+        for (const userQuota of userQuotas) {
+          let currentValue = 0;
+
+          switch (userQuota.type) {
+            case "mins":
+              currentValue = ms.length ? Math.round(ms.reduce((p, c) => p + c) / 60000) : 0;
+              break;
+            case "sessions_hosted":
+              currentValue = sessionsHosted;
+              break;
+            case "sessions_attended":
+              currentValue = sessionsAttended;
+              break;
+          }
+
+          if (currentValue < userQuota.value) {
+            quota = false;
+            break;
+          }
+        }
+      } else {
+        quota = false;
+      }
+
       computedUsers.push({
         info: {
           userId: Number(user.userid),
@@ -234,6 +277,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           ? Math.round(messages.reduce((p, c) => p + c))
           : 0,
         registered: user.registered || false,
+        quota: quota,
       });
     }
 
@@ -345,6 +389,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         },
       });
 
+      const quota = false;
       computedUsers.push({
         info: {
           userId: Number(x.userId),
@@ -364,6 +409,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           ? Math.round(messages.reduce((p, c) => p + c))
           : 0,
         registered: x.user.registered || false,
+        quota: quota,
       });
     }
 
@@ -394,6 +440,7 @@ const filters: {
   messages: ["equal", "greaterThan", "lessThan"],
   notices: ["equal", "greaterThan", "lessThan"],
   registered: ["equal"],
+  quota: ["equal"],
 };
 
 const filterNames: {
@@ -561,12 +608,19 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
         return <p>{row.getValue() ? "✅" : "❌"}</p>;
       },
     }),
+    columnHelper.accessor("quota", {
+      header: "Quota Complete",
+      cell: (row) => {
+        return <p>{row.getValue() ? "✅" : "❌"}</p>;
+      },
+    }),
   ];
 
   const [columnVisibility, setColumnVisibility] = useState({
     inactivityNotices: false,
     idleMinutes: false,
     registered: false,
+    quota: false,
   });
 
   const table = useReactTable({
@@ -763,6 +817,13 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
               valid = false;
             }
           }
+        } else if (filter.column === "quota") {
+          if (!filter.value) return;
+          if (filter.filter === "equal") {
+            if (user.quota.toString() !== filter.value.toLowerCase()) {
+              valid = false;
+            }
+          }
         }
       });
       return valid;
@@ -853,6 +914,8 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
       return "Messages";
     } else if (columnId == "registered") {
       return "Registered";
+    } else if (columnId == "quota") {
+      return "Quota Complete";
     }
   };
 
@@ -1372,6 +1435,21 @@ const Filter: React.FC<{
         )}
 
         {getValues("col") === "registered" && (
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-zinc-700 dark:text-white">
+              Value
+            </label>
+            <select
+              {...register("value")}
+              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
+            >
+              <option value="true">✅</option>
+              <option value="false">❌</option>
+            </select>
+          </div>
+        )}
+
+        {getValues("col") === "quota" && (
           <div className="space-y-2">
             <label className="block text-sm font-medium text-zinc-700 dark:text-white">
               Value
