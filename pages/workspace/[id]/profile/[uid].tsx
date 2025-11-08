@@ -457,7 +457,7 @@ const Profile: pageWithLayout<pageProps> = ({
       sessions.reduce(
         (acc, session) => acc + Number(session.idleTime || 0),
         0
-      ) / 60
+      )
     ),
   };
 
