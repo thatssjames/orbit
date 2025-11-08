@@ -108,6 +108,11 @@ export async function handler(
 					key: 'sessions',
 					workspaceGroupId: groupId,
 					value: { enabled: false }
+				},
+				{
+					key: 'leaderboard',
+					workspaceGroupId: groupId,
+					value: { enabled: false }
 				}
 			]
 		})

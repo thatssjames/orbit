@@ -98,6 +98,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [docsEnabled, setDocsEnabled] = useState(false);
   const [alliesEnabled, setAlliesEnabled] = useState(false);
   const [sessionsEnabled, setSessionsEnabled] = useState(false);
+  const [leaderboardEnabled, setLeaderboardEnabled] = useState(false);
   const router = useRouter()
 
   // Add body class to prevent scrolling when mobile menu is open
@@ -122,11 +123,17 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     { name: "Home", href: "/workspace/[id]", icon: IconHome, filledIcon: IconHomeFilled },
     { name: "Wall", href: "/workspace/[id]/wall", icon: IconMessage2, filledIcon: IconMessage2Filled },
     { name: "Activity", href: "/workspace/[id]/activity", icon: IconClipboardList, filledIcon: IconClipboardListFilled, accessible: true },
-    { name: "Leaderboard", href: "/workspace/[id]/leaderboard", icon: IconTrophy, filledIcon: IconTrophyFilled, accessible: workspace.yourPermission.includes("view_entire_groups_activity") },
+	...(leaderboardEnabled ? [{
+      name: "Leaderboard",
+      href: "/workspace/[id]/leaderboard",
+      icon: IconTrophy,
+      filledIcon: IconTrophyFilled,
+      accessible: workspace.yourPermission.includes("view_entire_groups_activity"),
+    }] : []),
     { name: "Notices", href: "/workspace/[id]/notices", icon: IconClock, filledIcon: IconClockFilled, accessible: true },
     ...(alliesEnabled ? [{
-      name: "Allies",
-      href: "/workspace/[id]/allies",
+      name: "Alliances",
+      href: "/workspace/[id]/alliances",
       icon: IconRosetteDiscountCheck,
       filledIcon: IconRosetteDiscountCheckFilled,
       accessible: true,
@@ -235,6 +242,24 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         setSessionsEnabled(enabled);
       })
       .catch(() => setSessionsEnabled(false));
+  }, [workspace.groupId]);
+
+  useEffect(() => {
+    fetch(`/api/workspace/${workspace.groupId}/settings/general/leaderboard`)
+      .then(res => res.json())
+      .then(data => {
+        let enabled = false;
+        let val = data.value ?? data;
+        if (typeof val === "string") {
+          try { val = JSON.parse(val); } catch { val = {}; }
+        }
+        enabled =
+          typeof val === "object" && val !== null && "enabled" in val
+            ? (val as { enabled?: boolean }).enabled ?? false
+            : false;
+        setLeaderboardEnabled(enabled);
+      })
+      .catch(() => setLeaderboardEnabled(false));
   }, [workspace.groupId]);
 
   return (

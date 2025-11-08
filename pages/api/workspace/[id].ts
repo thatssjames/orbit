@@ -21,6 +21,7 @@ type Data = {
 		groupTheme: string,
 		settings: {
 			guidesEnabled: boolean
+			leaderboardEnabled: boolean
 			sessionsEnabled: boolean
 			alliesEnabled: boolean
 			noticesEnabled: boolean
@@ -111,6 +112,7 @@ export async function handler(
 		yourRole: user.roles[0].id,
 		settings: {
 			guidesEnabled: (await getConfig('guides', workspace.groupId))?.enabled || false,
+			leaderboardEnabled: (await getConfig('leaderboard', workspace.groupId))?.enabled || false,
 			sessionsEnabled: (await getConfig('sessions', workspace.groupId))?.enabled || false,
 			alliesEnabled: (await getConfig('allies', workspace.groupId))?.enabled || false,
 			noticesEnabled: false,
