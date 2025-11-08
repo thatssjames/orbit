@@ -59,6 +59,13 @@ export default withSessionRoute(async function handler(
   }
 
   try {
+    const currentDate = new Date();
+    const lastReset = await prisma.activityReset.findFirst({
+      where: { workspaceGroupId },
+      orderBy: { resetAt: "desc" },
+    });
+    const startDate = lastReset?.resetAt || new Date("2025-01-01");
+
     const user = await prisma.user.findFirst({
       where: { userid: userId },
       include: {
@@ -81,6 +88,10 @@ export default withSessionRoute(async function handler(
       where: {
         userId,
         workspaceGroupId,
+        startTime: {
+          gte: startDate,
+          lte: currentDate,
+        },
       },
       include: {
         user: {
@@ -107,22 +118,14 @@ export default withSessionRoute(async function handler(
       where: {
         ownerId: userId,
         sessionType: { workspaceGroupId },
-        date: { lte: new Date() },
+        date: {
+          gte: startDate,
+          lte: currentDate,
+        },
       },
       orderBy: { date: "desc" },
     });
 
-    const currentDate = new Date();
-    const lastReset = await prisma.activityReset.findFirst({
-      where: {
-        workspaceGroupId,
-      },
-      orderBy: {
-        resetAt: "desc",
-      },
-    });
-
-    const startDate = lastReset?.resetAt || new Date("2025-01-01");
     const ownedSessions = await prisma.session.findMany({
       where: {
         ownerId: userId,
