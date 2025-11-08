@@ -160,8 +160,8 @@ export const getServerSideProps = withPermissionCheckSsr(
       );
       timeSpent = completedSessions.reduce((sum, session) => {
         const totalTime = (session.endTime?.getTime() ?? 0) - session.startTime.getTime();
-        const idleTime = session.idleTime ? Number(session.idleTime) : 0;
-        return sum + Math.max(0, totalTime - idleTime);
+        const idleTime = session.idleTime ? Number(session.idleTime) : 0; // Already in minutes from Roblox
+        return sum + Math.max(0, totalTime - (idleTime * 60000));
       }, 0);
       timeSpent = Math.round(timeSpent / 60000);
       totalIdleTime = sessions.reduce((sum, session) => {
@@ -340,7 +340,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           )
         ),
         timeSpent: displayTimeSpent,
-        totalIdleTime: Math.round(totalIdleTime / 60000),
+        totalIdleTime: Math.round(totalIdleTime),
         timesPlayed: sessions.length,
         data,
         sessions: JSON.parse(

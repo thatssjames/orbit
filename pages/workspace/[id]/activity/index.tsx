@@ -61,7 +61,7 @@ const Activity: pageWithLayout = () => {
             totalMinutes += duration;
           }
           totalMessages += session.messages || 0;
-          totalIdleTime += (Number(session.idleTime) || 0) / 60000;
+          totalIdleTime += Number(session.idleTime) || 0;
         });
         
         totalMinutes += (profileData.adjustments || []).reduce(
