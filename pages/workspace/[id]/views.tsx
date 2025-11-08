@@ -138,7 +138,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         .filter((x) => BigInt(x.userId) == user.userid && !x.active)
         .forEach((session) => {
           ms.push(
-            (session.endTime?.getTime() as number) - session.startTime.getTime() - (session.idleTime ? Number(session.idleTime) * 1000 : 0)
+            (session.endTime?.getTime() as number) - session.startTime.getTime() - (session.idleTime ? Number(session.idleTime) : 0)
           );
         });
 
@@ -291,7 +291,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         sessions: allSessionParticipations,
         rankID: user.ranks[0]?.rankId ? Number(user.ranks[0]?.rankId) : 0,
         minutes: Math.round(totalActiveMs / 60000), // Active time in minutes
-        idleMinutes: ims.length ? Math.round(ims.reduce((p, c) => p + c) / 60) : 0,
+        idleMinutes: ims.length ? Math.round(ims.reduce((p, c) => p + c) / 60000) : 0,
         hostedSessions: { length: sessionsHosted },
         sessionsAttended: sessionsAttended,
         messages: messages.length
@@ -321,7 +321,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         .filter((y: any) => BigInt(y.userId) == BigInt(x.userId) && !y.active)
         .forEach((session) => {
           ms.push(
-            (session.endTime?.getTime() as number) - session.startTime.getTime() - (session.idleTime ? Number(session.idleTime) * 1000 : 0)
+            (session.endTime?.getTime() as number) - session.startTime.getTime() - (session.idleTime ? Number(session.idleTime) : 0)
           );
         });
 
@@ -444,7 +444,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         sessions: allSessionParticipations,
         rankID: x.user.ranks[0]?.rankId ? Number(x.user.ranks[0]?.rankId) : 0,
         minutes: Math.round(totalActiveMs / 60000),
-        idleMinutes: ims.length ? Math.round(ims.reduce((p, c) => p + c) / 60) : 0,
+        idleMinutes: ims.length ? Math.round(ims.reduce((p, c) => p + c) / 60000) : 0,
         hostedSessions: { length: sessionsHosted },
         sessionsAttended: sessionsAttended,
         messages: messages.length

@@ -61,7 +61,7 @@ const Activity: pageWithLayout = () => {
             totalMinutes += duration;
           }
           totalMessages += session.messages || 0;
-          totalIdleTime += Number(session.idleTime) || 0;
+          totalIdleTime += (Number(session.idleTime) || 0) / 60000;
         });
         
         totalMinutes += (profileData.adjustments || []).reduce(
@@ -69,7 +69,7 @@ const Activity: pageWithLayout = () => {
           0
         );
         
-        const totalIdleMinutes = Math.round(totalIdleTime / 60);
+        const totalIdleMinutes = Math.round(totalIdleTime);
         const activeMinutes = Math.max(0, totalMinutes - totalIdleMinutes);
         
         const sessionsHosted = profileData.roleBasedSessionsHosted || 0;

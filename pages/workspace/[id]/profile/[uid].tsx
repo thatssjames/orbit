@@ -153,16 +153,20 @@ export const getServerSideProps = withPermissionCheckSsr(
     });
 
     let timeSpent = 0;
+    let totalIdleTime = 0;
     if (sessions.length) {
       const completedSessions = sessions.filter(
         (session) => !session.active && session.endTime
       );
       timeSpent = completedSessions.reduce((sum, session) => {
         const totalTime = (session.endTime?.getTime() ?? 0) - session.startTime.getTime();
-        const idleTime = session.idleTime ? Number(session.idleTime) * 1000 : 0;
+        const idleTime = session.idleTime ? Number(session.idleTime) : 0;
         return sum + Math.max(0, totalTime - idleTime);
       }, 0);
       timeSpent = Math.round(timeSpent / 60000);
+      totalIdleTime = sessions.reduce((sum, session) => {
+        return sum + (session.idleTime ? Number(session.idleTime) : 0);
+      }, 0);
     }
     const netAdjustment = adjustments.reduce((sum, a) => sum + a.minutes, 0);
     const displayTimeSpent = timeSpent + netAdjustment;
@@ -336,6 +340,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           )
         ),
         timeSpent: displayTimeSpent,
+        totalIdleTime: Math.round(totalIdleTime / 60000),
         timesPlayed: sessions.length,
         data,
         sessions: JSON.parse(
@@ -382,6 +387,7 @@ export const getServerSideProps = withPermissionCheckSsr(
 type pageProps = {
   notices: any;
   timeSpent: number;
+  totalIdleTime: number;
   timesPlayed: number;
   data: number[];
   sessions: (ActivitySession & {
@@ -414,6 +420,7 @@ type pageProps = {
 const Profile: pageWithLayout<pageProps> = ({
   notices,
   timeSpent,
+  totalIdleTime,
   timesPlayed,
   data,
   sessions,
