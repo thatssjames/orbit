@@ -138,7 +138,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         .filter((x) => BigInt(x.userId) == user.userid && !x.active)
         .forEach((session) => {
           ms.push(
-            (session.endTime?.getTime() as number) - session.startTime.getTime()
+            (session.endTime?.getTime() as number) - session.startTime.getTime() - (session.idleTime ? Number(session.idleTime) * 1000 : 0)
           );
         });
 
@@ -255,9 +255,8 @@ export const getServerSideProps = withPermissionCheckSsr(
           switch (userQuota.type) {
             case "mins":
               const totalAdjustmentMinutes = userAdjustments.reduce((sum, adj) => sum + adj.minutes, 0);
-              const totalMinutes = ms.length ? Math.round(ms.reduce((p, c) => p + c) / 60000) : 0;
-              const idleMinutes = ims.length ? Math.round(ims.reduce((p, c) => p + c) / 60) : 0;
-              currentValue = Math.max(0, totalMinutes + totalAdjustmentMinutes - idleMinutes);
+              const totalActiveMinutes = ms.length ? Math.round(ms.reduce((p, c) => p + c) / 60000) : 0;
+              currentValue = totalActiveMinutes + totalAdjustmentMinutes;
               break;
             case "sessions_hosted":
               currentValue = sessionsHosted;
@@ -278,9 +277,7 @@ export const getServerSideProps = withPermissionCheckSsr(
 
       const totalAdjustmentMs = userAdjustments.reduce((sum, adj) => sum + (adj.minutes * 60000), 0);
       
-      const totalTimeMs = (ms.length ? ms.reduce((p, c) => p + c) : 0) + totalAdjustmentMs;
-      const totalIdleMs = ims.length ? (ims.reduce((p, c) => p + c) * 1000) : 0;
-      const activeTimeMs = Math.max(0, totalTimeMs - totalIdleMs);
+      const totalActiveMs = (ms.length ? ms.reduce((p, c) => p + c) : 0) + totalAdjustmentMs;
 
       computedUsers.push({
         info: {
@@ -293,7 +290,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         inactivityNotices: user.inactivityNotices,
         sessions: allSessionParticipations,
         rankID: user.ranks[0]?.rankId ? Number(user.ranks[0]?.rankId) : 0,
-        minutes: Math.round(activeTimeMs / 60000), // Active time in minutes
+        minutes: Math.round(totalActiveMs / 60000), // Active time in minutes
         idleMinutes: ims.length ? Math.round(ims.reduce((p, c) => p + c) / 60) : 0,
         hostedSessions: { length: sessionsHosted },
         sessionsAttended: sessionsAttended,
@@ -324,7 +321,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         .filter((y: any) => BigInt(y.userId) == BigInt(x.userId) && !y.active)
         .forEach((session) => {
           ms.push(
-            (session.endTime?.getTime() as number) - session.startTime.getTime()
+            (session.endTime?.getTime() as number) - session.startTime.getTime() - (session.idleTime ? Number(session.idleTime) * 1000 : 0)
           );
         });
 
@@ -432,9 +429,7 @@ export const getServerSideProps = withPermissionCheckSsr(
       });
 
       const totalAdjustmentMs = userAdjustments.reduce((sum, adj) => sum + (adj.minutes * 60000), 0);
-      const totalTimeMs = (ms.length ? ms.reduce((p, c) => p + c) : 0) + totalAdjustmentMs;
-      const totalIdleMs = ims.length ? (ims.reduce((p, c) => p + c) * 1000) : 0;
-      const activeTimeMs = Math.max(0, totalTimeMs - totalIdleMs);
+      const totalActiveMs = (ms.length ? ms.reduce((p, c) => p + c) : 0) + totalAdjustmentMs;
 
       const quota = false;
       computedUsers.push({
@@ -448,7 +443,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         inactivityNotices: [],
         sessions: allSessionParticipations,
         rankID: x.user.ranks[0]?.rankId ? Number(x.user.ranks[0]?.rankId) : 0,
-        minutes: Math.round(activeTimeMs / 60000), // Active time in minutes
+        minutes: Math.round(totalActiveMs / 60000),
         idleMinutes: ims.length ? Math.round(ims.reduce((p, c) => p + c) / 60) : 0,
         hostedSessions: { length: sessionsHosted },
         sessionsAttended: sessionsAttended,

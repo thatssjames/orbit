@@ -92,6 +92,18 @@ export const getServerSideProps = withPermissionCheckSsr(
 
     const isAdmin = hasManagePermission;
 
+    const currentDate = new Date();
+    const lastReset = await prisma.activityReset.findFirst({
+      where: {
+        workspaceGroupId: parseInt(query.id as string),
+      },
+      orderBy: {
+        resetAt: "desc",
+      },
+    });
+
+    const startDate = lastReset?.resetAt || new Date("2025-01-01");
+
     const quotas = userTakingAction.roles
       .flatMap((role) => role.quotaRoles)
       .map((qr) => qr.quota);
@@ -108,6 +120,10 @@ export const getServerSideProps = withPermissionCheckSsr(
       where: {
         userId: BigInt(query?.uid as string),
         workspaceGroupId: parseInt(query.id as string),
+        startTime: {
+          gte: startDate,
+          lte: currentDate,
+        },
       },
       include: {
         user: {
@@ -123,6 +139,10 @@ export const getServerSideProps = withPermissionCheckSsr(
       where: {
         userId: BigInt(query?.uid as string),
         workspaceGroupId: parseInt(query?.id as string),
+        createdAt: {
+          gte: startDate,
+          lte: currentDate,
+        },
       },
       orderBy: { createdAt: "desc" },
       include: {
@@ -138,10 +158,9 @@ export const getServerSideProps = withPermissionCheckSsr(
         (session) => !session.active && session.endTime
       );
       timeSpent = completedSessions.reduce((sum, session) => {
-        return (
-          sum +
-          ((session.endTime?.getTime() ?? 0) - session.startTime.getTime())
-        );
+        const totalTime = (session.endTime?.getTime() ?? 0) - session.startTime.getTime();
+        const idleTime = session.idleTime ? Number(session.idleTime) * 1000 : 0;
+        return sum + Math.max(0, totalTime - idleTime);
       }, 0);
       timeSpent = Math.round(timeSpent / 60000);
     }
@@ -214,17 +233,6 @@ export const getServerSideProps = withPermissionCheckSsr(
       },
     });
 
-    const currentDate = new Date();
-    const lastReset = await prisma.activityReset.findFirst({
-      where: {
-        workspaceGroupId: parseInt(query.id as string),
-      },
-      orderBy: {
-        resetAt: "desc",
-      },
-    });
-
-    const startDate = lastReset?.resetAt || new Date("2025-01-01");
     const ownedSessions = await prisma.session.findMany({
       where: {
         ownerId: BigInt(query?.uid as string),
