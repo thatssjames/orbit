@@ -49,9 +49,9 @@ local Configuration = {
 	-- Edit to your liking
 	bansEnabled = false, -- Set to false if you do not want Orbit to handle bans (This will use less HTTP requests)
 	cooldownPeriod = 30, -- The interval (seconds) between retrying failed HTTP requests
-	rankChecking = false, -- Enables rank checking on player join/leave to ensure only relevant data is sent to Orbit
-	groupId = 3167534, -- The group ID to perform activity tracking for
-	minTrackedRank = 99,	 -- The minimum rank ID to perform activity tracking for (This value is retrieved from your Orbit instance on game launch)
+	rankChecking = false, -- Enables rank checking on player join/leave to ensure only relevant data is sent to Orbit (RECOMMENDED)
+	groupId = 0, -- The group ID to perform activity tracking for
+	minTrackedRank = 0,	 -- The minimum rank ID to perform activity tracking for (This value is retrieved from your Orbit instance on game launch)
 	minutesTillAFK = 2, -- How long a player can last without moving before being marked AFK
 }
 
