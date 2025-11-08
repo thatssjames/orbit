@@ -167,10 +167,6 @@ export const getServerSideProps = withPermissionCheckSsr(
         },
       });
       
-      userAdjustments.forEach((adjustment: any) => {
-        ms.push(adjustment.minutes * 60000);
-      });
-
       const userId = user.userid;
       const ownedSessions = await prisma.session.findMany({
         where: {
