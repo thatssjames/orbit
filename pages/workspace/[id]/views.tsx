@@ -111,6 +111,10 @@ export const getServerSideProps = withPermissionCheckSsr(
     const allActivity = await prisma.activitySession.findMany({
       where: {
         workspaceGroupId,
+        startTime: {
+          gte: startDate,
+          lte: currentDate,
+        },
       },
       include: {
         user: {
@@ -254,9 +258,10 @@ export const getServerSideProps = withPermissionCheckSsr(
 
           switch (userQuota.type) {
             case "mins":
+              const totalAdjustmentMinutes = userAdjustments.reduce((sum, adj) => sum + adj.minutes, 0);
               const totalMinutes = ms.length ? Math.round(ms.reduce((p, c) => p + c) / 60000) : 0;
               const idleMinutes = ims.length ? Math.round(ims.reduce((p, c) => p + c) / 60) : 0;
-              currentValue = Math.max(0, totalMinutes - idleMinutes);
+              currentValue = Math.max(0, totalMinutes + totalAdjustmentMinutes - idleMinutes);
               break;
             case "sessions_hosted":
               currentValue = sessionsHosted;
@@ -275,6 +280,12 @@ export const getServerSideProps = withPermissionCheckSsr(
         quota = false;
       }
 
+      const totalAdjustmentMs = userAdjustments.reduce((sum, adj) => sum + (adj.minutes * 60000), 0);
+      
+      const totalTimeMs = (ms.length ? ms.reduce((p, c) => p + c) : 0) + totalAdjustmentMs;
+      const totalIdleMs = ims.length ? (ims.reduce((p, c) => p + c) * 1000) : 0;
+      const activeTimeMs = Math.max(0, totalTimeMs - totalIdleMs);
+
       computedUsers.push({
         info: {
           userId: Number(user.userid),
@@ -286,7 +297,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         inactivityNotices: user.inactivityNotices,
         sessions: allSessionParticipations,
         rankID: user.ranks[0]?.rankId ? Number(user.ranks[0]?.rankId) : 0,
-        minutes: ms.length ? Math.max(0, Math.round((ms.reduce((p, c) => p + c) - (ims.length ? ims.reduce((p, c) => p + c) * 1000 : 0)) / 60000)) : 0,
+        minutes: Math.round(activeTimeMs / 60000), // Active time in minutes
         idleMinutes: ims.length ? Math.round(ims.reduce((p, c) => p + c) / 60) : 0,
         hostedSessions: { length: sessionsHosted },
         sessionsAttended: sessionsAttended,
@@ -413,6 +424,22 @@ export const getServerSideProps = withPermissionCheckSsr(
         },
       });
 
+      const userAdjustments = await prisma.activityAdjustment.findMany({
+        where: {
+          userId: BigInt(x.userId),
+          workspaceGroupId,
+          createdAt: {
+            gte: startDate,
+            lte: currentDate,
+          },
+        },
+      });
+
+      const totalAdjustmentMs = userAdjustments.reduce((sum, adj) => sum + (adj.minutes * 60000), 0);
+      const totalTimeMs = (ms.length ? ms.reduce((p, c) => p + c) : 0) + totalAdjustmentMs;
+      const totalIdleMs = ims.length ? (ims.reduce((p, c) => p + c) * 1000) : 0;
+      const activeTimeMs = Math.max(0, totalTimeMs - totalIdleMs);
+
       const quota = false;
       computedUsers.push({
         info: {
@@ -425,7 +452,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         inactivityNotices: [],
         sessions: allSessionParticipations,
         rankID: x.user.ranks[0]?.rankId ? Number(x.user.ranks[0]?.rankId) : 0,
-        minutes: ms.length ? Math.max(0, Math.round((ms.reduce((p, c) => p + c) - (ims.length ? ims.reduce((p, c) => p + c) * 1000 : 0)) / 60000)) : 0,
+        minutes: Math.round(activeTimeMs / 60000), // Active time in minutes
         idleMinutes: ims.length ? Math.round(ims.reduce((p, c) => p + c) / 60) : 0,
         hostedSessions: { length: sessionsHosted },
         sessionsAttended: sessionsAttended,
