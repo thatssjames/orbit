@@ -41,12 +41,29 @@ export async function handler(
 	if (cached && (now - cached.timestamp) < ACTIVITY_CACHE_DURATION) {
 		return res.status(200).json({ success: true, message: cached.data });
 	}
+	
+	const lastReset = await prisma.activityReset.findFirst({
+		where: {
+			workspaceGroupId: workspaceId,
+		},
+		orderBy: {
+			resetAt: 'desc',
+		},
+	});
+	
+	const startDate = lastReset?.resetAt || new Date('2025-01-01');
+	const currentDate = new Date();
+	
 	const activityConfig = await getConfig('activity', workspaceId);
 	const leaderboardRank = activityConfig?.leaderboardRole;
 
 	const sessions = await prisma.activitySession.findMany({
 		where: {
-			workspaceGroupId: workspaceId
+			workspaceGroupId: workspaceId,
+			startTime: {
+				gte: startDate,
+				lte: currentDate,
+			},
 		}
 	});
 	
@@ -153,6 +170,26 @@ export async function handler(
 			found.ms.push((session.endTime.getTime() - session.startTime.getTime()) - (session.idleTime ? Number(session.idleTime) * 60000 : 0))
 		} else {
 			combinedMinutes.push({ userId: Number(session.userId), ms: [session.endTime.getTime() - session.startTime.getTime() - (session.idleTime ? Number(session.idleTime) * 60000 : 0)] });
+		}
+	});
+
+	const adjustments = await prisma.activityAdjustment.findMany({
+		where: {
+			workspaceGroupId: workspaceId,
+			createdAt: {
+				gte: startDate,
+				lte: currentDate,
+			},
+		},
+	});
+
+	adjustments.forEach((adjustment: any) => {
+		const found = combinedMinutes.find(x => x.userId == Number(adjustment.userId));
+		const adjustmentMs = adjustment.minutes * 60000;
+		if (found) {
+			found.ms.push(adjustmentMs);
+		} else {
+			combinedMinutes.push({ userId: Number(adjustment.userId), ms: [adjustmentMs] });
 		}
 	});
 

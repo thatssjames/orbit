@@ -152,6 +152,21 @@ export const getServerSideProps = withPermissionCheckSsr(
           messages.push(s.messages);
         });
 
+      const userAdjustments = await prisma.activityAdjustment.findMany({
+        where: {
+          userId: user.userid,
+          workspaceGroupId,
+          createdAt: {
+            gte: startDate,
+            lte: currentDate,
+          },
+        },
+      });
+      
+      userAdjustments.forEach((adjustment: any) => {
+        ms.push(adjustment.minutes * 60000);
+      });
+
       const userId = user.userid;
       const ownedSessions = await prisma.session.findMany({
         where: {
@@ -239,7 +254,9 @@ export const getServerSideProps = withPermissionCheckSsr(
 
           switch (userQuota.type) {
             case "mins":
-              currentValue = ms.length ? Math.round(ms.reduce((p, c) => p + c) / 60000) : 0;
+              const totalMinutes = ms.length ? Math.round(ms.reduce((p, c) => p + c) / 60000) : 0;
+              const idleMinutes = ims.length ? Math.round(ims.reduce((p, c) => p + c) / 60) : 0;
+              currentValue = Math.max(0, totalMinutes - idleMinutes);
               break;
             case "sessions_hosted":
               currentValue = sessionsHosted;
@@ -269,8 +286,8 @@ export const getServerSideProps = withPermissionCheckSsr(
         inactivityNotices: user.inactivityNotices,
         sessions: allSessionParticipations,
         rankID: user.ranks[0]?.rankId ? Number(user.ranks[0]?.rankId) : 0,
-        minutes: ms.length ? Math.round(ms.reduce((p, c) => p + c) / 60000) : 0,
-        idleMinutes: ims.length ? Math.round(ims.reduce((p, c) => p + c)) : 0,
+        minutes: ms.length ? Math.max(0, Math.round((ms.reduce((p, c) => p + c) - (ims.length ? ims.reduce((p, c) => p + c) * 1000 : 0)) / 60000)) : 0,
+        idleMinutes: ims.length ? Math.round(ims.reduce((p, c) => p + c) / 60) : 0,
         hostedSessions: { length: sessionsHosted },
         sessionsAttended: sessionsAttended,
         messages: messages.length
@@ -302,6 +319,13 @@ export const getServerSideProps = withPermissionCheckSsr(
           ms.push(
             (session.endTime?.getTime() as number) - session.startTime.getTime()
           );
+        });
+
+      const ims: number[] = [];
+      allActivity
+        .filter((y: any) => BigInt(y.userId) == BigInt(x.userId))
+        .forEach((s: any) => {
+          ims.push(Number(s.idleTime));
         });
 
       const messages: number[] = [];
@@ -401,8 +425,8 @@ export const getServerSideProps = withPermissionCheckSsr(
         inactivityNotices: [],
         sessions: allSessionParticipations,
         rankID: x.user.ranks[0]?.rankId ? Number(x.user.ranks[0]?.rankId) : 0,
-        minutes: ms.length ? Math.round(ms.reduce((p, c) => p + c) / 60000) : 0,
-        idleMinutes: 0,
+        minutes: ms.length ? Math.max(0, Math.round((ms.reduce((p, c) => p + c) - (ims.length ? ims.reduce((p, c) => p + c) * 1000 : 0)) / 60000)) : 0,
+        idleMinutes: ims.length ? Math.round(ims.reduce((p, c) => p + c) / 60) : 0,
         hostedSessions: { length: sessionsHosted },
         sessionsAttended: sessionsAttended,
         messages: messages.length

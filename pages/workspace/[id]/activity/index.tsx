@@ -69,14 +69,18 @@ const Activity: pageWithLayout = () => {
           0
         );
         
+        const totalIdleMinutes = Math.round(totalIdleTime / 60);
+        const activeMinutes = Math.max(0, totalMinutes - totalIdleMinutes);
+        
         const sessionsHosted = profileData.roleBasedSessionsHosted || 0;
         const sessionsAttended = profileData.roleBasedSessionsAttended || 0;
         const totalPlaySessions = (profileData.sessions || []).length;
         
         setMyData({
-          minutes: totalMinutes,
+          minutes: activeMinutes,
+          totalMinutes: totalMinutes,
           messages: totalMessages,
-          idleTime: Math.round(totalIdleTime / 60),
+          idleTime: totalIdleMinutes,
           sessionsHosted,
           sessionsAttended,
           totalPlaySessions,
@@ -91,8 +95,8 @@ const Activity: pageWithLayout = () => {
 
             switch (quota.type) {
               case "mins":
-                currentValue = totalMinutes;
-                percentage = (totalMinutes / quota.value) * 100;
+                currentValue = activeMinutes;
+                percentage = (activeMinutes / quota.value) * 100;
                 break;
               case "sessions_hosted":
                 currentValue = sessionsHosted;
