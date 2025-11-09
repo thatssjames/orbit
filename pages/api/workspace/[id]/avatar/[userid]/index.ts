@@ -87,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.setHeader('Content-Length', buffer.length.toString());
     res.end(buffer);
   } catch (e) {
-    console.error('[avatar] error serving', userIdNum, e);
+    console.error('Avatar error serving', userIdNum, e);
     res.status(404).end('Not found');
   }
 }
@@ -129,9 +129,9 @@ async function triggerBackgroundRefresh(userId: number, filePath: string, cacheK
     const now = Date.now();
     const entry: CacheEntry = { buffer: buf, etag: computeETag(buf), mtime: now, lastRefresh: now };
     touch(cacheKey, entry);
-    console.log('[avatar] refreshed', userId);
+    console.log('Avatar refreshed', userId);
   } catch (e) {
-    console.warn('[avatar] background refresh failed', userId, e);
+    console.warn('Avatar background refresh failed', userId, e);
   }
 }
 
