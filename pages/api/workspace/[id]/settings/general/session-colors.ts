@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { withPermissionCheck } from "@/utils/permissionsManager";
 import { setConfig, getConfig } from "@/utils/configEngine";
 
 type SessionColors = {
@@ -16,7 +15,7 @@ type Data = {
   colors?: SessionColors;
 };
 
-export default withPermissionCheck(handler, "admin");
+export default handler;
 
 export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   const workspaceId = parseInt(req.query.id as string);
