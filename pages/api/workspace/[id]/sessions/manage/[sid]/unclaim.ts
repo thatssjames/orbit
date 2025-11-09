@@ -58,17 +58,17 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       },
     },
   });
-  if (
-    !schedule?.sessionType.hostingRoles.find(
-      (r) => r.id === user?.roles[0].id
-    ) &&
-    !user?.roles[0].isOwnerRole &&
-    !user?.roles[0].permissions.includes("admin")
-  )
-    return res.status(403).json({
-      success: false,
-      error: "You do not have permission to claim this session",
-    });
+  const userRoles = user?.roles || [];
+  const hostingRoleIds = (schedule?.sessionType?.hostingRoles || []).map(
+    (r: any) => r.id
+  );
+  const hasHostingRole = userRoles.some((ur: any) => hostingRoleIds.includes(ur.id));
+  const hasOwnerRole = userRoles.some((ur: any) => ur.isOwnerRole);
+  const hasAdminPerm = userRoles.some((ur: any) => Array.isArray(ur.permissions) && ur.permissions.includes("admin"));
+
+  if (!hasHostingRole && !hasOwnerRole && !hasAdminPerm) {
+    return res.status(403).json({ success: false, error: "You do not have permission to claim this session" });
+  }
   if (!schedule)
     return res.status(400).json({ success: false, error: "Invalid schedule" });
   const dateTime = new Date();

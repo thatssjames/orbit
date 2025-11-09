@@ -14,7 +14,7 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import toast from "react-hot-toast";
 import { useRecoilValue } from "recoil";
-import { loginState } from "@/state";
+import { loginState, workspacestate } from "@/state";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
 import { useSessionColors } from "@/hooks/useSessionColors";
@@ -65,6 +65,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
   const [refreshKey, setRefreshKey] = useState(0);
   const router = useRouter();
   const login = useRecoilValue(loginState);
+  const workspace = useRecoilValue(workspacestate);
   const { getSessionTypeColor, getRecurringColor, getTextColorForBackground } =
     useSessionColors(
       Array.isArray(router.query.id) ? router.query.id[0] : router.query.id
@@ -72,7 +73,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
 
   const refreshSessionData = async () => {
     onUpdate?.();
-    setRefreshKey(prev => prev + 1);
+    setRefreshKey((prev) => prev + 1);
   };
 
   useEffect(() => {
@@ -82,7 +83,12 @@ const SessionModal: React.FC<SessionModalProps> = ({
   }, [isOpen, session, workspaceMembers]);
 
   const handleHostClaim = async (username: string) => {
-    if (!canManage) return;
+    const userHasHostingRole = ((workspace.roles || []) as any[]).some((wr) =>
+      (session.sessionType?.hostingRoles || [])
+        .map((r: any) => String(r.id))
+        .includes(String(wr.id))
+    );
+    if (!canManage && !userHasHostingRole) return;
 
     try {
       setIsSubmitting(true);
@@ -137,7 +143,12 @@ const SessionModal: React.FC<SessionModalProps> = ({
     slot: number,
     username: string
   ) => {
-    if (!canManage) return;
+    const userHasHostingRole = ((workspace.roles || []) as any[]).some((wr) =>
+      (session.sessionType?.hostingRoles || [])
+        .map((r: any) => String(r.id))
+        .includes(String(wr.id))
+    );
+    if (!canManage && !userHasHostingRole) return;
 
     try {
       setIsSubmitting(true);
@@ -227,12 +238,14 @@ const SessionModal: React.FC<SessionModalProps> = ({
 
   const sessionDate = new Date(session.date);
   const isRecurring = session.scheduleId !== null;
-  
+
   // Calculate session timing
   const now = new Date();
   const sessionStart = new Date(session.date);
   const sessionDuration = session.duration || 30;
-  const sessionEnd = new Date(sessionStart.getTime() + (sessionDuration * 60 * 1000));
+  const sessionEnd = new Date(
+    sessionStart.getTime() + sessionDuration * 60 * 1000
+  );
   const isActive = now >= sessionStart && now <= sessionEnd;
   const isConcluded = now > sessionEnd;
 
@@ -256,9 +269,6 @@ const SessionModal: React.FC<SessionModalProps> = ({
                   minute: "2-digit",
                   hour12: true,
                 })}
-                <span className="text-xs bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">
-                  {session.duration || 30}min
-                </span>
                 {isActive && (
                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 animate-pulse">
                     • LIVE
@@ -335,7 +345,14 @@ const SessionModal: React.FC<SessionModalProps> = ({
                       currentValue={session.owner?.username || ""}
                       onValueChange={handleHostClaim}
                       isSubmitting={isSubmitting}
-                      canEdit={canManage}
+                      canEdit={
+                        canManage ||
+                        ((workspace.roles || []) as any[]).some((wr) =>
+                          (session.sessionType?.hostingRoles || [])
+                            .map((r: any) => String(r.id))
+                            .includes(String(wr.id))
+                        )
+                      }
                       availableUsers={availableUsers}
                       currentUserId={login.userId}
                       currentUserPicture={login.thumbnail}
@@ -396,7 +413,15 @@ const SessionModal: React.FC<SessionModalProps> = ({
                                       handleSlotClaim(slotData.id, i, value)
                                     }
                                     isSubmitting={isSubmitting}
-                                    canEdit={canManage}
+                                      canEdit={
+                                        canManage ||
+                                        ((workspace.roles || []) as any[]).some(
+                                          (wr) =>
+                                            (session.sessionType?.hostingRoles || [])
+                                              .map((r: any) => String(r.id))
+                                              .includes(String(wr.id))
+                                        )
+                                      }
                                     availableUsers={availableUsers}
                                     currentUserId={login.userId}
                                     currentUserPicture={login.thumbnail}
@@ -424,10 +449,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
             onDataChange={refreshSessionData}
           />
 
-          <ActivityLogsSection 
-            sessionId={session.id} 
-            refreshKey={refreshKey}
-          />
+          <ActivityLogsSection sessionId={session.id} refreshKey={refreshKey} />
         </div>
       </div>
     </div>
@@ -473,7 +495,9 @@ const AutocompleteInput: React.FC<{
 
   useEffect(() => {
     if (inputValue.trim() === "") {
-      const otherUsers = availableUsers.filter((user) => user.userid.toString() !== currentUserId.toString());
+      const otherUsers = availableUsers.filter(
+        (user) => user.userid.toString() !== currentUserId.toString()
+      );
       const suggestions = currentUserUsername
         ? [
             {
@@ -482,7 +506,7 @@ const AutocompleteInput: React.FC<{
               picture: currentUserPicture || "/default-avatar.png",
               isSelf: true,
             },
-            ...otherUsers.slice(0, 7)
+            ...otherUsers.slice(0, 7),
           ]
         : otherUsers.slice(0, 8);
       setFilteredUsers(suggestions);
@@ -557,8 +581,15 @@ const AutocompleteInput: React.FC<{
   };
 
   const handleInputBlur = (e: React.FocusEvent) => {
+    const current = e.currentTarget;
+    const related = (e.relatedTarget as Node) || null;
     setTimeout(() => {
-      if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      try {
+        if (!current || (related && !current.contains(related))) {
+          setShowSuggestions(false);
+          setSelectedIndex(-1);
+        }
+      } catch (err) {
         setShowSuggestions(false);
         setSelectedIndex(-1);
       }
@@ -569,7 +600,11 @@ const AutocompleteInput: React.FC<{
     return (
       <div className="flex items-center gap-2 px-4 py-2 bg-zinc-100 dark:bg-zinc-700 rounded-lg">
         {currentValue && assignedUserPicture && assignedUserId && (
-          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${getRandomBg(assignedUserId)}`}>
+          <div
+            className={`w-6 h-6 rounded-full flex items-center justify-center ${getRandomBg(
+              assignedUserId
+            )}`}
+          >
             <img
               src={assignedUserPicture || "/default-avatar.png"}
               alt={currentValue}
@@ -676,7 +711,11 @@ const AutocompleteInput: React.FC<{
     >
       <div className="flex items-center gap-2">
         {currentValue && assignedUserPicture && assignedUserId && (
-          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${getRandomBg(assignedUserId)}`}>
+          <div
+            className={`w-6 h-6 rounded-full flex items-center justify-center ${getRandomBg(
+              assignedUserId
+            )}`}
+          >
             <img
               src={assignedUserPicture || "/default-avatar.png"}
               alt={currentValue}

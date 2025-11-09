@@ -19,7 +19,11 @@ export default withPermissionCheck(
         },
         include: {
           owner: true,
-          sessionType: true,
+          sessionType: {
+            include: {
+              hostingRoles: true,
+            },
+          },
           users: {
             include: {
               user: true,
