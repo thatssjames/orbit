@@ -1,7 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { IconClipboard, IconPencil, IconUser, IconId, IconHash, IconCheck, IconX, IconCalendar } from "@tabler/icons-react";
+import {
+  IconClipboard,
+  IconPencil,
+  IconUser,
+  IconId,
+  IconHash,
+  IconCheck,
+  IconX,
+  IconCalendar,
+} from "@tabler/icons-react";
 import axios from "axios";
-import { useRouter } from 'next/router';
+import { useRouter } from "next/router";
 import Confetti from "react-confetti";
 
 type InformationPanelProps = {
@@ -20,68 +29,74 @@ type InformationPanelProps = {
 };
 
 const monthNames = [
-  "", "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
+  "",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 export function InformationPanel({ user, isUser, isAdmin }: InformationPanelProps) {
   const [editing, setEditing] = useState(false);
-  const [month, setMonth] = useState(user.birthdayMonth ?? "");
-  const [day, setDay] = useState(user.birthdayDay ?? "");
-  const [loadedFromMembership, setLoadedFromMembership] = useState(false);
+  const [month, setMonth] = useState<string>(user.birthdayMonth ? String(user.birthdayMonth) : "");
+  const [day, setDay] = useState<string>(user.birthdayDay ? String(user.birthdayDay) : "");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // Attempt to derive workspace id from route: /workspace/[id]/...
   let workspaceId: string | null = null;
   if (router?.query?.id) {
     workspaceId = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
-  } else if (typeof window !== 'undefined') {
+  } else if (typeof window !== "undefined") {
     const match = window.location.pathname.match(/\/workspace\/([^/]+)/);
     if (match) workspaceId = match[1];
   }
 
-  const canEdit = isUser || isAdmin;
+  const canEdit = !!(isUser || isAdmin);
 
-  // Fetch membership-scoped birthday on mount (and when workspace/user changes)
   useEffect(() => {
     if (!workspaceId || !user?.userid) return;
     let cancelled = false;
     (async () => {
       try {
-        const res = await axios.get(`/api/workspace/${workspaceId}/birthday/${user.userid}`)
-          .catch(() => axios.get(`/api/workspace/${workspaceId}/birthday`)); // fallback if viewing self
+        const res = await axios
+          .get(`/api/workspace/${workspaceId}/birthday/${user.userid}`)
+          .catch(() => axios.get(`/api/workspace/${workspaceId}/birthday`));
         if (cancelled) return;
-        const { birthdayDay, birthdayMonth } = res.data;
+        const { birthdayDay, birthdayMonth } = res.data || {};
         if (birthdayDay != null && birthdayMonth != null) {
           setDay(birthdayDay > 0 ? String(birthdayDay) : "");
           setMonth(birthdayMonth > 0 ? String(birthdayMonth) : "");
-          // Mutate local user object reference to keep display consistent
           user.birthdayDay = birthdayDay;
           user.birthdayMonth = birthdayMonth;
         }
       } finally {
-        if (!cancelled) setLoadedFromMembership(true);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [workspaceId, user?.userid]);
 
-  const daysInMonth = (month: number) => {
-    if (month === 2) return 28;
-    if ([4, 6, 9, 11].includes(month)) return 30;
+  const daysInMonth = (m: number) => {
+    if (m === 2) return 28;
+    if ([4, 6, 9, 11].includes(m)) return 30;
     return 31;
   };
-  const days =
-    month && Number(month) > 0
-      ? Array.from({ length: daysInMonth(Number(month)) }, (_, i) => i + 1)
-      : [];
+
+  const days = month && Number(month) > 0 ? Array.from({ length: daysInMonth(Number(month)) }, (_, i) => i + 1) : [];
 
   const handleSave = async () => {
-    if (!workspaceId) return; // workspace context required now
+    if (!workspaceId) return;
     setLoading(true);
     try {
-      // If editing self use membership self endpoint; otherwise admin endpoint
       const isSelf = isUser || (user.userid && router.query?.userId === user.userid);
       if (isSelf) {
         await axios.post(`/api/workspace/${workspaceId}/birthday`, { day: Number(day), month: Number(month) });
@@ -96,7 +111,6 @@ export function InformationPanel({ user, isUser, isAdmin }: InformationPanelProp
     }
   };
 
-  // Compute birthday display from local state (authoritative after fetch)
   let birthday = "Not set";
   if (day && month) {
     const dNum = Number(day);
@@ -105,114 +119,143 @@ export function InformationPanel({ user, isUser, isAdmin }: InformationPanelProp
   }
 
   const today = new Date();
-  const isBirthday =
-    user.birthdayDay === today.getDate() &&
-    user.birthdayMonth === today.getMonth() + 1;
+  const isBirthday = user.birthdayDay === today.getDate() && user.birthdayMonth === today.getMonth() + 1;
 
   return (
     <>
       {isBirthday && <Confetti />}
-      <div className="bg-white dark:bg-zinc-700 rounded-xl shadow-sm overflow-hidden">
-        <div className="flex items-center gap-3 p-4">
-          <h2 className="text-lg font-medium text-zinc-900 dark:text-white">Information</h2>
-        </div>
-        <div className="p-4 space-y-2">
-          <div className="flex items-center">
-            <span className="inline-flex items-center font-semibold text-zinc-700 dark:text-white"><IconUser className="w-4 h-4 mr-2 text-primary" /> Username:</span>
-            <span className="ml-2 text-zinc-900 dark:text-zinc-200">{user.username}</span>
-          </div>
-          <div className="flex items-center">
-            <span className="inline-flex items-center font-semibold text-zinc-700 dark:text-white"><IconId className="w-4 h-4 mr-2 text-primary" /> Display Name:</span>
-            <span className="ml-2 text-zinc-900 dark:text-zinc-200">{user.displayname}</span>
-          </div>
-          <div className="flex items-center">
-            <span className="inline-flex items-center font-semibold text-zinc-700 dark:text-white"><IconHash className="w-4 h-4 mr-2 text-primary" /> UserId:</span>
-            <span className="ml-2 text-zinc-900 dark:text-zinc-200">{user.userid}</span>
-          </div>
-          {user.joinDate && (
-            <div className="flex items-center">
-              <span className="inline-flex items-center font-semibold text-zinc-700 dark:text-white"><IconClipboard className="w-4 h-4 mr-2 text-primary" /> Joined:</span>
-              <span className="ml-2 text-zinc-900 dark:text-zinc-200">{new Date(user.joinDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+      <div className="rounded-xl overflow-hidden">
+        <div className="bg-gradient-to-br from-[#111114] to-[#0f0f10] p-6 rounded-t-xl shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="bg-[#ff0099]/10 rounded-lg p-3">
+              <IconUser className="w-6 h-6 text-[#ff0099]" />
             </div>
-          )}
-          <div className="flex items-center">
-            <span className="inline-flex items-center font-semibold text-zinc-700 dark:text-white">
-              {user.registered ? <IconCheck className="w-4 h-4 mr-2 text-primary" /> : <IconX className="w-4 h-4 mr-2 text-primary" />} Status:
-            </span>
-            <span className="ml-2 text-zinc-900 dark:text-zinc-200">{user.registered ? "Registered" : "Unregistered"}</span>
+            <div>
+              <h2 className="text-2xl font-semibold text-zinc-100">Information</h2>
+              <p className="text-sm text-zinc-400 mt-1">Overview and member-specific details</p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center font-semibold text-zinc-700 dark:text-white"><IconCalendar className="w-4 h-4 mr-2 text-primary" /> Birthday:</span>
-            {!editing ? (
-              <>
-                <span className="text-zinc-900 dark:text-zinc-200">{birthday}</span>
-                {canEdit && (
-                  <button
-                    className="ml-1 p-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-600"
-                    onClick={() => {
-                      setEditing(true);
-                      setMonth(user.birthdayMonth ?? "");
-                      setDay(user.birthdayDay ?? "");
-                    }}
-                    aria-label="Edit Birthday"
-                    type="button"
-                  >
-                    <IconPencil className="h-4 w-4 text-primary" />
-                  </button>
+        </div>
+
+        <div className="bg-zinc-700/30 dark:bg-zinc-800/60 border border-zinc-700/40 p-6 rounded-b-xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-4">
+              <InfoRow icon={<IconUser className="w-5 h-5 text-[#ff0099]" />} label="Username" value={user.username} />
+              <InfoRow icon={<IconId className="w-5 h-5 text-[#ff0099]" />} label="Display Name" value={user.displayname} />
+              <InfoRow icon={<IconHash className="w-5 h-5 text-[#ff0099]" />} label="UserId" value={user.userid} />
+              {user.joinDate && (
+                <InfoRow
+                  icon={<IconClipboard className="w-5 h-5 text-[#ff0099]" />}
+                  label="Joined"
+                  value={new Date(user.joinDate).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
+                />
+              )}
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                {user.registered ? <IconCheck className="w-5 h-5 text-[#ff0099]" /> : <IconX className="w-5 h-5 text-[#ff0099]" />}
+                <div>
+                  <div className="text-xs text-zinc-400">Status</div>
+                  <div className="text-sm font-medium text-zinc-100">{user.registered ? "Registered" : "Unregistered"}</div>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center gap-3">
+                  <IconCalendar className="w-5 h-5 text-[#ff0099]" />
+                  <div>
+                    <div className="text-xs text-zinc-400">Birthday</div>
+                    <div className="text-sm font-medium text-zinc-100">{birthday}</div>
+                  </div>
+                </div>
+
+                {canEdit && !editing && (
+                  <div className="mt-3">
+                    <button
+                      onClick={() => {
+                        setEditing(true);
+                        setMonth(user.birthdayMonth ? String(user.birthdayMonth) : "");
+                        setDay(user.birthdayDay ? String(user.birthdayDay) : "");
+                      }}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#ff0099] text-white text-sm"
+                      aria-label="Edit birthday"
+                    >
+                      <IconPencil className="w-4 h-4" />
+                      <span>Edit Birthday</span>
+                    </button>
+                  </div>
                 )}
-              </>
-            ) : (
-              <>
-                <select
-                  value={month}
-                  onChange={e => {
-                    setMonth(e.target.value);
-                    setDay("");
-                  }}
-                  className="border rounded px-2 py-1 w-32"
-                >
-                  <option value="">Month</option>
-                  {monthNames.slice(1).map((name, idx) => (
-                    <option key={idx + 1} value={idx + 1}>
-                      {name}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={day}
-                  onChange={e => setDay(e.target.value)}
-                  className="border rounded px-2 py-1 w-20"
-                  disabled={!month}
-                >
-                  <option value="">Day</option>
-                  {days.map(d => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
-                {workspaceId && (
-                  <button
-                    onClick={handleSave}
-                    disabled={loading || !day || !month}
-                    className="ml-2 bg-primary text-white px-3 py-1 rounded"
-                  >
-                    {loading ? "Saving..." : "Save"}
-                  </button>
+
+                {editing && (
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <label className="sr-only">Month</label>
+                    <select
+                      value={month}
+                      onChange={(e) => {
+                        setMonth(e.target.value);
+                        setDay("");
+                      }}
+                      className="border rounded px-2 py-1 w-36 bg-zinc-800 text-zinc-100"
+                      aria-label="Select month"
+                    >
+                      <option value="">Month</option>
+                      {monthNames.slice(1).map((name, idx) => (
+                        <option key={idx + 1} value={idx + 1}>
+                          {name}
+                        </option>
+                      ))}
+                    </select>
+
+                    <label className="sr-only">Day</label>
+                    <select
+                      value={day}
+                      onChange={(e) => setDay(e.target.value)}
+                      className="border rounded px-2 py-1 w-20 bg-zinc-800 text-zinc-100"
+                      disabled={!month}
+                      aria-label="Select day"
+                    >
+                      <option value="">Day</option>
+                      {days.map((d) => (
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                    </select>
+
+                    {workspaceId && (
+                      <button
+                        onClick={handleSave}
+                        disabled={loading || !day || !month}
+                        className="ml-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#ff0099] text-white text-sm"
+                      >
+                        {loading ? "Saving..." : "Save"}
+                      </button>
+                    )}
+
+                    <button onClick={() => setEditing(false)} className="ml-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm text-zinc-100">
+                      Cancel
+                    </button>
+                  </div>
                 )}
-                <button
-                  onClick={() => setEditing(false)}
-                  className="ml-1 px-3 py-1 rounded border dark:text-white"
-                  type="button"
-                >
-                  Cancel
-                </button>
-              </>
-            )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </>
+  );
+}
+
+function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div>{icon}</div>
+      <div>
+        <div className="text-xs text-zinc-400">{label}</div>
+        <div className="text-sm font-medium text-zinc-100">{value}</div>
+      </div>
+    </div>
   );
 }
 

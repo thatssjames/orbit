@@ -42,6 +42,9 @@ import {
   IconSearch,
   IconUsers,
   IconX,
+  IconUserCheck,
+  IconAlertCircle,
+  IconShieldX,
 } from "@tabler/icons-react";
 
 type User = {
@@ -138,7 +141,9 @@ export const getServerSideProps = withPermissionCheckSsr(
         .filter((x) => BigInt(x.userId) == user.userid && !x.active)
         .forEach((session) => {
           ms.push(
-            (session.endTime?.getTime() as number) - session.startTime.getTime() - (session.idleTime ? Number(session.idleTime) * 60000 : 0) // Convert idle minutes to milliseconds
+            (session.endTime?.getTime() as number) -
+              session.startTime.getTime() -
+              (session.idleTime ? Number(session.idleTime) * 60000 : 0) // Convert idle minutes to milliseconds
           );
         });
 
@@ -166,7 +171,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           },
         },
       });
-      
+
       const userId = user.userid;
       const ownedSessions = await prisma.session.findMany({
         where: {
@@ -246,7 +251,7 @@ export const getServerSideProps = withPermissionCheckSsr(
       const userQuotas = user.roles
         .flatMap((role) => role.quotaRoles)
         .map((qr) => qr.quota);
-      
+
       let quota = true;
       if (userQuotas.length > 0) {
         for (const userQuota of userQuotas) {
@@ -254,8 +259,13 @@ export const getServerSideProps = withPermissionCheckSsr(
 
           switch (userQuota.type) {
             case "mins":
-              const totalAdjustmentMinutes = userAdjustments.reduce((sum, adj) => sum + adj.minutes, 0);
-              const totalActiveMinutes = ms.length ? Math.round(ms.reduce((p, c) => p + c) / 60000) : 0;
+              const totalAdjustmentMinutes = userAdjustments.reduce(
+                (sum, adj) => sum + adj.minutes,
+                0
+              );
+              const totalActiveMinutes = ms.length
+                ? Math.round(ms.reduce((p, c) => p + c) / 60000)
+                : 0;
               currentValue = totalActiveMinutes + totalAdjustmentMinutes;
               break;
             case "sessions_hosted":
@@ -275,9 +285,13 @@ export const getServerSideProps = withPermissionCheckSsr(
         quota = false;
       }
 
-      const totalAdjustmentMs = userAdjustments.reduce((sum, adj) => sum + (adj.minutes * 60000), 0);
-      
-      const totalActiveMs = (ms.length ? ms.reduce((p, c) => p + c) : 0) + totalAdjustmentMs;
+      const totalAdjustmentMs = userAdjustments.reduce(
+        (sum, adj) => sum + adj.minutes * 60000,
+        0
+      );
+
+      const totalActiveMs =
+        (ms.length ? ms.reduce((p, c) => p + c) : 0) + totalAdjustmentMs;
 
       computedUsers.push({
         info: {
@@ -321,7 +335,9 @@ export const getServerSideProps = withPermissionCheckSsr(
         .filter((y: any) => BigInt(y.userId) == BigInt(x.userId) && !y.active)
         .forEach((session) => {
           ms.push(
-            (session.endTime?.getTime() as number) - session.startTime.getTime() - (session.idleTime ? Number(session.idleTime) * 60000 : 0) // Convert idle minutes to milliseconds
+            (session.endTime?.getTime() as number) -
+              session.startTime.getTime() -
+              (session.idleTime ? Number(session.idleTime) * 60000 : 0) // Convert idle minutes to milliseconds
           );
         });
 
@@ -428,8 +444,12 @@ export const getServerSideProps = withPermissionCheckSsr(
         },
       });
 
-      const totalAdjustmentMs = userAdjustments.reduce((sum, adj) => sum + (adj.minutes * 60000), 0);
-      const totalActiveMs = (ms.length ? ms.reduce((p, c) => p + c) : 0) + totalAdjustmentMs;
+      const totalAdjustmentMs = userAdjustments.reduce(
+        (sum, adj) => sum + adj.minutes * 60000,
+        0
+      );
+      const totalActiveMs =
+        (ms.length ? ms.reduce((p, c) => p + c) : 0) + totalAdjustmentMs;
 
       const quota = false;
       computedUsers.push({
@@ -582,16 +602,14 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
         );
       },
     }),
-    columnHelper.accessor("sessionsAttended", {
-      header: "Sessions attended",
+    columnHelper.accessor("rankID", {
+      header: "Rank",
       cell: (row) => {
-        return <p className="dark:text-white">{row.getValue()}</p>;
-      },
-    }),
-    columnHelper.accessor("hostedSessions", {
-      header: "Sessions hosted",
-      cell: (row) => {
-        return <p className="dark:text-white">{row.getValue().length}</p>;
+        return (
+          <p className="dark:text-white">
+            {ranks.find((x) => x.rank == row.getValue())?.name || "N/A"}
+          </p>
+        );
       },
     }),
     columnHelper.accessor("book", {
@@ -604,24 +622,26 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
         );
       },
     }),
-    columnHelper.accessor("wallPosts", {
-      header: "Wall Posts",
+    columnHelper.accessor("sessionsAttended", {
+      header: "Sessions attended",
+      cell: (row) => {
+        return <p className="dark:text-white">{row.getValue()}</p>;
+      },
+    }),
+    columnHelper.accessor("hostedSessions", {
+      header: "Sessions hosted",
       cell: (row) => {
         return <p className="dark:text-white">{row.getValue().length}</p>;
       },
     }),
-    columnHelper.accessor("rankID", {
-      header: "Rank",
+    columnHelper.accessor("wallPosts", {
+      header: "Wall posts",
       cell: (row) => {
-        return (
-          <p className="dark:text-white">
-            {ranks.find((x) => x.rank == row.getValue())?.name || "N/A"}
-          </p>
-        );
+        return <p className="dark:text-white">{row.getValue().length}</p>;
       },
     }),
     columnHelper.accessor("inactivityNotices", {
-      header: "Inactivity Notices",
+      header: "Inactivity notices",
       cell: (row) => {
         return <p className="dark:text-white">{row.getValue().length}</p>;
       },
@@ -962,37 +982,44 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+    <div className="min-h-screen bg-gradient-to-b from-zinc-50 via-white to-zinc-50 dark:from-zinc-900 dark:via-zinc-950 dark:to-zinc-900">
       <Toaster position="bottom-center" />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div>
-            <h1 className="text-xl font-medium text-zinc-900 dark:text-white">
-              Staff Management
-            </h1>
-            <p className="text-sm text-zinc-500">
-              View and manage your staff members
-            </p>
+        <div className="mb-8">
+          <div className="flex items-start gap-4">
+            <div className="bg-gradient-to-br from-[#ff0099]/20 to-[#ff0099]/10 p-3 rounded-lg flex-shrink-0">
+              <IconUsers className="w-6 h-6 text-[#ff0099]" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">
+                Staff Management
+              </h1>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                View and manage your staff members
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Actions Bar */}
-        <div className="mb-4">
-          <div className="flex flex-col md:flex-row gap-3 items-start md:items-center justify-between">
-            <div className="flex flex-wrap gap-2">
-              <Popover className="relative">
+        {/* Controls Card */}
+        <div className="bg-white dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-200 dark:border-zinc-700/50 rounded-lg p-4 mb-6 relative z-10 overflow-visible">
+          {/* Filter and Column Controls */}
+          <div className="flex flex-col md:flex-row gap-3 mb-4 relative z-20">
+            <div className="flex gap-2">
+              {/* Filters Popover */}
+              <Popover className="relative z-20">
                 {({ open }) => (
                   <>
                     <Popover.Button
-                      className={`inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-zinc-700 bg-white dark:text-white dark:bg-zinc-800 hover:bg-zinc-50 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${
+                      className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-all ${
                         open
-                          ? "bg-zinc-50 dark:bg-zinc-800 ring-2 ring-primary"
-                          : ""
+                          ? "bg-zinc-100 dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white ring-2 ring-[#ff0099]/50"
+                          : "bg-zinc-50 dark:bg-zinc-700/50 border-zinc-200 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white"
                       }`}
                     >
-                      <IconFilter className="w-4 h-4 mr-1.5" />
-                      Filters
+                      <IconFilter className="w-4 h-4" />
+                      <span>Filters</span>
                     </Popover.Button>
 
                     <Transition
@@ -1004,20 +1031,20 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
                       leaveFrom="opacity-100 translate-y-0"
                       leaveTo="opacity-0 translate-y-1"
                     >
-                      <Popover.Panel className="absolute left-0 z-10 mt-2 w-72 origin-top-left rounded-lg bg-white dark:bg-zinc-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-3">
+                      <Popover.Panel className="absolute left-0 z-50 mt-2 w-72 origin-top-left rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-2xl p-4 top-full">
                         <div className="space-y-3">
                           <button
                             onClick={newfilter}
-                            className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                            className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-white bg-[#ff0099] hover:bg-[#ff0099]/90 transition-all"
                           >
-                            <IconPlus className="w-4 h-4 mr-1.5" />
+                            <IconPlus className="w-4 h-4" />
                             Add Filter
                           </button>
 
                           {colFilters.map((filter) => (
                             <div
                               key={filter.id}
-                              className="p-2 border border-gray-200 rounded-lg dark:text-white"
+                              className="p-3 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-zinc-50 dark:bg-zinc-900/50"
                             >
                               <Filter
                                 ranks={ranks}
@@ -1029,6 +1056,11 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
                               />
                             </div>
                           ))}
+                          {colFilters.length === 0 && (
+                            <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center py-2">
+                              No filters added yet
+                            </p>
+                          )}
                         </div>
                       </Popover.Panel>
                     </Transition>
@@ -1036,18 +1068,19 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
                 )}
               </Popover>
 
-              <Popover className="relative">
+              {/* Columns Popover */}
+              <Popover className="relative z-20">
                 {({ open }) => (
                   <>
                     <Popover.Button
-                      className={`inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-zinc-700 dark:text-white bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${
+                      className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-all ${
                         open
-                          ? "bg-zinc-50 dark:bg-zinc-800 ring-2 ring-primary"
-                          : ""
+                          ? "bg-zinc-100 dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white ring-2 ring-[#ff0099]/50"
+                          : "bg-zinc-50 dark:bg-zinc-700/50 border-zinc-200 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white"
                       }`}
                     >
-                      <IconUsers className="w-4 h-4 mr-1.5" />
-                      Columns
+                      <IconUsers className="w-4 h-4" />
+                      <span>Columns</span>
                     </Popover.Button>
 
                     <Transition
@@ -1059,7 +1092,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
                       leaveFrom="opacity-100 translate-y-0"
                       leaveTo="opacity-0 translate-y-1"
                     >
-                      <Popover.Panel className="absolute left-0 z-10 mt-2 w-56 origin-top-left rounded-lg bg-white dark:bg-zinc-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-3">
+                      <Popover.Panel className="absolute left-0 z-50 mt-2 w-56 origin-top-left rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-2xl p-4 top-full">
                         <div className="space-y-2">
                           {table.getAllLeafColumns().map((column: any) => {
                             if (
@@ -1069,13 +1102,13 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
                               return (
                                 <label
                                   key={column.id}
-                                  className="flex items-center space-x-2"
+                                  className="flex items-center space-x-2 cursor-pointer group"
                                 >
                                   <Checkbox
                                     checked={column.getIsVisible()}
                                     onChange={column.getToggleVisibilityHandler()}
                                   />
-                                  <span className="text-sm text-zinc-700 dark:text-zinc-200">
+                                  <span className="text-sm text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">
                                     {getSelectionName(column.id)}
                                   </span>
                                 </label>
@@ -1090,26 +1123,26 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
               </Popover>
             </div>
 
-            {/* Search */}
-            <div className="relative w-full md:w-56">
+            {/* Search Input */}
+            <div className="relative flex-1 md:flex-none md:w-56">
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                  <IconSearch className="h-4 w-4 text-zinc-400 dark:text-white" />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <IconSearch className="h-4 w-4 text-zinc-400 dark:text-zinc-500" />
                 </div>
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => updateSearchQuery(e.target.value)}
-                  className="block w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded-md leading-5 bg-white dark:text-white dark:bg-zinc-800 placeholder-gray-500 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  placeholder="Search username..."
+                  className="block w-full pl-10 pr-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900/50 text-zinc-900 dark:text-zinc-200 placeholder-zinc-500 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#ff0099]/50 focus:border-transparent transition-all"
+                  placeholder="Search staff..."
                 />
               </div>
 
               {searchOpen && (
-                <div className="absolute z-10 mt-1 w-full bg-white dark:bg-zinc-800 rounded-md shadow-lg">
-                  <div className="py-1">
+                <div className="absolute z-10 mt-1 w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-xl">
+                  <div className="py-1 max-h-48 overflow-y-auto">
                     {searchResults.length === 0 && (
-                      <div className="px-3 py-1.5 text-sm text-zinc-500 dark:text-white">
+                      <div className="px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400 text-center">
                         No results found
                       </div>
                     )}
@@ -1117,14 +1150,14 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
                       <button
                         key={u.username}
                         onClick={() => updateSearchFilter(u.username)}
-                        className="w-full text-left px-3 py-1.5 hover:bg-zinc-100 flex items-center space-x-2"
+                        className="w-full text-left px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center space-x-2 transition-colors group"
                       >
                         <img
                           src={u.thumbnail}
                           alt={u.username}
-                          className="w-6 h-6 rounded-full bg-primary"
+                          className="w-6 h-6 rounded-full bg-[#ff0099]"
                         />
-                        <span className="text-sm font-medium text-zinc-900 dark:text-white">
+                        <span className="text-sm font-medium text-zinc-900 dark:text-zinc-200 group-hover:text-zinc-950 dark:group-hover:text-white transition-colors">
                           {u.username}
                         </span>
                       </button>
@@ -1137,54 +1170,60 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 
           {/* Mass Actions */}
           {table.getSelectedRowModel().flatRows.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="pt-4 border-t border-zinc-200 dark:border-zinc-700 flex flex-wrap gap-2">
+              <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 py-2">
+                {table.getSelectedRowModel().flatRows.length} selected
+              </span>
               <button
                 onClick={() => {
                   setType("promotion");
                   setIsOpen(true);
                 }}
-                className="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-white bg-emerald-600/80 hover:bg-emerald-600 transition-all"
               >
-                Mass promote {table.getSelectedRowModel().flatRows.length} users
+                <IconUserCheck className="w-4 h-4" />
+                Promote
               </button>
               <button
                 onClick={() => {
                   setType("warning");
                   setIsOpen(true);
                 }}
-                className="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-white bg-amber-600/80 hover:bg-amber-600 transition-all"
               >
-                Mass warn {table.getSelectedRowModel().flatRows.length} users
+                <IconAlertCircle className="w-4 h-4" />
+                Warn
               </button>
               <button
                 onClick={() => {
                   setType("fire");
                   setIsOpen(true);
                 }}
-                className="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-white bg-red-600/80 hover:bg-red-600 transition-all"
               >
-                Mass fire {table.getSelectedRowModel().flatRows.length} users
+                <IconShieldX className="w-4 h-4" />
+                Fire
               </button>
             </div>
           )}
         </div>
 
         {/* Table */}
-        <div className="bg-white dark:bg-zinc-800 rounded-lg shadow overflow-hidden">
+        <div className="bg-white dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-200 dark:border-zinc-700/50 rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-zinc-50 dark:bg-zinc-800">
+            <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
+              <thead className="bg-zinc-50 dark:bg-zinc-800/80 border-b border-zinc-200 dark:border-zinc-700">
                 <tr>
                   {table.getHeaderGroups().map((headerGroup) =>
                     headerGroup.headers.map((header) => (
                       <th
                         key={header.id}
                         scope="col"
-                        className="px-4 py-2 text-left text-xs font-medium text-zinc-500 dark:text-zinc-300 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                        className="px-4 py-3 text-left text-xs font-semibold text-zinc-900 dark:text-zinc-300 uppercase tracking-widest cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-700/50 transition-colors"
                         onClick={header.column.getToggleSortingHandler()}
                       >
                         {header.isPlaceholder ? null : (
-                          <div className="flex items-center space-x-1 dark:text-zinc-300">
+                          <div className="flex items-center space-x-1 text-zinc-900 dark:text-zinc-300">
                             <span>
                               {flexRender(
                                 header.column.columnDef.header,
@@ -1198,16 +1237,16 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
                   )}
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-zinc-800 divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-zinc-900/20 divide-y divide-zinc-200 dark:divide-zinc-700">
                 {table.getRowModel().rows.map((row) => (
                   <tr
                     key={row.id}
-                    className="hover:bg-zinc-50 dark:bg-zinc-800 transition-colors"
+                    className="hover:bg-zinc-100 dark:hover:bg-zinc-700/30 transition-colors border-b border-zinc-200 dark:border-zinc-700 last:border-b-0"
                   >
                     {row.getVisibleCells().map((cell) => (
                       <td
                         key={cell.id}
-                        className="px-4 py-2 whitespace-nowrap text-sm text-zinc-500"
+                        className="px-4 py-3 whitespace-nowrap text-sm text-zinc-700 dark:text-zinc-300"
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
@@ -1222,28 +1261,26 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
           </div>
 
           {/* Pagination */}
-          <div className="bg-white dark:bg-zinc-800 px-3 py-2 flex items-center justify-between border-t border-gray-200 sm:px-4">
-            <div className="flex-1 flex justify-center">
-              <div className="flex gap-1">
-                <button
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                  className="relative inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:bg-zinc-800 dark:text-white disabled:bg-zinc-100 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                <span className="relative inline-flex items-center px-3 py-1.5 border border-gray-300 bg-white dark:bg-zinc-800 text-sm font-medium text-zinc-700 dark:text-white rounded-md">
-                  Page {table.getState().pagination.pageIndex + 1} of{" "}
-                  {table.getPageCount()}
-                </span>
-                <button
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                  className="relative inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:bg-zinc-800 dark:text-white disabled:bg-zinc-100 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
-              </div>
+          <div className="bg-white dark:bg-zinc-800/50 px-4 py-3 flex items-center justify-center border-t border-zinc-200 dark:border-zinc-700">
+            <div className="flex gap-2">
+              <button
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-700/30 hover:bg-zinc-100 dark:hover:bg-zinc-700/50 disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:cursor-not-allowed disabled:text-zinc-400 dark:disabled:text-zinc-500 transition-all"
+              >
+                Previous
+              </button>
+              <span className="inline-flex items-center px-4 py-2 bg-zinc-100 dark:bg-zinc-700/50 border border-zinc-300 dark:border-zinc-600 rounded-lg text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                Page {table.getState().pagination.pageIndex + 1} of{" "}
+                {table.getPageCount()}
+              </span>
+              <button
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-700/30 hover:bg-zinc-100 dark:hover:bg-zinc-700/50 disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:cursor-not-allowed disabled:text-zinc-400 dark:disabled:text-zinc-500 transition-all"
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>
