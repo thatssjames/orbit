@@ -1336,7 +1336,7 @@ const Status: React.FC<{
       );
     });
     return () => subscription.unsubscribe();
-  }, [methods.watch]);
+  }, [methods, updateStatus]);
 
   return (
     <FormProvider {...methods}>
@@ -1406,7 +1406,7 @@ const Slot: React.FC<{
       );
     });
     return () => subscription.unsubscribe();
-  }, [methods.watch]);
+  }, [methods, updateStatus]);
 
   return (
     <FormProvider {...methods}>

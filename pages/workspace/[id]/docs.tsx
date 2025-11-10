@@ -75,7 +75,8 @@ export const getServerSideProps = withPermissionCheckSsr(async (context: any) =>
 		return { notFound: true };
 	}
 
-	if (user.roles[0].permissions.includes('manage_docs') || user.roles[0].isOwnerRole) {
+	const canManage = user.roles[0].permissions.includes('manage_docs') || user.roles[0].isOwnerRole;
+	if (canManage) {
 		const docs = await prisma.document.findMany({
 			where: {
 				workspaceGroupId: parseInt(id as string)
@@ -91,7 +92,8 @@ export const getServerSideProps = withPermissionCheckSsr(async (context: any) =>
 		});
 		return {
 			props: {
-				documents: (JSON.parse(JSON.stringify(docs, (key, value) => (typeof value === 'bigint' ? value.toString() : value))) as typeof docs)
+				documents: (JSON.parse(JSON.stringify(docs, (key, value) => (typeof value === 'bigint' ? value.toString() : value))) as typeof docs),
+				canManage
 			}
 		}
 	}
@@ -115,21 +117,32 @@ export const getServerSideProps = withPermissionCheckSsr(async (context: any) =>
 	})
 	return {
 		props: {
-			documents: (JSON.parse(JSON.stringify(docs, (key, value) => (typeof value === 'bigint' ? value.toString() : value))))
+			documents: (JSON.parse(JSON.stringify(docs, (key, value) => (typeof value === 'bigint' ? value.toString() : value)))),
+			canManage: false
 		},
 	}
 });
 
 type pageProps = {
 	documents: (document & { owner: { username: string, picture: string } })[]
+	canManage: boolean
 }
-const Home: pageWithLayout<pageProps> = ({ documents }) => {
+const Home: pageWithLayout<pageProps> = ({ documents, canManage }) => {
 	const [login, setLogin] = useRecoilState(loginState);
-	const text = useMemo(() => randomText(login.displayname), []);
+	const text = useMemo(() => randomText(login.displayname), [login.displayname]);
 	const router = useRouter();
 
-	const goToGuide = (id: string) => {
-		router.push(`/workspace/${router.query.id}/docs/${id}`);
+	const goToGuide = (doc: any) => {
+		if (doc && doc.content && (doc.content as any).external) {
+			try {
+				const url = (doc.content as any).url;
+				window.open(url, '_blank');
+				return;
+			} catch (e) {
+				// icba to add ts
+			}
+		}
+		router.push(`/workspace/${router.query.id}/docs/${doc.id}`);
 	}
 
 	return (
@@ -167,11 +180,20 @@ const Home: pageWithLayout<pageProps> = ({ documents }) => {
 				{documents.length > 0 ? (
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 						{documents.map((document) => (
-							<button
+							<div
 								key={document.id}
-								onClick={() => goToGuide(document.id)}
-								className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4 hover:shadow-md transition-all text-left group"
+								onClick={() => goToGuide(document)}
+								className="relative bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4 hover:shadow-md transition-all text-left group cursor-pointer"
 							>
+								{canManage && (
+									<button
+										onClick={(e) => { e.stopPropagation(); router.push(`/workspace/${router.query.id}/docs/${document.id}/edit`); }}
+										className="absolute right-3 top-3 p-1.5 rounded-md text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+										aria-label="Edit document"
+									>
+										<svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+									</button>
+								)}
 								<div className="flex items-start gap-3">
 									<div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
 										<IconFileText className="w-5 h-5 text-primary" />
@@ -192,7 +214,7 @@ const Home: pageWithLayout<pageProps> = ({ documents }) => {
 										</div>
 									</div>
 								</div>
-							</button>
+							</div>
 						))}
 					</div>
 				) : (

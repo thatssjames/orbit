@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine'
 import prisma, { SessionType, document } from '@/utils/database';
+import { sanitizeJSON } from '@/utils/sanitise';
 import { withSessionRoute } from '@/lib/withSession'
 import { withPermissionCheck } from '@/utils/permissionsManager'
 
@@ -22,16 +23,26 @@ export async function handler(
 ) {
 	if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
 	const { name, content, roles } = req.body;
-	if (!name || !content || !roles) return res.status(400).json({ success: false, error: 'Missing required fields' });
+	if (!name || !roles) return res.status(400).json({ success: false, error: 'Missing required fields' });
+	if (content && typeof content === 'object' && (content as any).external) {
+		const url = (content as any).url;
+		if (!url || typeof url !== 'string') return res.status(400).json({ success: false, error: 'External URL required' });
+		if (!url.startsWith('https://')) return res.status(400).json({ success: false, error: 'External URL must use https://' });
+	}
 	const { id } = req.query;
 	if (!id) return res.status(400).json({ success: false, error: 'Missing required fields' });
 	
+	let saveContent = content;
+	if (content && typeof content === 'object' && !(content as any).external) {
+		saveContent = sanitizeJSON(content);
+ 	}
+
 	const document = await prisma.document.create({
 		data: {
 			workspaceGroupId: parseInt(id as string),
 			name,
 			ownerId: BigInt(req.session.userid),
-			content,
+			content: saveContent,
 			roles: {
 				connect: [
 					...roles.map((role: string) => ({ id: role }))
