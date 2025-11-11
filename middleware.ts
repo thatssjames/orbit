@@ -6,7 +6,20 @@ export function middleware(request: NextRequest) {
 
   response.headers.set(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https:; frame-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self';"
+    [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://widget.intercom.io https://js.intercomcdn.com https://cdn.posthog.com https://js.posthog.com https://cdn.intercom.com https://uploads.intercomcdn.com https://*.planetaryapp.us https://*.planetaryapp.cloud",
+      "script-src-elem 'self' 'unsafe-inline' https://widget.intercom.io https://js.intercomcdn.com https://cdn.posthog.com https://js.posthog.com https://cdn.intercom.com https://uploads.intercomcdn.com https://*.planetaryapp.us https://*.planetaryapp.cloud",
+      "script-src-attr 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "img-src 'self' data: https: blob:",
+  "connect-src 'self' https: https://api.intercom.io https://events.posthog.com https://app.posthog.com https://*.planetaryapp.us https://*.planetaryapp.cloud wss://*.intercom.io wss:",
+      "frame-src 'self' https://widget.intercom.io",
+      "frame-ancestors 'self'",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join("; ")
   );
 
   response.headers.set("X-Content-Type-Options", "nosniff");

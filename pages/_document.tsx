@@ -4,10 +4,20 @@ export default function Document() {
   return (
     <Html lang="en" className="dark">
       <Head>
-        {/* CSP Meta tag as a fallback for browsers that don't support CSP HTTP headers */}
         <meta
           httpEquiv="Content-Security-Policy"
-          content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https:; frame-src 'self'; base-uri 'self'; form-action 'self';"
+          content={
+            "default-src 'self'; " +
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://widget.intercom.io https://js.intercomcdn.com https://cdn.posthog.com https://js.posthog.com https://cdn.intercom.com https://uploads.intercomcdn.com https://*.planetaryapp.us https://*.planetaryapp.cloud; " +
+            "script-src-elem 'self' 'unsafe-inline' https://widget.intercom.io https://js.intercomcdn.com https://cdn.posthog.com https://js.posthog.com https://cdn.intercom.com https://uploads.intercomcdn.com https://*.planetaryapp.us https://*.planetaryapp.cloud; " +
+            "script-src-attr 'self' 'unsafe-inline'; " +
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+            "font-src 'self' https://fonts.gstatic.com; " +
+            "img-src 'self' data: https: blob:; " +
+            "connect-src 'self' https: https://api.intercom.io https://events.posthog.com https://app.posthog.com https://*.planetaryapp.us https://*.planetaryapp.cloud wss://*.intercom.io wss:; " +
+            "frame-src 'self' https://widget.intercom.io; " +
+            "base-uri 'self'; form-action 'self';"
+          }
         />
         {/* Prevent MIME type sniffing */}
         <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
