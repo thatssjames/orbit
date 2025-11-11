@@ -1202,7 +1202,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
                 className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-white bg-red-600/80 hover:bg-red-600 transition-all"
               >
                 <IconShieldX className="w-4 h-4" />
-                Fire
+                Terminate
               </button>
             </div>
           )}
