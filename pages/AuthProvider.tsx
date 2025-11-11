@@ -51,28 +51,6 @@ export default function AuthProvider({
 		if (!POSTHOG_KEY) return;
 
 		let mounted = true;
-		(async () => {
-			try {
-				const posthog = (await import('posthog-js')).default;
-				if (!mounted) return;
-				posthog.init(POSTHOG_KEY as string, { api_host: POSTHOG_HOST });
-				posthogRef.current = posthog;
-				if (login && posthogRef.current) {
-					try {
-						posthogRef.current.identify(String(login.username), {
-							userid: String(login.userId),
-							username: login.username,
-							workspaceId: workspace?.groupId ?? null,
-							avatar: `${window.location.origin}/avatars/${login.userId}.png`,
-						});
-					} catch (e) {
-						// blah blah
-					}
-				}
-			} catch (e) {
-				// blah blah
-			}
-		})();
 
 		return () => {
 			mounted = false;
@@ -104,10 +82,6 @@ export default function AuthProvider({
 						return;
 					}
 
-					injectIntercom();
-					const ic = (window as any).Intercom;
-					if (ic) ic('shutdown');
-
 					if (isWelcomeOrLogin || !login) {
 						const bootGuest = () => {
 							try {
@@ -117,80 +91,16 @@ export default function AuthProvider({
 							}
 						};
 
+						injectIntercom();
 						if ((window as any).Intercom) bootGuest();
 						else if (document.getElementById('intercom-script')) {
 							document.getElementById('intercom-script')!.addEventListener('load', bootGuest);
-						}
-					} else if (login) {
-						const avatar = `${window.location.origin}/avatars/${login.userId}.png`;
-						const payload: any = {
-							app_id: INTERCOM_APP_ID,
-							name: login.username,
-							user_id: String(login.userId),
-							avatar: { type: 'image', image_url: avatar },
-							custom_attributes: { workspaceId: workspace?.groupId ?? null },
-						};
-
-						const bootUser = () => {
-							try {
-								(window as any).Intercom('boot', payload);
-							} catch (e) {
-								// ignore
-							}
-						};
-
-						try {
-							const r = await fetch('/api/intercom/token', { credentials: 'same-origin' });
-							if (r.ok) {
-								const j = await r.json();
-								if (j.intercom_user_jwt) {
-									payload.intercom_user_jwt = j.intercom_user_jwt;
-								} else {
-									console.warn('Intercom token endpoint did not return a JWT');
-								}
-							} else {
-								try {
-									const err = await r.json();
-									console.warn('Intercom token endpoint returned error:', err);
-								} catch (e) {}
-							}
-						} catch (e) {
-							console.warn('Failed to fetch intercom token:', e);
-						}
-
-						if ((window as any).Intercom) bootUser();
-						else if (document.getElementById('intercom-script')) {
-							document.getElementById('intercom-script')!.addEventListener('load', bootUser);
 						}
 					}
 				} catch (e) {
 					console.error('Intercom init error', e);
 				}
 			})();
-		}
-
-		try {
-			const ph = posthogRef.current;
-			if (ph) {
-				if (login) {
-					try {
-						ph.identify(String(login.username), {
-							userid: String(login.userId),
-							username: login.username,
-							workspaceId: workspace?.groupId ?? null,
-							avatar: `${window.location.origin}/avatars/${login.userId}.png`,
-						});
-					} catch (e) {
-						console.error('PostHog identify error:', e);
-					}
-				} else {
-					try {
-						ph.reset();
-					} catch (e) {}
-				}
-			}
-		} catch (e) {
-			console.error('PostHog identify error', e);
 		}
 
 	}, [Router.pathname, login, workspace]);

@@ -12,7 +12,7 @@ export default function Document() {
             "script-src-elem 'self' 'unsafe-inline' https://widget.intercom.io https://js.intercomcdn.com https://cdn.posthog.com https://js.posthog.com https://cdn.intercom.com https://uploads.intercomcdn.com https://*.planetaryapp.us https://*.planetaryapp.cloud; " +
             "script-src-attr 'self' 'unsafe-inline'; " +
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-            "font-src 'self' https://fonts.gstatic.com; " +
+            "font-src 'self' https://fonts.gstatic.com https://fonts.intercomcdn.com; " +
             "img-src 'self' data: https: blob:; " +
             "connect-src 'self' https: https://api.intercom.io https://events.posthog.com https://app.posthog.com https://*.planetaryapp.us https://*.planetaryapp.cloud wss://*.intercom.io wss:; " +
             "frame-src 'self' https://widget.intercom.io; " +
