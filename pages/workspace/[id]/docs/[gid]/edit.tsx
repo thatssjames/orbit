@@ -432,7 +432,10 @@ const EditDoc: pageWithLayout<any> = ({ roles, document }) => {
               <div className="lg:col-span-1">
                 <div className="bg-white dark:bg-zinc-700 rounded-lg shadow-sm p-4">
                   <h2 className="text-base font-medium text-zinc-900 dark:text-white mb-3">
-                    Permissions
+                    Access
+                  </h2>
+                  <h2 className="text-sm text-zinc-500 dark:text-zinc-300 mb-3">
+                    Manage who can view this document
                   </h2>
                   <div className="space-y-2">
                     {roles.map((role: any) => (
