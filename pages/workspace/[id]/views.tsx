@@ -1005,7 +1005,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
         {/* Controls Card */}
         <div className="bg-white dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-200 dark:border-zinc-700/50 rounded-lg p-4 mb-6 relative z-10 overflow-visible">
           {/* Filter and Column Controls */}
-          <div className="flex flex-col md:flex-row gap-3 mb-4 relative z-20">
+          <div className="flex flex-col md:flex-row gap-3 relative z-20">
             <div className="flex gap-2">
               {/* Filters Popover */}
               <Popover className="relative z-20">
@@ -1133,7 +1133,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => updateSearchQuery(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900/50 text-zinc-900 dark:text-zinc-200 placeholder-zinc-500 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#ff0099]/50 focus:border-transparent transition-all"
+                  className="block w-full pl-10 pr-3 py-[6px;] border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900/50 text-zinc-900 dark:text-zinc-200 placeholder-zinc-500 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#ff0099]/50 focus:border-transparent transition-all"
                   placeholder="Search staff..."
                 />
               </div>
@@ -1170,7 +1170,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 
           {/* Mass Actions */}
           {table.getSelectedRowModel().flatRows.length > 0 && (
-            <div className="pt-4 border-t border-zinc-200 dark:border-zinc-700 flex flex-wrap gap-2">
+            <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-700 flex flex-wrap gap-2">
               <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 py-2">
                 {table.getSelectedRowModel().flatRows.length} selected
               </span>
