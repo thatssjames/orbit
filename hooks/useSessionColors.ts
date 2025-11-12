@@ -22,26 +22,26 @@ export const useSessionColors = (workspaceId: number | string | undefined) => {
     useState<SessionColors>(defaultSessionColors);
   const [isLoading, setIsLoading] = useState(false);
 
+  const fetchSessionColors = async () => {
+    if (!workspaceId) return;
+    try {
+      setIsLoading(true);
+      const response = await axios.get(
+        `/api/workspace/${workspaceId}/settings/general/session-colors`
+      );
+
+      if (response.data.success && response.data.colors) {
+        setSessionColors(response.data.colors);
+      }
+    } catch (error) {
+      console.error("Failed to fetch session colors:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!workspaceId) return;
-
-    const fetchSessionColors = async () => {
-      try {
-        setIsLoading(true);
-        const response = await axios.get(
-          `/api/workspace/${workspaceId}/settings/general/session-colors`
-        );
-
-        if (response.data.success && response.data.colors) {
-          setSessionColors(response.data.colors);
-        }
-      } catch (error) {
-        console.error("Failed to fetch session colors:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchSessionColors();
   }, [workspaceId]);
 
@@ -71,6 +71,7 @@ export const useSessionColors = (workspaceId: number | string | undefined) => {
   return {
     sessionColors,
     isLoading,
+    fetchSessionColors,
     getSessionTypeColor,
     getRecurringColor,
     getTextColorForBackground,

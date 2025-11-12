@@ -17,7 +17,7 @@ import { useRecoilValue } from "recoil";
 import { loginState, workspacestate } from "@/state";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
-import { useSessionColors } from "@/hooks/useSessionColors";
+import type { SessionColors } from "@/hooks/useSessionColors";
 
 const BG_COLORS = [
   "bg-red-200",
@@ -48,6 +48,8 @@ interface SessionModalProps {
   onUpdate?: () => void;
   workspaceMembers: any[];
   canManage: boolean;
+  sessionColors?: SessionColors;
+  colorsReady?: boolean | undefined;
 }
 
 const SessionModal: React.FC<SessionModalProps> = ({
@@ -59,6 +61,8 @@ const SessionModal: React.FC<SessionModalProps> = ({
   onUpdate,
   workspaceMembers,
   canManage,
+  sessionColors,
+  colorsReady,
 }) => {
   const [availableUsers, setAvailableUsers] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,10 +70,36 @@ const SessionModal: React.FC<SessionModalProps> = ({
   const router = useRouter();
   const login = useRecoilValue(loginState);
   const workspace = useRecoilValue(workspacestate);
-  const { getSessionTypeColor, getRecurringColor, getTextColorForBackground } =
-    useSessionColors(
-      Array.isArray(router.query.id) ? router.query.id[0] : router.query.id
-    );
+
+  const defaultColors: SessionColors = {
+    recurring: "bg-blue-500",
+    shift: "bg-green-500",
+    training: "bg-yellow-500",
+    event: "bg-purple-500",
+    other: "bg-zinc-500",
+  };
+
+  const effectiveColors: SessionColors = sessionColors || defaultColors;
+
+  const getSessionTypeColor = (sessionType: string | null | undefined) => {
+    if (!sessionType) return effectiveColors.other;
+    const type = sessionType.toLowerCase();
+    if (type === "shift") return effectiveColors.shift;
+    if (type === "training") return effectiveColors.training;
+    if (type === "event") return effectiveColors.event;
+    return effectiveColors.other;
+  };
+
+  const getRecurringColor = () => {
+    return effectiveColors.recurring;
+  };
+
+  const getTextColorForBackground = (bgColor: string) => {
+    if (bgColor.includes("yellow") || bgColor.includes("orange-400")) {
+      return "text-zinc-800 dark:text-zinc-900";
+    }
+    return "text-white";
+  };
 
   const refreshSessionData = async () => {
     onUpdate?.();
@@ -236,10 +266,18 @@ const SessionModal: React.FC<SessionModalProps> = ({
 
   if (!isOpen || !session) return null;
 
+  if (colorsReady === false) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-xl w-full max-w-2xl mx-auto p-6 text-center">
+          <div className="text-zinc-700 dark:text-zinc-200">Loading…</div>
+        </div>
+      </div>
+    );
+  }
+
   const sessionDate = new Date(session.date);
   const isRecurring = session.scheduleId !== null;
-
-  // Calculate session timing
   const now = new Date();
   const sessionStart = new Date(session.date);
   const sessionDuration = session.duration || 30;
@@ -413,15 +451,18 @@ const SessionModal: React.FC<SessionModalProps> = ({
                                       handleSlotClaim(slotData.id, i, value)
                                     }
                                     isSubmitting={isSubmitting}
-                                      canEdit={
-                                        canManage ||
-                                        ((workspace.roles || []) as any[]).some(
-                                          (wr) =>
-                                            (session.sessionType?.hostingRoles || [])
-                                              .map((r: any) => String(r.id))
-                                              .includes(String(wr.id))
-                                        )
-                                      }
+                                    canEdit={
+                                      canManage ||
+                                      ((workspace.roles || []) as any[]).some(
+                                        (wr) =>
+                                          (
+                                            session.sessionType?.hostingRoles ||
+                                            []
+                                          )
+                                            .map((r: any) => String(r.id))
+                                            .includes(String(wr.id))
+                                      )
+                                    }
                                     availableUsers={availableUsers}
                                     currentUserId={login.userId}
                                     currentUserPicture={login.thumbnail}
