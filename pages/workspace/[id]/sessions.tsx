@@ -634,6 +634,12 @@ const Home: pageWithLayout<pageProps> = (props) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [workspaceMembers, setWorkspaceMembers] = useState<any[]>([]);
   const router = useRouter();
+  const workspaceIdForColors = Array.isArray(router.query.id)
+    ? router.query.id[0]
+    : router.query.id;
+  const { sessionColors, isLoading: colorsLoading } = useSessionColors(
+    workspaceIdForColors
+  );
   const { userSessionMetrics } = props;
 
   const handleEditSession = (sessionId: string) => {
@@ -849,6 +855,8 @@ const Home: pageWithLayout<pageProps> = (props) => {
             }}
             workspaceMembers={workspaceMembers}
             canManage={workspace.yourPermission?.includes("manage_sessions")}
+            sessionColors={sessionColors}
+            colorsReady={!colorsLoading}
           />
         )}
       </div>
