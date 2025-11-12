@@ -40,9 +40,6 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
           where: {
             workspaceGroupId: parseInt(context.query.id as string),
           },
-          orderBy: {
-            isOwnerRole: "desc", // Owner roles first
-          },
         },
       },
     });
@@ -63,12 +60,14 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
       })
       .catch(() => null);
     if (!guide) return { notFound: true };
-    if (
-      !guide.roles.find((role) => role.id === user?.roles[0].id) &&
-      !user?.roles[0].isOwnerRole &&
-      !user?.roles[0].permissions.includes("manage_docs")
-    )
-      return { notFound: true };
+    const userRoles = (user?.roles || []);
+    const isOwner = userRoles.some((r: any) => r.isOwnerRole);
+    const canManageDocs = userRoles.some((r: any) => r.permissions?.includes("manage_docs"));
+    const hasRoleAccess = guide.roles.some((gr: any) =>
+      userRoles.some((ur: any) => ur.id === gr.id)
+    );
+
+    if (!isOwner && !canManageDocs && !hasRoleAccess) return { notFound: true };
 
     return {
       props: {

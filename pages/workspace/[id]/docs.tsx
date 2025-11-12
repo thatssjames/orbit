@@ -75,7 +75,8 @@ export const getServerSideProps = withPermissionCheckSsr(async (context: any) =>
 		return { notFound: true };
 	}
 
-	const canManage = user.roles[0].permissions.includes('manage_docs') || user.roles[0].isOwnerRole;
+	const userRoleIds = (user.roles || []).map((r: any) => r.id);
+	const canManage = (user.roles || []).some((r: any) => (r.permissions || []).includes('manage_docs') || r.isOwnerRole);
 	if (canManage) {
 		const docs = await prisma.document.findMany({
 			where: {
@@ -102,7 +103,7 @@ export const getServerSideProps = withPermissionCheckSsr(async (context: any) =>
 			workspaceGroupId: parseInt(id as string),
 			roles: {
 				some: {
-					id: user.roles[0].id
+					id: { in: userRoleIds }
 				}
 			}
 		},
