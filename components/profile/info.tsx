@@ -125,19 +125,19 @@ export function InformationPanel({ user, isUser, isAdmin }: InformationPanelProp
     <>
       {isBirthday && <Confetti />}
       <div className="rounded-xl overflow-hidden">
-        <div className="bg-gradient-to-br from-[#111114] to-[#0f0f10] p-6 rounded-t-xl shadow-sm">
+        <div className="bg-[rgb(250,250,250)] dark:bg-zinc-900 p-6 rounded-t-xl shadow-sm">
           <div className="flex items-center gap-4">
             <div className="bg-[#ff0099]/10 rounded-lg p-3">
               <IconUser className="w-6 h-6 text-[#ff0099]" />
             </div>
             <div>
-              <h2 className="text-2xl font-semibold text-zinc-100">Information</h2>
-              <p className="text-sm text-zinc-400 mt-1">Overview and member-specific details</p>
+              <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Information</h2>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">Overview and member-specific details</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-zinc-700/30 dark:bg-zinc-800/60 border border-zinc-700/40 p-6 rounded-b-xl">
+        <div className="bg-[rgb(250,250,250)] dark:bg-zinc-800/60 border border-gray-200 dark:border-zinc-700/40 p-6 rounded-b-xl">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-4">
               <InfoRow icon={<IconUser className="w-5 h-5 text-[#ff0099]" />} label="Username" value={user.username} />
@@ -156,8 +156,8 @@ export function InformationPanel({ user, isUser, isAdmin }: InformationPanelProp
               <div className="flex items-center gap-3">
                 {user.registered ? <IconCheck className="w-5 h-5 text-[#ff0099]" /> : <IconX className="w-5 h-5 text-[#ff0099]" />}
                 <div>
-                  <div className="text-xs text-zinc-400">Status</div>
-                  <div className="text-sm font-medium text-zinc-100">{user.registered ? "Registered" : "Unregistered"}</div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">Status</div>
+                  <div className="text-sm font-medium text-zinc-500 dark:text-zinc-100">{user.registered ? "Registered" : "Unregistered"}</div>
                 </div>
               </div>
 
@@ -165,8 +165,8 @@ export function InformationPanel({ user, isUser, isAdmin }: InformationPanelProp
                 <div className="flex items-center gap-3">
                   <IconCalendar className="w-5 h-5 text-[#ff0099]" />
                   <div>
-                    <div className="text-xs text-zinc-400">Birthday</div>
-                    <div className="text-sm font-medium text-zinc-100">{birthday}</div>
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400">Birthday</div>
+                    <div className="text-sm font-medium text-zinc-500 dark:text-zinc-100">{birthday}</div>
                   </div>
                 </div>
 
@@ -196,7 +196,7 @@ export function InformationPanel({ user, isUser, isAdmin }: InformationPanelProp
                         setMonth(e.target.value);
                         setDay("");
                       }}
-                      className="border rounded px-2 py-1 w-36 bg-zinc-800 text-zinc-100"
+                      className="border rounded px-2 py-1 w-36 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border-gray-300 dark:border-zinc-600"
                       aria-label="Select month"
                     >
                       <option value="">Month</option>
@@ -211,7 +211,7 @@ export function InformationPanel({ user, isUser, isAdmin }: InformationPanelProp
                     <select
                       value={day}
                       onChange={(e) => setDay(e.target.value)}
-                      className="border rounded px-2 py-1 w-20 bg-zinc-800 text-zinc-100"
+                      className="border rounded px-2 py-1 w-20 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border-gray-300 dark:border-zinc-600"
                       disabled={!month}
                       aria-label="Select day"
                     >
@@ -233,7 +233,7 @@ export function InformationPanel({ user, isUser, isAdmin }: InformationPanelProp
                       </button>
                     )}
 
-                    <button onClick={() => setEditing(false)} className="ml-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm text-zinc-100">
+                    <button onClick={() => setEditing(false)} className="ml-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm text-zinc-900 dark:text-zinc-100 border-gray-300 dark:border-zinc-600">
                       Cancel
                     </button>
                   </div>
@@ -253,7 +253,7 @@ function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string;
       <div>{icon}</div>
       <div>
         <div className="text-xs text-zinc-400">{label}</div>
-        <div className="text-sm font-medium text-zinc-100">{value}</div>
+        <div className="text-sm font-medium text-zinc-500 dark:text-zinc-100">{value}</div>
       </div>
     </div>
   );
