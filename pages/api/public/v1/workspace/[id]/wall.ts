@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next"
 import prisma from "@/utils/database"
+import { logAudit } from '@/utils/logs'
 import { validateApiKey } from "@/utils/api-auth"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -73,6 +74,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         include: { author: { select: { userid: true, username: true, picture: true } } }
       })
+      try {
+        await logAudit(workspaceId, Number(key.createdById), 'wall.post.create', `wallpost:${post.id}`, { id: post.id, content: post.content, authorId: Number(post.author.userid) });
+      } catch (e) {}
 
       return res.status(201).json({
         success: true,

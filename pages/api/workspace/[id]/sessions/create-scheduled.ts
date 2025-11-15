@@ -197,6 +197,11 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       data: logEntries,
     });
 
+    try {
+      const { logAudit } = await import('@/utils/logs');
+      await logAudit(Number(req.query.id), Number(req.session.userid), 'session.create.scheduled', `session_bulk:${sessionType.id}`, { count: createdSessions.length, sessionType: sessionType.name });
+    } catch (e) {}
+
     res.status(200).json({
       success: true,
       sessionsCreated: sessionsToCreate.length,

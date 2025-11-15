@@ -126,6 +126,11 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       },
     });
 
+    try {
+      const { logAudit } = await import('@/utils/logs');
+      await logAudit(Number(req.query.id), Number(req.session.userid), 'session.create.unscheduled', `session:${session.id}`, { id: session.id, sessionType: sessionType.name });
+    } catch (e) {}
+
     res.status(200).json({
       success: true,
       session: JSON.parse(

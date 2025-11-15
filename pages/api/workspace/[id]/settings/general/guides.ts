@@ -26,6 +26,10 @@ export default async function handler(
       await setConfig('guides', {
         enabled: req.body.enabled
       }, parseInt(req.query.id as string));
+      try {
+        const { logAudit } = await import('@/utils/logs');
+        await logAudit(parseInt(req.query.id as string), (req as any).session?.userid || null, 'settings.update', 'guides', { enabled: req.body.enabled });
+      } catch (e) {}
       return res.status(200).json({ success: true });
     }
 

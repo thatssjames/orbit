@@ -4,6 +4,7 @@ import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine'
 import prisma, { role } from '@/utils/database';
 import { withSessionRoute } from '@/lib/withSession'
 import { withPermissionCheck } from '@/utils/permissionsManager'
+import { logAudit } from '@/utils/logs';
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
 import * as noblox from 'noblox.js'
 type Data = {
@@ -26,7 +27,9 @@ export async function handler(
 			isOwnerRole: false,
 		}
 	});
-	
-	
+	try {
+		await logAudit(parseInt(req.query.id as string), (req as any).session?.userid || null, 'settings.roles.create', `role:${role.id}`, { id: role.id, name: role.name });
+	} catch (e) {}
+
 	res.status(200).json({ success: true, role })
 }

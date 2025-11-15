@@ -1,6 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getConfig, setConfig } from '@/utils/configEngine'
+import { logAudit } from '@/utils/logs'
 import { withPermissionCheck } from '@/utils/permissionsManager'
 
 type Data = {
@@ -23,9 +24,11 @@ export default async function handler(
 
   return withPermissionCheck(async (req: NextApiRequest, res: NextApiResponse<Data>) => {
     if (req.method === 'PATCH') {
-      await setConfig('sessions', {
-        enabled: req.body.enabled
-      }, parseInt(req.query.id as string));
+      const workspaceId = parseInt(req.query.id as string);
+      const before = await getConfig('sessions', workspaceId);
+      const after = { enabled: req.body.enabled };
+      await setConfig('sessions', after, workspaceId);
+      try { await logAudit(workspaceId, (req as any).session?.userid || null, 'settings.general.sessions.update', 'sessions', { before, after }); } catch (e) {}
       return res.status(200).json({ success: true });
     }
 

@@ -50,11 +50,19 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       console.log(
         `[Sessions] Deleted current and future sessions for schedule ${session.scheduleId} from ${session.date}`
       );
+      try {
+        const { logAudit } = await import('@/utils/logs');
+        await logAudit(Number(req.query.id), Number((req as any).session?.userid), 'session.delete.range', `sessionSchedule:${session.scheduleId}`, { from: session.date.toISOString(), scheduleId: session.scheduleId });
+      } catch (e) {}
     } else {
       await prisma.session.delete({
         where: { id: sessionId },
       });
       console.log(`[Sessions] Deleted individual session ${sessionId}`);
+      try {
+        const { logAudit } = await import('@/utils/logs');
+        await logAudit(Number(req.query.id), Number((req as any).session?.userid), 'session.delete', `session:${sessionId}`, { id: sessionId });
+      } catch (e) {}
     }
 
     res.status(200).json({ success: true });

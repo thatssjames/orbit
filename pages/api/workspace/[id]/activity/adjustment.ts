@@ -1,6 +1,7 @@
 import { withPermissionCheck } from '@/utils/permissionsManager';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '@/utils/database';
+import { logAudit } from '@/utils/logs';
 
 export default withPermissionCheck(async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
@@ -40,6 +41,9 @@ export default withPermissionCheck(async function handler(req: NextApiRequest, r
       }
     }
   });
+  try {
+    await logAudit(workspaceGroupId, actorId ? Number(actorId) : null, 'activity.adjustment', `user:${userId}`, { minutes: signedMinutes, reason: reason || null, actorId, userId });
+  } catch (e) {}
 
   const safe = JSON.parse(JSON.stringify(adjustment, (_k, v) => typeof v === 'bigint' ? v.toString() : v));
   return res.status(200).json({ success: true, adjustment: safe });

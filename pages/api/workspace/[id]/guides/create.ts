@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine'
 import prisma, { SessionType, document } from '@/utils/database';
+import { logAudit } from '@/utils/logs';
 import { sanitizeJSON } from '@/utils/sanitise';
 import { withSessionRoute } from '@/lib/withSession'
 import { withPermissionCheck } from '@/utils/permissionsManager'
@@ -50,6 +51,11 @@ export async function handler(
 			}
 		}
 	});
-	
+	try {
+		await logAudit(parseInt(id as string), Number(req.session.userid), 'document.create', `document:${document.id}`, { id: document.id, name, roles });
+	} catch (e) {
+		// ignore
+	}
+
 	res.status(200).json({ success: true, document: JSON.parse(JSON.stringify(document, (key, value) => (typeof value === 'bigint' ? value.toString() : value))) });
 }

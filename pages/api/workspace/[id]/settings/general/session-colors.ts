@@ -1,5 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { setConfig, getConfig } from "@/utils/configEngine";
+import { logAudit } from '@/utils/logs';
+import { getUsername } from '@/utils/userinfoEngine';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 type SessionColors = {
   recurring: string;
@@ -15,7 +18,7 @@ type Data = {
   colors?: SessionColors;
 };
 
-export default handler;
+export default withPermissionCheck(handler, 'admin');
 
 export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   const workspaceId = parseInt(req.query.id as string);
@@ -69,7 +72,13 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     }
 
     try {
+      const before = await getConfig('sessionColors', workspaceId);
       await setConfig("sessionColors", colors, workspaceId);
+      try {
+        const actorId = (req as any).session?.userid ? Number((req as any).session.userid) : null;
+        const actorUsername = actorId ? await getUsername(actorId).catch(() => null) : null;
+        await logAudit(workspaceId, actorId, 'settings.general.sessionColors.update', 'sessionColors', { before, after: colors, actorUsername });
+      } catch (e) {}
 
       return res.status(200).json({ success: true });
     } catch (error) {

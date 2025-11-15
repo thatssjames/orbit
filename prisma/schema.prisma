@@ -118,6 +118,19 @@ model wallPost {
   image            String?
   author           user      @relation(fields: [authorId], references: [userid])
   workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
+
+}
+
+model AuditLog {
+  id               Int      @id @default(autoincrement())
+  workspaceGroupId Int
+  userId           BigInt?
+  action           String
+  entity           String?
+  details          Json?
+  createdAt        DateTime @default(now())
+
+  @@index([createdAt])
 }
 
 model SessionType {

@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { fetchworkspace, getConfig, setConfig } from "@/utils/configEngine";
 import prisma, { SessionType, document } from "@/utils/database";
+import { logAudit } from "@/utils/logs";
 import { withSessionRoute } from "@/lib/withSession";
 import { withPermissionCheck } from "@/utils/permissionsManager";
 import { RankGunAPI, getRankGun } from "@/utils/rankgun";
@@ -31,7 +32,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     return res
       .status(400)
       .json({ success: false, error: "Missing required fields" });
-  
+
   if (
     type !== "termination" &&
     type !== "warning" &&
@@ -49,14 +50,14 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
   const workspaceGroupId = parseInt(id as string);
   const userId = parseInt(uid as string);
-  
+
   if (BigInt(userId) === req.session.userid) {
     return res.status(400).json({
       success: false,
       error: "You cannot perform actions on yourself.",
     });
   }
-  
+
   const rankGun = await getRankGun(workspaceGroupId);
   let rankBefore: number | null = null;
   let rankAfter: number | null = null;
@@ -64,8 +65,11 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   let rankNameAfter: string | null = null;
 
   if (
-    rankGun &&
-    (type === "promotion" || type === "demotion" || type === "rank_change" || type === "termination")
+    (rankGun) &&
+    (type === "promotion" ||
+      type === "demotion" ||
+      type === "rank_change" ||
+      type === "termination")
   ) {
     try {
       const targetUserRank = await prisma.rank.findFirst({
@@ -74,7 +78,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
           workspaceGroupId: workspaceGroupId,
         },
       });
-      
+
       if (targetUserRank) {
         rankBefore = Number(targetUserRank.rankId);
         const currentRankInfo = await noblox.getRole(
@@ -83,14 +87,14 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         );
         rankNameBefore = currentRankInfo?.name || null;
       }
-      
+
       const adminUserRank = await prisma.rank.findFirst({
         where: {
           userId: BigInt(req.session.userid),
           workspaceGroupId: workspaceGroupId,
         },
       });
-      
+
       if (adminUserRank) {
         const adminRank = Number(adminUserRank.rankId);
         if (rankBefore && rankBefore >= adminRank) {
@@ -107,11 +111,12 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
               },
             },
           });
-          
+
           if (!adminUser?.roles.length) {
             return res.status(403).json({
               success: false,
-              error: "You cannot perform ranking actions on users with equal or higher rank than yours",
+              error:
+                "You cannot perform ranking actions on users with equal or higher rank than yours",
             });
           }
         }
@@ -123,21 +128,30 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
   if (
     rankGun &&
-    (type === "promotion" || type === "demotion" || type === "rank_change" || type === "termination")
+    (type === "promotion" ||
+      type === "demotion" ||
+      type === "rank_change" ||
+      type === "termination")
   ) {
-    const rankGunAPI = new RankGunAPI(rankGun);
+    const rankGunAPI = rankGun ? new RankGunAPI(rankGun) : null;
     let result;
 
     try {
       switch (type) {
         case "promotion":
-          result = await rankGunAPI.promoteUser(userId, workspaceGroupId);
+          if (rankGunAPI) {
+            result = await rankGunAPI.promoteUser(userId, workspaceGroupId);
+          }
           break;
         case "demotion":
-          result = await rankGunAPI.demoteUser(userId, workspaceGroupId);
+          if (rankGunAPI) {
+            result = await rankGunAPI.demoteUser(userId, workspaceGroupId);
+          }
           break;
         case "termination":
-          result = await rankGunAPI.terminateUser(userId, workspaceGroupId);
+          if (rankGunAPI) {
+            result = await rankGunAPI.terminateUser(userId, workspaceGroupId);
+          }
           break;
         case "rank_change":
           if (!targetRank || isNaN(targetRank)) {
@@ -153,10 +167,10 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
                 workspaceGroupId: workspaceGroupId,
               },
             });
-            
+
             if (adminUserRank) {
               const adminRank = Number(adminUserRank.rankId);
-              
+
               if (parseInt(targetRank) >= adminRank) {
                 const adminUser = await prisma.user.findFirst({
                   where: {
@@ -171,24 +185,30 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
                     },
                   },
                 });
-                
+
                 if (!adminUser?.roles.length) {
                   return res.status(403).json({
                     success: false,
-                    error: "You cannot set users to a rank equal to or higher than your own.",
+                    error:
+                      "You cannot set users to a rank equal to or higher than your own.",
                   });
                 }
               }
             }
           } catch (rankCheckError) {
-            console.error("Error checking admin rank for rank_change:", rankCheckError);
+            console.error(
+              "Error checking admin rank for rank_change:",
+              rankCheckError
+            );
           }
-          
-          result = await rankGunAPI.setUserRank(
-            userId,
-            workspaceGroupId,
-            parseInt(targetRank)
-          );
+
+          if (rankGunAPI) {
+            result = await rankGunAPI.setUserRank(
+              userId,
+              workspaceGroupId,
+              parseInt(targetRank)
+            );
+          }
           break;
       }
 
@@ -263,12 +283,33 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
             },
           });
 
-          return res.status(200).json({ 
-            success: true, 
-            log: JSON.parse(JSON.stringify(userbook, (key, value) => (typeof value === 'bigint' ? value.toString() : value))),
-            terminated: true
-          });
+          try {
+            await logAudit(
+              workspaceGroupId,
+              req.session.userid || null,
+              "userbook.create",
+              `userbook:${userbook.id}`,
+              {
+                type,
+                userId,
+                adminId: req.session.userid,
+                rankBefore,
+                rankAfter: 1,
+                rankNameBefore,
+                rankNameAfter,
+              }
+            );
+          } catch (e) {}
 
+          return res.status(200).json({
+            success: true,
+            log: JSON.parse(
+              JSON.stringify(userbook, (key, value) =>
+                typeof value === "bigint" ? value.toString() : value
+              )
+            ),
+            terminated: true,
+          });
         } catch (terminationError) {
           return res.status(500).json({
             success: false,
@@ -390,14 +431,30 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     },
   });
 
-  res
-    .status(200)
-    .json({
-      success: true,
-      log: JSON.parse(
-        JSON.stringify(userbook, (key, value) =>
-          typeof value === "bigint" ? value.toString() : value
-        )
-      ),
-    });
+  try {
+    await logAudit(
+      parseInt(id as string),
+      req.session.userid || null,
+      "userbook.create",
+      `userbook:${userbook.id}`,
+      {
+        type,
+        userId: uid,
+        adminId: req.session.userid,
+        rankBefore,
+        rankAfter,
+        rankNameBefore,
+        rankNameAfter,
+      }
+    );
+  } catch (e) {}
+
+  res.status(200).json({
+    success: true,
+    log: JSON.parse(
+      JSON.stringify(userbook, (key, value) =>
+        typeof value === "bigint" ? value.toString() : value
+      )
+    ),
+  });
 }

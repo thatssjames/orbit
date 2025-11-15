@@ -4,6 +4,7 @@ import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine'
 import prisma from '@/utils/database';
 import { withSessionRoute } from '@/lib/withSession'
 import { withPermissionCheck } from '@/utils/permissionsManager'
+import { logAudit } from '@/utils/logs';
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
 import * as noblox from 'noblox.js'
 type Data = {
@@ -59,6 +60,10 @@ export async function handler(
 		}
 	});
 
+	try {
+		const afterUser = await prisma.user.findUnique({ where: { userid: parseInt(req.query.userid as string) }, include: { roles: { where: { workspaceGroupId: parseInt(req.query.id as string) } } } });
+		await logAudit(parseInt(req.query.id as string), (req as any).session?.userid || null, 'settings.users.update', `user:${req.query.userid}`, { before: { role: user.roles[0].id }, after: { role: req.body.role }, userId: parseInt(req.query.userid as string) });
+	} catch (e) {}
 
 	res.status(200).json({ success: true })
 }

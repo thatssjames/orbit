@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { withSessionRoute } from "@/lib/withSession";
 import prisma from "@/utils/database";
+import { logAudit } from '@/utils/logs';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "DELETE") {
@@ -37,6 +38,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   await prisma.wallPost.delete({ where: { id: postId } });
   console.log(`[Wall] Post ${postId} deleted by user ${userId} in workspace ${groupId}`);
+  try {
+    await logAudit(groupId, Number(userId), 'wall.post.delete', `wallpost:${postId}`, { id: postId });
+  } catch (e) {}
   return res.status(200).json({ success: true });
 }
 

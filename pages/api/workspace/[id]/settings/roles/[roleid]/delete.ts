@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine'
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager'
+import { logAudit } from '@/utils/logs';
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
 import * as noblox from 'noblox.js'
 import roles from '..';
@@ -56,6 +57,10 @@ export async function handler(
 			id: (req.query.roleid as string)
 		}
 	});
+
+	try {
+		await logAudit(parseInt(req.query.id as string), (req as any).session?.userid || null, 'settings.roles.delete', `role:${oldrole.name}`, { id: req.query.roleid, name: oldrole.name });
+	} catch (e) {}
 
 	res.status(200).json({ success: true })
 }

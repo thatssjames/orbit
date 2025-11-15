@@ -2,7 +2,7 @@
 
 import type { pageWithLayout } from "@/layoutTypes"
 import { loginState } from "@/state"
-import { IconChevronRight, IconHome, IconLock, IconFlag, IconKey, IconServer } from "@tabler/icons-react"
+import { IconChevronRight, IconHome, IconLock, IconFlag, IconKey, IconServer, IconBellExclamation } from "@tabler/icons-react"
 import Permissions from "@/components/settings/permissions"
 import Workspace from "@/layouts/workspace"
 import { useRecoilState } from "recoil"
@@ -128,6 +128,12 @@ const SECTIONS = {
     description: "Manage roles and user permissions",
     components: [],
   },
+  audit: {
+    name: "Audit Logs",
+    icon: IconBellExclamation,
+    description: "View workspace audit events and filters",
+    components: [],
+  },
   instance: {
     name: "Services",
     icon: IconServer,
@@ -149,6 +155,14 @@ const Settings: pageWithLayout<Props> = ({ users, roles, grouproles }) => {
       return (
         <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4 sm:p-6">
           <Permissions users={users} roles={roles} grouproles={grouproles} />
+        </div>
+      )
+    }
+
+    if (activeSection === "audit") {
+      return (
+        <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4 sm:p-6">
+          <All.AuditLogs />
         </div>
       )
     }

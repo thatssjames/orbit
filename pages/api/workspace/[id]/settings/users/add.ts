@@ -4,6 +4,7 @@ import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine'
 import prisma, { user }from '@/utils/database';
 import { withSessionRoute } from '@/lib/withSession'
 import { withPermissionCheck } from '@/utils/permissionsManager'
+import { logAudit } from '@/utils/logs';
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
 import { getRobloxUsername, getRobloxThumbnail, getRobloxDisplayName, getRobloxUserId } from "@/utils/roblox";
 import * as noblox from 'noblox.js'
@@ -73,6 +74,8 @@ export async function handler(
 		displayName: await getDisplayName(userid),
 		thumbnail: await getThumbnail(userid)
 	}
+
+	try { await logAudit(parseInt(req.query.id as string), (req as any).session?.userid || null, 'settings.users.add', `user:${Number(user.userid)}`, { userId: Number(user.userid), username: req.body.username, role: role.id }); } catch (e) {}
 
 	res.status(200).json({ success: true, user: newuser })
 }

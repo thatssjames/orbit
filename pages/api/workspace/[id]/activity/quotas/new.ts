@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager'
+import { logAudit } from '@/utils/logs';
 
 type Data = {
 	success: boolean
@@ -58,10 +59,14 @@ export async function handler(
 			}
 		  }
 		});
-	  
+
+		try {
+			await logAudit(parseInt(req.query.id as string), (req as any).session?.userid || null, 'activity.quota.create', `quota:${fullQuota?.id}`, { id: fullQuota?.id, name: fullQuota?.name, type: fullQuota?.type, value: fullQuota?.value, roles: (fullQuota?.quotaRoles || []).map((r: any) => r.role ? r.role.name : r.roleId) });
+		} catch (e) {}
+
 		return res.status(200).json({
-		  success: true,
-		  quota: JSON.parse(JSON.stringify(fullQuota, (key, value) => (typeof value === 'bigint' ? value.toString() : value)))
+			success: true,
+			quota: JSON.parse(JSON.stringify(fullQuota, (key, value) => (typeof value === 'bigint' ? value.toString() : value)))
 		});
 	  } catch (error) {
 		console.error(error);

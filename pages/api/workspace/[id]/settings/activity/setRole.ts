@@ -1,6 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getConfig, setConfig } from '@/utils/configEngine'
+import { logAudit } from '@/utils/logs'
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager'
 import * as noblox from 'noblox.js'
@@ -33,6 +34,7 @@ export async function handler(
 	};
 	await setConfig('activity', newconfig, parseInt(req.query.id as string));
 
+	try { await logAudit(parseInt(req.query.id as string), (req as any).session?.userid || null, 'settings.activity.role.update', 'activity.role', { before: activityconfig, after: newconfig }); } catch (e) {}
 
 	res.status(200).send({
 		success: true,

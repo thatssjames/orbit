@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { withPermissionCheck } from '@/utils/permissionsManager';
-import { setConfig } from '@/utils/configEngine';
+import { setConfig, getConfig } from '@/utils/configEngine';
+import { logAudit } from '@/utils/logs';
 
 type Data = {
 	success: boolean;
@@ -25,10 +26,17 @@ export async function handler(
 	}
 
 	try {
-		// Write the color into the "theme" key of config
-		await setConfig('theme', color, workspaceId);
-
-		return res.status(200).json({ success: true });
+		try {
+			const before = await getConfig('theme', workspaceId);
+			await setConfig('theme', color, workspaceId);
+			try {
+				await logAudit(workspaceId, (req as any).session?.userid || null, 'settings.general.color.update', 'theme', { before, after: color });
+			} catch (e) {}
+			return res.status(200).json({ success: true });
+		} catch (error) {
+			console.error('Failed to save theme color:', error);
+			return res.status(500).json({ success: false, error: 'Server error' });
+		}
 	} catch (error) {
 		console.error('Failed to save theme color:', error);
 		return res.status(500).json({ success: false, error: 'Server error' });
