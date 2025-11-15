@@ -267,6 +267,13 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
         const localDateTime = new Date(
           unscheduledDate + "T" + unscheduledTime + ":00"
         );
+
+        // Prevent creating sessions in the past
+        if (localDateTime.getTime() <= Date.now()) {
+          setFormError("Cannot create a session in the past. Choose a future date/time.");
+          setIsSubmitting(false);
+          return;
+        }
         const overlapping = await checkOverlaps(localDateTime, sessionLength);
 
         if (overlapping.length > 0) {
@@ -469,13 +476,22 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
     <div className="max-w-6xl mx-auto px-4 py-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold dark:text-white">
-            Create New Session
-          </h1>
-          <p className="text-zinc-500 dark:text-zinc-400 mt-1">
-            Set up a new session for your group's activities
-          </p>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.back()}
+            className="p-2 text-zinc-500 dark:text-zinc-300 hover:text-zinc-700 dark:hover:text-white rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+            aria-label="Go back"
+          >
+            <IconArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold dark:text-white">
+              Create New Session
+            </h1>
+            <p className="text-zinc-500 dark:text-zinc-400 mt-1">
+              Set up a new session for your group's activities
+            </p>
+          </div>
         </div>
       </div>
 

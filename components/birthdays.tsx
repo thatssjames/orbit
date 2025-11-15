@@ -13,22 +13,32 @@ type BirthdayUser = {
 };
 
 const BG_COLORS = [
+  "bg-rose-200",
+  "bg-lime-200",
+  "bg-sky-200",
+  "bg-amber-200",
+  "bg-violet-200",
+  "bg-fuchsia-200",
+  "bg-emerald-200",
+  "bg-indigo-200",
+  "bg-pink-200",
+  "bg-cyan-200",
   "bg-red-200",
   "bg-green-200",
   "bg-blue-200",
   "bg-yellow-200",
-  "bg-pink-200",
-  "bg-indigo-200",
   "bg-teal-200",
   "bg-orange-200",
 ];
 
-function getRandomBg(userid: string) {
-  let hash = 0;
-  for (let i = 0; i < userid.length; i++) {
-    hash = userid.charCodeAt(i) + ((hash << 5) - hash);
+function getRandomBg(userid: string, username?: string) {
+  const key = `${userid ?? ""}:${username ?? ""}`;
+  let hash = 5381;
+  for (let i = 0; i < key.length; i++) {
+    hash = (hash * 33) ^ key.charCodeAt(i);
   }
-  return BG_COLORS[Math.abs(hash) % BG_COLORS.length];
+  const index = (hash >>> 0) % BG_COLORS.length;
+  return BG_COLORS[index];
 }
 
 function getDaysUntilBirthday(day: number, month: number) {
@@ -120,7 +130,7 @@ export default function Birthdays() {
               if (user.daysAway === 0) setShowConfetti(false);
             }}
           >
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold ${getRandomBg(user.userid)}`}>
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold ${getRandomBg(user.userid, user.username)}`}>
               <img
                 src={user.picture}
                 alt={user.username}

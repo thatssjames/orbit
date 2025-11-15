@@ -206,12 +206,20 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
   const canEdit: boolean = Boolean(props.canEdit);
 
   const BG_COLORS = [
+    "bg-rose-200",
+    "bg-lime-200",
+    "bg-sky-200",
+    "bg-amber-200",
+    "bg-violet-200",
+    "bg-fuchsia-200",
+    "bg-emerald-200",
+    "bg-indigo-200",
+    "bg-pink-200",
+    "bg-cyan-200",
     "bg-red-200",
-    "bg-green-200", 
+    "bg-green-200",
     "bg-blue-200",
     "bg-yellow-200",
-    "bg-pink-200",
-    "bg-indigo-200",
     "bg-teal-200",
     "bg-orange-200",
   ];
@@ -594,7 +602,11 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
           <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden mb-6">
             <div className="p-6">
               <div className="flex items-center gap-4">
-                <img src={ally.icon} className="w-16 h-16 rounded-full" alt={`${ally.name} icon`} />
+                <img
+                  src={ally.icon}
+                  className="w-16 h-16 rounded-full"
+                  alt={`${ally.name} icon`}
+                />
                 <div>
                   <h2 className="text-xl font-medium text-zinc-900 dark:text-white">
                     {ally.name}
@@ -609,7 +621,11 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                         orientation="top"
                         tooltipText={rep.username}
                       >
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getRandomBg(rep.userid)} border-2 border-white hover:scale-110 transition-transform`}>
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center ${getRandomBg(
+                            rep.userid
+                          )} border-2 border-white hover:scale-110 transition-transform`}
+                        >
                           <img
                             src={rep.thumbnail}
                             className="w-8 h-8 rounded-full object-cover border-2 border-white"
@@ -774,7 +790,11 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                           checked={reps.includes(user.userid)}
                           className="rounded border-gray-300 text-primary focus:ring-primary"
                         />
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getRandomBg(user.userid)} border-2 border-gray-200 dark:border-zinc-600`}>
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center ${getRandomBg(
+                            user.userid
+                          )} border-2 border-gray-200 dark:border-zinc-600`}
+                        >
                           <img
                             src={user.thumbnail}
                             className="w-8 h-8 rounded-full object-cover border-2 border-white"

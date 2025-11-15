@@ -24,24 +24,34 @@ import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
 
 const BG_COLORS = [
+  "bg-rose-200",
+  "bg-lime-200",
+  "bg-sky-200",
+  "bg-amber-200",
+  "bg-violet-200",
+  "bg-fuchsia-200",
+  "bg-emerald-200",
+  "bg-indigo-200",
+  "bg-pink-200",
+  "bg-cyan-200",
   "bg-red-200",
   "bg-green-200",
   "bg-blue-200",
   "bg-yellow-200",
-  "bg-pink-200",
-  "bg-indigo-200",
   "bg-teal-200",
   "bg-orange-200",
 ];
 
-function getRandomBg(userid: string | number) {
-  const str = String(userid);
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+function getRandomBg(userid: string, username?: string) {
+  const key = `${userid ?? ""}:${username ?? ""}`;
+  let hash = 5381;
+  for (let i = 0; i < key.length; i++) {
+    hash = (hash * 33) ^ key.charCodeAt(i);
   }
-  return BG_COLORS[Math.abs(hash) % BG_COLORS.length];
+  const index = (hash >>> 0) % BG_COLORS.length;
+  return BG_COLORS[index];
 }
+
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
   async (context) => {
@@ -166,7 +176,18 @@ const EditSession: pageWithLayout<
 
     try {
       const formData = form.getValues();
-      const localDateTime = formData.date;
+      const localDateTime = formData.date; // expected format: YYYY-MM-DDTHH:MM
+      const newDate = new Date(localDateTime);
+
+      // Prevent updating a session to a past date/time
+      if (newDate.getTime() <= Date.now()) {
+        setFormError("Cannot set session date/time in the past. Choose a future date/time.");
+        setIsSubmitting(false);
+        setShowUpdateModal(false);
+        setUpdateAll(false);
+        return;
+      }
+
       const [dateStr, timeStr] = localDateTime.split("T");
 
       await axios.put(
@@ -233,23 +254,25 @@ const EditSession: pageWithLayout<
     <div className="max-w-4xl mx-auto px-4 py-6">
       <Toaster position="bottom-center" />
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold dark:text-white">
-            Edit Session
-          </h1>
-          <p className="text-zinc-500 dark:text-zinc-400 mt-1">
-            Modify session details and participant assignments
-          </p>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.back()}
+            className="p-2 text-zinc-500 dark:text-zinc-300 hover:text-zinc-700 dark:hover:text-white rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+            aria-label="Go back"
+          >
+            <IconArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold dark:text-white">
+              Edit Session
+            </h1>
+            <p className="text-zinc-500 dark:text-zinc-400 mt-1">
+              Modify session details and participant assignments
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            onPress={() => router.back()}
-            classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600 flex items-center gap-1"
-          >
-            <IconArrowLeft size={16} /> Back
-          </Button>
-
           <Button
             onPress={() => setShowDeleteModal(true)}
             disabled={isSubmitting}
@@ -402,11 +425,11 @@ const EditSession: pageWithLayout<
                           )}`}
                         >
                           <img
-                            src={session.owner.picture || "/default-avatar.png"}
+                            src={session.owner.picture || "/default-avatar.jpg"}
                             alt={session.owner.username}
                             className="w-6 h-6 rounded-full object-cover border border-white"
                             onError={(e) => {
-                              e.currentTarget.src = "/default-avatar.png";
+                              e.currentTarget.src = "/default-avatar.jpg";
                             }}
                           />
                         </div>
@@ -475,13 +498,13 @@ const EditSession: pageWithLayout<
                                               <img
                                                 src={
                                                   userPicture ||
-                                                  "/default-avatar.png"
+                                                  "/default-avatar.jpg"
                                                 }
                                                 alt={username}
                                                 className="w-6 h-6 rounded-full object-cover border border-white"
                                                 onError={(e) => {
                                                   e.currentTarget.src =
-                                                    "/default-avatar.png";
+                                                    "/default-avatar.jpg";
                                                 }}
                                               />
                                             </div>

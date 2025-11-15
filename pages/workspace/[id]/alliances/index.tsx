@@ -207,12 +207,20 @@ const Allies: pageWithLayout<pageProps> = (props) => {
   } | null>(null);
 
   const BG_COLORS = [
+    "bg-rose-200",
+    "bg-lime-200",
+    "bg-sky-200",
+    "bg-amber-200",
+    "bg-violet-200",
+    "bg-fuchsia-200",
+    "bg-emerald-200",
+    "bg-indigo-200",
+    "bg-pink-200",
+    "bg-cyan-200",
     "bg-red-200",
     "bg-green-200",
     "bg-blue-200",
     "bg-yellow-200",
-    "bg-pink-200",
-    "bg-indigo-200",
     "bg-teal-200",
     "bg-orange-200",
   ];
@@ -463,7 +471,11 @@ const Allies: pageWithLayout<pageProps> = (props) => {
                                         onChange={handleCheckboxChange}
                                         className="rounded border-gray-300 text-primary focus:ring-primary"
                                       />
-                                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getRandomBg(user.userid)} overflow-hidden`}>
+                                      <div
+                                        className={`w-8 h-8 rounded-full flex items-center justify-center ${getRandomBg(
+                                          user.userid
+                                        )} overflow-hidden`}
+                                      >
                                         <img
                                           src={user.thumbnail}
                                           className="w-full h-full object-cover"

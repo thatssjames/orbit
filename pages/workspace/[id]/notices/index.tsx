@@ -21,12 +21,20 @@ import {
 } from "@tabler/icons-react";
 
 const BG_COLORS = [
+  "bg-rose-200",
+  "bg-lime-200",
+  "bg-sky-200",
+  "bg-amber-200",
+  "bg-violet-200",
+  "bg-fuchsia-200",
+  "bg-emerald-200",
+  "bg-indigo-200",
+  "bg-pink-200",
+  "bg-cyan-200",
   "bg-red-200",
   "bg-green-200",
   "bg-blue-200",
   "bg-yellow-200",
-  "bg-pink-200",
-  "bg-indigo-200",
   "bg-teal-200",
   "bg-orange-200",
 ];
@@ -284,7 +292,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                   )} ring-2 ring-transparent hover:ring-primary transition overflow-hidden`}
                 >
                   <img
-                    src={notice.user?.picture ?? "/default-avatar.png"}
+                    src={notice.user?.picture ?? "/default-avatar.jpg"}
                     alt={notice.user?.username ?? "User"}
                     className="w-10 h-10 object-cover rounded-full border-2 border-white"
                   />
@@ -389,7 +397,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
           )}
           {(!canManageNotices || activeTab === "my-notices") && (
             <>
-              <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 shadow-sm mb-8">
+              <div className="bg-white dark:bg-zinc-800 border border-white/10 rounded-xl p-6 shadow-sm mb-8">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="bg-primary/10 p-2 rounded-lg">
                     <IconPlus className="w-5 h-5 text-primary" />
