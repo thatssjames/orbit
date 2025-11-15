@@ -258,7 +258,7 @@ const Activity: pageWithLayout = () => {
             <div className="flex items-center justify-between mb-4 lg:mb-6">
               <div className="min-w-0 flex-1">
                 <h3 className="text-xs lg:text-sm font-medium text-zinc-900 dark:text-zinc-300 uppercase tracking-wide truncate">
-                  AFK Time
+                  Idle Time
                 </h3>
               </div>
               <div className="bg-blue-500/20 p-2 lg:p-3 rounded-lg">
@@ -540,7 +540,7 @@ const Activity: pageWithLayout = () => {
                               title={user.username}
                             >
                               <img
-                                src={user.picture || "/default-avatar.png"}
+                                src={user.picture || "/default-avatar.jpg"}
                                 alt={user.username}
                                 className="w-full h-full object-cover"
                               />
@@ -631,24 +631,34 @@ const ActionButton = ({ icon: Icon, title, desc, onClick }: any) => (
 );
 
 const BG_COLORS = [
+  "bg-rose-200",
+  "bg-lime-200",
+  "bg-sky-200",
+  "bg-amber-200",
+  "bg-violet-200",
+  "bg-fuchsia-200",
+  "bg-emerald-200",
+  "bg-indigo-200",
+  "bg-pink-200",
+  "bg-cyan-200",
   "bg-red-200",
   "bg-green-200",
   "bg-blue-200",
   "bg-yellow-200",
-  "bg-pink-200",
-  "bg-indigo-200",
   "bg-teal-200",
   "bg-orange-200",
 ];
 
-function getRandomBg(userid: string | number) {
-  const str = String(userid);
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+function getRandomBg(userid: string, username?: string) {
+  const key = `${userid ?? ""}:${username ?? ""}`;
+  let hash = 5381;
+  for (let i = 0; i < key.length; i++) {
+    hash = (hash * 33) ^ key.charCodeAt(i);
   }
-  return BG_COLORS[Math.abs(hash) % BG_COLORS.length];
+  const index = (hash >>> 0) % BG_COLORS.length;
+  return BG_COLORS[index];
 }
+
 
 Activity.layout = workspace;
 
