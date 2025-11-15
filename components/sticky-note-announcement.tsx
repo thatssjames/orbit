@@ -33,7 +33,7 @@ export default function StickyNoteAnnouncement() {
     <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0"></p>
     <div className="text-zinc-800 dark:text-zinc-300 text-sm space-y-2">
       <p>
-        👋 <strong>Orbit v2.1.3 is live!</strong>
+        👋 <strong>Orbit v2.1.4 is live!</strong>
         <br />
         Here’s what’s new since the last announcement:
       </p>
@@ -45,12 +45,10 @@ export default function StickyNoteAnnouncement() {
 
       <p className="mt-4 font-semibold">Changes</p>
       <ul className="list-disc list-inside space-y-1">
-        <li>Sessions Calendar now shows day-by-day.</li>
-        <li>You can now add a Duration length to Sessions.</li>
-        <li>Leaderboard can now have a minimum rank assigned.</li>
-        <li>Activity Layout has been refreshed based on the old design.</li>
-        <li>You can now check quota completion on the Staff page.</li>
-        <li>Improved mobile UI Compatibility.</li>
+        <li>Sessions has a sleek new design for easier navigation.</li>
+        <li>Audit Logs - Most APIs are now tracked and monitored.</li>
+        <li>Documents Support external links.</li>
+        <li>Built in Document editor now supports markdown.</li>
         <li>And more...</li>
       </ul>
 
