@@ -20,24 +20,34 @@ import rehypeSanitize from "rehype-sanitize";
 import type { SessionColors } from "@/hooks/useSessionColors";
 
 const BG_COLORS = [
+  "bg-rose-200",
+  "bg-lime-200",
+  "bg-sky-200",
+  "bg-amber-200",
+  "bg-violet-200",
+  "bg-fuchsia-200",
+  "bg-emerald-200",
+  "bg-indigo-200",
+  "bg-pink-200",
+  "bg-cyan-200",
   "bg-red-200",
   "bg-green-200",
   "bg-blue-200",
   "bg-yellow-200",
-  "bg-pink-200",
-  "bg-indigo-200",
   "bg-teal-200",
   "bg-orange-200",
 ];
 
-function getRandomBg(userid: string | number) {
-  const str = String(userid);
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+function getRandomBg(userid: string, username?: string) {
+  const key = `${userid ?? ""}:${username ?? ""}`;
+  let hash = 5381;
+  for (let i = 0; i < key.length; i++) {
+    hash = (hash * 33) ^ key.charCodeAt(i);
   }
-  return BG_COLORS[Math.abs(hash) % BG_COLORS.length];
+  const index = (hash >>> 0) % BG_COLORS.length;
+  return BG_COLORS[index];
 }
+
 
 interface SessionModalProps {
   session: any;
@@ -544,7 +554,7 @@ const AutocompleteInput: React.FC<{
             {
               userid: currentUserId.toString(),
               username: currentUserUsername,
-              picture: currentUserPicture || "/default-avatar.png",
+              picture: currentUserPicture || "/default-avatar.jpg",
               isSelf: true,
             },
             ...otherUsers.slice(0, 7),
@@ -647,11 +657,11 @@ const AutocompleteInput: React.FC<{
             )}`}
           >
             <img
-              src={assignedUserPicture || "/default-avatar.png"}
+              src={assignedUserPicture || "/default-avatar.jpg"}
               alt={currentValue}
               className="w-6 h-6 rounded-full object-cover"
               onError={(e) => {
-                e.currentTarget.src = "/default-avatar.png";
+                e.currentTarget.src = "/default-avatar.jpg";
               }}
             />
           </div>
@@ -698,11 +708,11 @@ const AutocompleteInput: React.FC<{
                     onClick={() => handleUserSelect(user)}
                   >
                     <img
-                      src={user.picture || "/default-avatar.png"}
+                      src={user.picture || "/default-avatar.jpg"}
                       alt={user.username}
                       className="w-8 h-8 rounded-full"
                       onError={(e) => {
-                        e.currentTarget.src = "/default-avatar.png";
+                        e.currentTarget.src = "/default-avatar.jpg";
                       }}
                     />
                     <div className="flex-1">
@@ -745,33 +755,58 @@ const AutocompleteInput: React.FC<{
   }
 
   return (
-    <button
-      onClick={() => setIsEditing(true)}
-      disabled={isSubmitting}
-      className="w-full px-4 py-2 text-left bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-600 transition-colors disabled:opacity-50"
+    <div
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if ((e.key === "Enter" || e.key === " ") && !isSubmitting) setIsEditing(true);
+      }}
+      onClick={() => {
+        if (!isSubmitting) setIsEditing(true);
+      }}
+      className="w-full px-4 py-2 text-left bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-600 transition-colors disabled:opacity-50 outline-none"
     >
-      <div className="flex items-center gap-2">
-        {currentValue && assignedUserPicture && assignedUserId && (
-          <div
-            className={`w-6 h-6 rounded-full flex items-center justify-center ${getRandomBg(
-              assignedUserId
-            )}`}
+      <div className="flex items-center gap-2 w-full">
+        <div className="flex items-center flex-1">
+          {currentValue && assignedUserPicture && assignedUserId && (
+            <div
+              className={`w-6 h-6 rounded-full flex items-center justify-center ${getRandomBg(
+                assignedUserId
+              )}`}
+            >
+              <img
+                src={assignedUserPicture || "/default-avatar.jpg"}
+                alt={currentValue}
+                className="w-6 h-6 rounded-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = "/default-avatar.jpg";
+                }}
+              />
+            </div>
+          )}
+          <span className="text-zinc-700 dark:text-white ml-2">
+            {currentValue || "Unclaimed"}
+          </span>
+        </div>
+
+        {currentValue && (
+          <span
+            role="button"
+            title="Remove assignment"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!isSubmitting) {
+                // trigger unassign by calling with empty value
+                onValueChange("");
+              }
+            }}
+            className="ml-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-600 cursor-pointer"
           >
-            <img
-              src={assignedUserPicture || "/default-avatar.png"}
-              alt={currentValue}
-              className="w-6 h-6 rounded-full object-cover"
-              onError={(e) => {
-                e.currentTarget.src = "/default-avatar.png";
-              }}
-            />
-          </div>
+            <IconX className="w-4 h-4" />
+          </span>
         )}
-        <span className="text-zinc-700 dark:text-white">
-          {currentValue || "Unclaimed"}
-        </span>
       </div>
-    </button>
+    </div>
   );
 };
 
@@ -969,11 +1004,11 @@ const NotesSection: React.FC<{
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <img
-                    src={note.author?.picture || "/default-avatar.png"}
+                    src={note.author?.picture || "/default-avatar.jpg"}
                     alt={note.author?.username || "User"}
                     className="w-6 h-6 rounded-full"
                     onError={(e) => {
-                      e.currentTarget.src = "/default-avatar.png";
+                      e.currentTarget.src = "/default-avatar.jpg";
                     }}
                   />
                   <span className="text-sm font-medium text-zinc-900 dark:text-white">
