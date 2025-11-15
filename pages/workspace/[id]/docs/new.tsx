@@ -283,8 +283,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                   External document
                 </h3>
                 <p className="text-xs text-zinc-500 dark:text-zinc-300 mb-2">
-                  This document points to an external URL — edit it here to
-                  update the link.
+                  URL Redirect
                 </p>
                 <input
                   className="w-full p-2 border rounded text-zinc-600 dark:text-white border-gray-300 dark:border-zinc-500 bg-zinc-50 dark:bg-zinc-700"
@@ -315,25 +314,25 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
         </div>
         {showTypeModal && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-zinc-800 rounded-lg p-6 w-full max-w-md">
+            <div className="bg-white dark:bg-zinc-800 border border-white/10 rounded-lg p-6 w-full max-w-md">
               <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">
                 Create a document
               </h2>
               <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
-                Choose the document type
+                How would you like to create this document?
               </p>
               <div className="flex flex-col gap-3">
                 <button
                   onClick={() => chooseType("internal")}
                   className="p-3 rounded-lg bg-zinc-100 dark:bg-zinc-700 dark:text-white text-left"
                 >
-                  Internal
+                  Text Editor
                 </button>
                 <button
                   onClick={() => chooseType("external")}
                   className="p-3 rounded-lg bg-zinc-100 dark:bg-zinc-700 dark:text-white text-left"
                 >
-                  External (link)
+                  Off-site Link
                 </button>
               </div>
             </div>

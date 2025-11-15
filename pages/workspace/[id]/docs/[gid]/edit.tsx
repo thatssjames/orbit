@@ -505,8 +505,7 @@ const EditDoc: pageWithLayout<any> = ({ roles, document }) => {
                   External Document
                 </h3>
                 <p className="text-xs text-zinc-500 dark:text-zinc-300 mb-2">
-                  This document points to an external URL — edit it here to
-                  update the link.
+                  URL Redirect
                 </p>
                 <Input
                   name="externalUrl"
