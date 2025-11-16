@@ -38,7 +38,7 @@
           Track your members' group activity
         </li>
         <li>
-          Automate things with Orbit (soon)
+          Rank with Orbit Intergrations
         </li>
         <li>
           Warn, promote, demote, and way more to your members
