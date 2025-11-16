@@ -48,7 +48,7 @@ jobs:
         id: get_version
         run: |
           # Try to get the latest tag
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "2.0.0beta0")
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "2.1.3beta0")
           echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
           echo "📦 Latest tag: $LATEST_TAG"
 
@@ -57,46 +57,42 @@ jobs:
         run: |
           LATEST_TAG="${{ steps.get_version.outputs.latest_tag }}"
           
-          # Extract version components (e.g., 2.0.9beta8.7 -> 2 0 9 8 7)
-          if [[ $LATEST_TAG =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)beta([0-9]+)\.([0-9]+)$ ]]; then
+          # Expect tags like 2.1.3beta4
+          if [[ $LATEST_TAG =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)beta([0-9]+)$ ]]; then
             MAJOR="${BASH_REMATCH[1]}"
             MINOR="${BASH_REMATCH[2]}"
             PATCH="${BASH_REMATCH[3]}"
             BETA="${BASH_REMATCH[4]}"
-            BUILD="${BASH_REMATCH[5]}"
           else
-            # If no valid tag found, start fresh
+            # If no valid tag found, start from 2.1.3beta0
             MAJOR=2
-            MINOR=0
-            PATCH=9
-            BETA=8
-            BUILD=7
+            MINOR=1
+            PATCH=3
+            BETA=0
           fi
           
-          # Auto-increment based on manual input or default to build
+          # Bump type from workflow_dispatch or default to auto
           BUMP_TYPE="${{ github.event.inputs.version_bump || 'auto' }}"
           
           if [ "$BUMP_TYPE" = "major" ]; then
             MAJOR=$((MAJOR + 1))
             MINOR=0
             PATCH=0
-            BETA=0
-            BUILD=0
+            BETA=1
           elif [ "$BUMP_TYPE" = "minor" ]; then
             MINOR=$((MINOR + 1))
             PATCH=0
-            BETA=0
-            BUILD=0
+            BETA=1
           elif [ "$BUMP_TYPE" = "patch" ]; then
             PATCH=$((PATCH + 1))
-            BETA=0
-            BUILD=0
+            # Reset beta to 1 on a new patch
+            BETA=1
           else
-            # Auto mode: just increment build number
-            BUILD=$((BUILD + 1))
+            # Auto mode: just increment beta
+            BETA=$((BETA + 1))
           fi
           
-          NEW_TAG="${MAJOR}.${MINOR}.${PATCH}beta${BETA}.${BUILD}"
+          NEW_TAG="${MAJOR}.${MINOR}.${PATCH}beta${BETA}"
           echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
           echo "🚀 New tag: $NEW_TAG (from $LATEST_TAG)"
 
@@ -159,4 +155,3 @@ jobs:
           echo "### 🔖 Version" >> $GITHUB_STEP_SUMMARY
           echo "Previous: \`${{ steps.get_version.outputs.latest_tag }}\`" >> $GITHUB_STEP_SUMMARY
           echo "New: \`${{ steps.next_version.outputs.new_tag }}\`" >> $GITHUB_STEP_SUMMARY
-
