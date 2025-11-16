@@ -857,17 +857,6 @@ const Home: pageWithLayout<pageProps> = (props) => {
                   return false;
                 });
 
-                const participantCount =
-                  session.users?.filter((user: any) => {
-                    if (user.roleID?.toLowerCase().includes("co-host"))
-                      return false;
-                    const slots = session.sessionType?.slots || [];
-                    const userSlot = slots[user.slot];
-                    if (userSlot?.name?.toLowerCase().includes("co-host"))
-                      return false;
-                    return true;
-                  }).length || 0;
-
                 return (
                   <div className="px-2" key={session.id}>
                     <div
@@ -969,13 +958,6 @@ const Home: pageWithLayout<pageProps> = (props) => {
                               <IconUserCircle className="w-4 h-4" />
                               {session.owner?.username || "Unclaimed"}
                             </div>
-                            {participantCount > 0 && (
-                              <div className="flex items-center gap-1">
-                                <IconUsers className="w-4 h-4" />
-                                {participantCount} participant
-                                {participantCount !== 1 ? "s" : ""}
-                              </div>
-                            )}
                           </div>
                         </div>
 
