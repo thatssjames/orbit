@@ -100,7 +100,6 @@ export const getServerSideProps = withPermissionCheckSsr(
       props: {},
     };
   },
-  "view_entire_groups_activity"
 );
 
 const Leaderboard: pageWithLayout = () => {
