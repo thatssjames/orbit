@@ -87,20 +87,21 @@ export async function handler(
 	if (!user.roles.length) return res.status(401).json({ success: false, error: 'Not logged in' })
 
 	const permissions = {
-		"Admin (Manage workspace)": "admin",
-		"Manage sessions": "manage_sessions",
-		"Manage activity": "manage_activity",
-		"Post on wall": "post_on_wall",
 		"View wall": "view_wall",
 		"View members": "view_members",
+		"View Activity History": "view_entire_groups_activity",
+		"Post on wall": "post_on_wall",
+		"Represent alliance": "represent_alliance",
+		'Assign users to Sessions': 'sessions_assign',
+		'Assign Self to Sessions': 'sessions_claim',
+		'Host Sessions': 'sessions_host',
+		"Manage sessions": "manage_sessions",
+		"Manage activity": "manage_activity",
 		"Manage members": "manage_members",
 		"Manage docs": "manage_docs",
-		"View entire groups activity": "view_entire_groups_activity",
 		"Manage alliances": "manage_alliances",
-		"Represent alliance": "represent_alliance",
-	};
-
-	
+		"Admin (Manage workspace)": "admin",
+	};	
 	
 	res.status(200).json({ success: true, permissions: user.roles[0].permissions, workspace: {
 		groupId: workspace.groupId,
