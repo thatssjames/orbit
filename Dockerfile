@@ -5,7 +5,7 @@ WORKDIR /usr/src/app
 
 # Install app dependencies
 COPY package*.json ./
-RUN npm install
+RUN npm cache clean --force && npm ci --no-audit --prefer-offline --progress=false
 
 # Copy Prisma schema
 COPY prisma ./prisma/
