@@ -120,15 +120,23 @@ const SessionModal: React.FC<SessionModalProps> = ({
     if (isOpen && session) {
       setAvailableUsers(workspaceMembers);
     }
-  }, [isOpen, session, workspaceMembers]);
+  }, [isOpen, session, workspaceMembers, login.userId]);
 
   const handleHostClaim = async (username: string) => {
-    const userHasHostingRole = ((workspace.roles || []) as any[]).some((wr) =>
-      (session.sessionType?.hostingRoles || [])
-        .map((r: any) => String(r.id))
-        .includes(String(wr.id))
-    );
-    if (!canManage && !userHasHostingRole) return;
+    const userHasAssignPermission = workspace.yourPermission.includes("sessions_assign");
+    const userHasHostPermission = workspace.yourPermission.includes("sessions_host");
+    const isAssigningToSelf = username.toLowerCase() === login.username.toLowerCase();
+    const isRemovingSelf = !username.trim() && session.owner?.username?.toLowerCase() === login.username.toLowerCase();
+    const isRemovingOther = !username.trim() && session.owner?.username?.toLowerCase() !== login.username.toLowerCase();
+    
+    if (!canManage) {
+      if (username.trim()) {
+        if (!userHasAssignPermission && !(userHasHostPermission && isAssigningToSelf)) return;
+      } else {
+        if (isRemovingOther && !userHasAssignPermission) return;
+        if (isRemovingSelf && !userHasHostPermission && !userHasAssignPermission) return;
+      }
+    }
 
     try {
       setIsSubmitting(true);
@@ -183,12 +191,30 @@ const SessionModal: React.FC<SessionModalProps> = ({
     slot: number,
     username: string
   ) => {
-    const userHasHostingRole = ((workspace.roles || []) as any[]).some((wr) =>
-      (session.sessionType?.hostingRoles || [])
-        .map((r: any) => String(r.id))
-        .includes(String(wr.id))
+    const userHasAssignPermission = workspace.yourPermission.includes("sessions_assign");
+    const userHasClaimPermission = workspace.yourPermission.includes("sessions_claim");
+    const isAssigningToSelf = username.toLowerCase() === login.username.toLowerCase();
+    
+    const currentAssignment = session.users?.find(
+      (u: any) => u.roleID === roleId && u.slot === slot
     );
-    if (!canManage && !userHasHostingRole) return;
+    const assignedUser = currentAssignment
+      ? availableUsers.find(
+          (user: any) => user.userid === currentAssignment.userid.toString()
+        )
+      : null;
+    
+    const isRemovingSelf = !username.trim() && assignedUser?.username?.toLowerCase() === login.username.toLowerCase();
+    const isRemovingOther = !username.trim() && assignedUser?.username?.toLowerCase() !== login.username.toLowerCase();
+
+    if (!canManage) {
+      if (username.trim()) {
+        if (!userHasAssignPermission && !(userHasClaimPermission && isAssigningToSelf)) return;
+      } else {
+        if (isRemovingOther && !userHasAssignPermission) return;
+        if (isRemovingSelf && !userHasClaimPermission && !userHasAssignPermission) return;
+      }
+    }
 
     try {
       setIsSubmitting(true);
@@ -395,11 +421,8 @@ const SessionModal: React.FC<SessionModalProps> = ({
                       isSubmitting={isSubmitting}
                       canEdit={
                         canManage ||
-                        ((workspace.roles || []) as any[]).some((wr) =>
-                          (session.sessionType?.hostingRoles || [])
-                            .map((r: any) => String(r.id))
-                            .includes(String(wr.id))
-                        )
+                        workspace.yourPermission.includes("sessions_assign") ||
+                        workspace.yourPermission.includes("sessions_host")
                       }
                       availableUsers={availableUsers}
                       currentUserId={login.userId}
@@ -407,6 +430,8 @@ const SessionModal: React.FC<SessionModalProps> = ({
                       currentUserUsername={login.username}
                       assignedUserPicture={session.owner?.picture}
                       assignedUserId={session.owner?.userid?.toString()}
+                      workspace={workspace}
+                      isHostRole={true}
                     />
                   </div>
                 </div>
@@ -463,15 +488,10 @@ const SessionModal: React.FC<SessionModalProps> = ({
                                     isSubmitting={isSubmitting}
                                     canEdit={
                                       canManage ||
-                                      ((workspace.roles || []) as any[]).some(
-                                        (wr) =>
-                                          (
-                                            session.sessionType?.hostingRoles ||
-                                            []
-                                          )
-                                            .map((r: any) => String(r.id))
-                                            .includes(String(wr.id))
-                                      )
+                                      workspace.yourPermission.includes("sessions_assign") ||
+                                      (slotData.name === "Host" || slotData.name.toLowerCase() === "co-host" 
+                                        ? workspace.yourPermission.includes("sessions_host")
+                                        : workspace.yourPermission.includes("sessions_claim"))
                                     }
                                     availableUsers={availableUsers}
                                     currentUserId={login.userId}
@@ -479,6 +499,8 @@ const SessionModal: React.FC<SessionModalProps> = ({
                                     currentUserUsername={login.username}
                                     assignedUserPicture={userPicture}
                                     assignedUserId={assignedUser?.userid?.toString()}
+                                    workspace={workspace}
+                                    isHostRole={slotData.name === "Host" || slotData.name.toLowerCase() === "co-host"}
                                   />
                                 </div>
                               </div>
@@ -519,6 +541,9 @@ const AutocompleteInput: React.FC<{
   placeholder?: string;
   assignedUserPicture?: string;
   assignedUserId?: string;
+  isHostRole?: boolean;
+  workspace?: any;
+  canRemove?: boolean;
 }> = ({
   currentValue,
   onValueChange,
@@ -531,6 +556,9 @@ const AutocompleteInput: React.FC<{
   placeholder = "Enter username",
   assignedUserPicture,
   assignedUserId,
+  isHostRole = false,
+  workspace,
+  canRemove = true,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState(currentValue);
@@ -539,50 +567,133 @@ const AutocompleteInput: React.FC<{
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const hasPermissionToEdit = () => {
+    if (!workspace) return canEdit;
+    const hasAssignPermission = workspace.yourPermission.includes("sessions_assign");
+    const hasClaimPermission = workspace.yourPermission.includes("sessions_claim");
+    const hasHostPermission = workspace.yourPermission.includes("sessions_host");
+    
+    if (isHostRole) {
+      return hasAssignPermission || hasHostPermission;
+    } else {
+      return hasAssignPermission || hasClaimPermission;
+    }
+  };
+
+  const actualCanEdit = canEdit && hasPermissionToEdit();
 
   useEffect(() => {
     setInputValue(currentValue);
   }, [currentValue]);
 
   useEffect(() => {
-    if (inputValue.trim() === "") {
-      const otherUsers = availableUsers.filter(
-        (user) => user.userid.toString() !== currentUserId.toString()
+    const userHasAssignPermission = workspace?.yourPermission?.includes("sessions_assign") || false;
+    let usersForSuggestions = availableUsers;
+    
+    if (!userHasAssignPermission) {
+      usersForSuggestions = availableUsers.filter(
+        (user) => user.userid.toString() === currentUserId.toString()
       );
-      const suggestions = currentUserUsername
-        ? [
-            {
-              userid: currentUserId.toString(),
-              username: currentUserUsername,
-              picture: currentUserPicture || "/default-avatar.jpg",
-              isSelf: true,
-            },
-            ...otherUsers.slice(0, 7),
-          ]
-        : otherUsers.slice(0, 8);
-      setFilteredUsers(suggestions);
+    }
+    
+    let suggestions = [];
+    if (assignedUserId && currentValue.trim() !== "") {
+      const assignedUser = availableUsers.find(user => user.userid.toString() === assignedUserId);
+      if (assignedUser) {
+        suggestions.push({
+          ...assignedUser,
+          isSelf: assignedUser.userid.toString() === currentUserId.toString(),
+          isCurrentlyAssigned: true,
+        });
+      }
+    }
+    
+    if (inputValue.trim() === "") {
+      const isCurrentUserAssigned = assignedUserId === currentUserId.toString();
+      if (currentUserUsername && !isCurrentUserAssigned) {
+        suggestions.push({
+          userid: currentUserId.toString(),
+          username: currentUserUsername,
+          picture: currentUserPicture || "/default-avatar.jpg",
+          isSelf: true,
+        });
+      }
+      
+      const otherUsers = usersForSuggestions.filter(
+        (user) => 
+          user.userid.toString() !== currentUserId.toString() &&
+          user.userid.toString() !== assignedUserId
+      );
+      
+      suggestions.push(...otherUsers.slice(0, 7));
     } else {
-      const filtered = availableUsers
-        .filter((user) =>
-          user.username.toLowerCase().includes(inputValue.toLowerCase())
-        )
+      const filtered = usersForSuggestions
+        .filter((user) => {
+          const matchesInput = user.username.toLowerCase().includes(inputValue.toLowerCase());
+          const isAssigned = user.userid.toString() === assignedUserId;
+          return matchesInput || isAssigned;
+        })
         .map((user) => ({
           ...user,
           isSelf: user.userid.toString() === currentUserId.toString(),
+          isCurrentlyAssigned: user.userid.toString() === assignedUserId,
         }))
         .slice(0, 8);
-      setFilteredUsers(filtered);
+      suggestions = suggestions.filter(existing => 
+        !filtered.some(user => user.userid === existing.userid)
+      );
+      suggestions.push(...filtered);
     }
+    
+    setFilteredUsers(suggestions);
   }, [
     inputValue,
     availableUsers,
     currentUserId,
     currentUserUsername,
     currentUserPicture,
+    assignedUserId,
+    currentValue,
+    workspace,
   ]);
 
+  const canAssignToUser = (targetUsername: string) => {
+    if (!workspace) return true;
+    const hasAssignPermission = workspace.yourPermission.includes("sessions_assign");
+    const hasClaimPermission = workspace.yourPermission.includes("sessions_claim");
+    const hasHostPermission = workspace.yourPermission.includes("sessions_host");
+    const targetUser = availableUsers.find(user => user.username === targetUsername);
+    if (!targetUser) return false;
+    const isAssigningToSelf = targetUser.userid.toString() === currentUserId.toString();
+    if (hasAssignPermission) {
+      return true;
+    }
+    
+    if (isHostRole) {
+      if (hasHostPermission && isAssigningToSelf) {
+        return true;
+      }
+      if (hasHostPermission && !isAssigningToSelf) {
+        const targetUserHasHostPermission = workspace.members?.find((member: any) => 
+          member.userid === targetUser.userid
+        )?.permissions?.includes("sessions_host") || false;
+        return targetUserHasHostPermission;
+      }
+    } else {
+      if (hasClaimPermission && isAssigningToSelf) {
+        return true;
+      }
+    }
+    
+    return false;
+  };
+
   const handleSubmit = () => {
-    onValueChange(inputValue);
+    if (inputValue.trim() === "" || canAssignToUser(inputValue)) {
+      onValueChange(inputValue);
+    } else {
+      setInputValue(currentValue);
+    }
     setIsEditing(false);
     setShowSuggestions(false);
     setSelectedIndex(-1);
@@ -596,14 +707,14 @@ const AutocompleteInput: React.FC<{
   };
 
   const handleUserSelect = (user: any) => {
-    if (user.isSelf) {
+    if (canAssignToUser(user.username)) {
       setInputValue(user.username);
       onValueChange(user.username);
+      setIsEditing(false);
     } else {
-      setInputValue(user.username);
-      onValueChange(user.username);
+      setInputValue(currentValue);
+      setIsEditing(false);
     }
-    setIsEditing(false);
     setShowSuggestions(false);
     setSelectedIndex(-1);
   };
@@ -647,7 +758,7 @@ const AutocompleteInput: React.FC<{
     }, 150);
   };
 
-  if (!canEdit) {
+  if (!actualCanEdit) {
     return (
       <div className="flex items-center gap-2 px-4 py-2 bg-zinc-100 dark:bg-zinc-700 rounded-lg">
         {currentValue && assignedUserPicture && assignedUserId && (
@@ -759,10 +870,10 @@ const AutocompleteInput: React.FC<{
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
-        if ((e.key === "Enter" || e.key === " ") && !isSubmitting) setIsEditing(true);
+        if ((e.key === "Enter" || e.key === " ") && !isSubmitting && actualCanEdit) setIsEditing(true);
       }}
       onClick={() => {
-        if (!isSubmitting) setIsEditing(true);
+        if (!isSubmitting && actualCanEdit) setIsEditing(true);
       }}
       className="w-full px-4 py-2 text-left bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-600 transition-colors disabled:opacity-50 outline-none"
     >
@@ -789,15 +900,31 @@ const AutocompleteInput: React.FC<{
           </span>
         </div>
 
-        {currentValue && (
+        {currentValue && canRemove && (
           <span
             role="button"
             title="Remove assignment"
             onClick={(e) => {
               e.stopPropagation();
-              if (!isSubmitting) {
-                // trigger unassign by calling with empty value
-                onValueChange("");
+              if (!isSubmitting && actualCanEdit) {
+                const canRemoveAssignment = () => {
+                  if (!workspace) return true;
+                  
+                  const hasAssignPermission = workspace.yourPermission.includes("sessions_assign");
+                  const isAssignedToSelf = assignedUserId?.toString() === currentUserId.toString();
+                  
+                  if (isHostRole) {
+                    const hasHostPermission = workspace.yourPermission.includes("sessions_host");
+                    return hasAssignPermission || (hasHostPermission && isAssignedToSelf);
+                  } else {
+                    const hasClaimPermission = workspace.yourPermission.includes("sessions_claim");
+                    return hasAssignPermission || (hasClaimPermission && isAssignedToSelf);
+                  }
+                };
+                
+                if (canRemoveAssignment()) {
+                  onValueChange("");
+                }
               }
             }}
             className="ml-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-600 cursor-pointer"
@@ -821,6 +948,8 @@ const HostButton: React.FC<{
   currentUserUsername?: string;
   assignedUserPicture?: string;
   assignedUserId?: string;
+  workspace?: any;
+  isHostRole?: boolean;
 }> = ({
   currentValue,
   onValueChange,
@@ -832,20 +961,36 @@ const HostButton: React.FC<{
   currentUserUsername,
   assignedUserPicture,
   assignedUserId,
+  workspace,
+  isHostRole = false,
 }) => {
+  const filteredUsers = availableUsers;
+const canRemoveHost = workspace ? 
+    (() => {
+      const hasAssignPermission = workspace.yourPermission.includes("sessions_assign");
+      const hasHostPermission = workspace.yourPermission.includes("sessions_host");
+      const isCurrentUserAssigned = assignedUserId === currentUserId.toString();
+      
+      return hasAssignPermission || (hasHostPermission && isCurrentUserAssigned);
+    })()
+    : true;
+
   return (
     <AutocompleteInput
       currentValue={currentValue}
       onValueChange={onValueChange}
       isSubmitting={isSubmitting}
       canEdit={canEdit}
-      availableUsers={availableUsers}
+      availableUsers={filteredUsers}
       currentUserId={currentUserId}
       currentUserPicture={currentUserPicture}
       currentUserUsername={currentUserUsername}
       placeholder="Enter username to assign host"
       assignedUserPicture={assignedUserPicture}
       assignedUserId={assignedUserId}
+      isHostRole={isHostRole}
+      workspace={workspace}
+      canRemove={canRemoveHost}
     />
   );
 };
@@ -861,6 +1006,8 @@ const RoleButton: React.FC<{
   currentUserUsername?: string;
   assignedUserPicture?: string;
   assignedUserId?: string;
+  workspace?: any;
+  isHostRole?: boolean;
 }> = ({
   currentValue,
   onValueChange,
@@ -872,20 +1019,40 @@ const RoleButton: React.FC<{
   currentUserUsername,
   assignedUserPicture,
   assignedUserId,
+  workspace,
+  isHostRole = false,
 }) => {
+  const filteredUsers = availableUsers;
+  const canRemoveRole = workspace ? 
+    (() => {
+      const hasAssignPermission = workspace.yourPermission.includes("sessions_assign");
+      const isCurrentUserAssigned = assignedUserId === currentUserId.toString();
+      if (isHostRole) {
+        const hasHostPermission = workspace.yourPermission.includes("sessions_host");
+        return hasAssignPermission || (hasHostPermission && isCurrentUserAssigned);
+      } else {
+        const hasClaimPermission = workspace.yourPermission.includes("sessions_claim");
+        return hasAssignPermission || (hasClaimPermission && isCurrentUserAssigned);
+      }
+    })()
+    : true;
+
   return (
     <AutocompleteInput
       currentValue={currentValue}
       onValueChange={onValueChange}
       isSubmitting={isSubmitting}
       canEdit={canEdit}
-      availableUsers={availableUsers}
+      availableUsers={filteredUsers}
       currentUserId={currentUserId}
       currentUserPicture={currentUserPicture}
       currentUserUsername={currentUserUsername}
       placeholder="Enter username to assign role"
       assignedUserPicture={assignedUserPicture}
       assignedUserId={assignedUserId}
+      isHostRole={isHostRole}
+      workspace={workspace}
+      canRemove={canRemoveRole}
     />
   );
 };

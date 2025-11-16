@@ -52,19 +52,9 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
       fallbackToManual = true;
     }
 
-    const roles = await prisma.role.findMany({
-      where: {
-        workspaceGroupId: Number(id),
-      },
-      orderBy: {
-        isOwnerRole: "desc",
-      },
-    });
-
     return {
       props: {
         games,
-        roles,
         fallbackToManual,
       },
     };
@@ -74,7 +64,6 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
 
 const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
   games,
-  roles,
   fallbackToManual,
 }) => {
   const [login, setLogin] = useRecoilState(loginState);
@@ -87,7 +76,6 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
   const [allowUnscheduled, setAllowUnscheduled] = useState(false);
   const [selectedGame, setSelectedGame] = useState("");
-  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [frequency, setFrequency] = useState("weekly");
@@ -172,7 +160,6 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
           },
           slots,
           statues,
-          permissions: selectedRoles,
         }
       );
 
@@ -358,12 +345,6 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
     setIsSubmitting(false);
   };
 
-  const toggleRole = (role: string) => {
-    setSelectedRoles((prev) =>
-      prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]
-    );
-  };
-
   const toggleDay = (day: string) => {
     setDays((prev) =>
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
@@ -431,7 +412,6 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
       label: "Scheduling",
       icon: <IconCalendarEvent size={18} />,
     },
-    { id: "permissions", label: "Permissions", icon: <IconUsers size={18} /> },
     {
       id: "statuses",
       label: "Statuses",
@@ -456,7 +436,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
 
   const getCompletionStatus = () => {
     let completed = 0;
-    const total = 5;
+    const total = 4;
 
     if (
       form.getValues().name &&
@@ -464,7 +444,6 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
     ) {
       completed++;
     }
-    completed++;
     completed++;
     completed++;
     completed++;
@@ -975,92 +954,6 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                   Back
                 </Button>
                 <Button
-                  onPress={() => setActiveTab("permissions")}
-                  classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"
-                >
-                  Continue to Permissions
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Permissions */}
-          {activeTab === "permissions" && (
-            <div className="p-6">
-              <div className="flex items-start mb-6">
-                <div className="bg-primary/10 p-2 rounded-lg mr-4">
-                  <IconUsers className="text-primary" size={24} />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold dark:text-white">
-                    Permissions
-                  </h2>
-                  <p className="text-zinc-500 dark:text-zinc-400 mt-1">
-                    Control which roles can host and claim these sessions
-                  </p>
-                </div>
-              </div>
-
-              <div className="max-w-2xl">
-                <div className="p-4 bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700">
-                  <h3 className="text-md font-medium dark:text-white mb-3">
-                    Roles that can host/claim sessions
-                  </h3>
-
-                  {roles.length > 0 ? (
-                    <div className="space-y-2 max-h-60 overflow-y-auto p-2">
-                      {roles.map((role: any) => (
-                        <div
-                          key={role.id}
-                          className={`flex items-center p-2 rounded-md ${
-                            selectedRoles.includes(role.id)
-                              ? "bg-primary/10 border border-primary/30"
-                              : "hover:bg-zinc-50 dark:hover:bg-zinc-700"
-                          }`}
-                        >
-                          <input
-                            id={`role-${role.id}`}
-                            type="checkbox"
-                            checked={selectedRoles.includes(role.id)}
-                            onChange={() => toggleRole(role.id)}
-                            className="w-4 h-4 text-primary bg-zinc-100 rounded border-gray-300 focus:ring-primary dark:focus:ring-primary dark:ring-offset-gray-800 focus:ring-2 dark:bg-zinc-700 dark:border-zinc-600"
-                          />
-                          <label
-                            htmlFor={`role-${role.id}`}
-                            className="ml-2 text-sm font-medium text-zinc-900 dark:text-zinc-300 cursor-pointer w-full"
-                          >
-                            {role.name}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 bg-zinc-50 dark:bg-zinc-700/30 rounded-lg">
-                      <p className="text-zinc-500 dark:text-zinc-400">
-                        No roles available
-                      </p>
-                      <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-1">
-                        Create roles in your workspace settings first
-                      </p>
-                    </div>
-                  )}
-
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-3">
-                    {selectedRoles.length === 0
-                      ? "No roles selected. Only workspace owners will be able to host sessions."
-                      : `${selectedRoles.length} role(s) selected`}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-8 flex justify-between w-full">
-                <Button
-                  onPress={() => setActiveTab("scheduling")}
-                  classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
-                >
-                  Back
-                </Button>
-                <Button
                   onPress={() => setActiveTab("statuses")}
                   classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"
                 >
@@ -1145,7 +1038,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
 
               <div className="mt-8 flex justify-between w-full">
                 <Button
-                  onPress={() => setActiveTab("webhooks")}
+                  onPress={() => setActiveTab("scheduling")}
                   classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
                 >
                   Back

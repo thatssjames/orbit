@@ -54,22 +54,15 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       },
     },
     include: {
-      sessionType: {
-        include: {
-          hostingRoles: true,
-        },
-      },
+      sessionType: true,
     },
   });
   const userRoles = user?.roles || [];
-  const hostingRoleIds = (schedule?.sessionType?.hostingRoles || []).map(
-    (r: any) => r.id
-  );
-  const hasHostingRole = userRoles.some((ur: any) => hostingRoleIds.includes(ur.id));
+  const hasHostPermission = userRoles.some((ur: any) => Array.isArray(ur.permissions) && ur.permissions.includes("sessions_host"));
   const hasOwnerRole = userRoles.some((ur: any) => ur.isOwnerRole);
   const hasAdminPerm = userRoles.some((ur: any) => Array.isArray(ur.permissions) && ur.permissions.includes("admin"));
 
-  if (!hasHostingRole && !hasOwnerRole && !hasAdminPerm) {
+  if (!hasHostPermission && !hasOwnerRole && !hasAdminPerm) {
     return res.status(403).json({ success: false, error: "You do not have permission to claim this session" });
   }
   if (!schedule)
@@ -108,11 +101,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         },
       },
       include: {
-        sessionType: {
-          include: {
-            hostingRoles: true,
-          },
-        },
+        sessionType: true,
         sessions: {
           include: {
             owner: true,
@@ -148,11 +137,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       },
     },
     include: {
-      sessionType: {
-        include: {
-          hostingRoles: true,
-        },
-      },
+      sessionType: true,
       sessions: {
         include: {
           owner: true,

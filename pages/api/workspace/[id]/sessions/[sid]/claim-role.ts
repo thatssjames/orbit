@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
-import { withSessionRoute } from "@/lib/withSession";
+import { withPermissionCheck } from "@/utils/permissionsManager";
 
 const roleAssignmentLimits: { [key: string]: { count: number; resetTime: number } } = {};
 function checkRoleAssignmentRateLimit(req: NextApiRequest, res: NextApiResponse): boolean {
@@ -44,6 +44,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
   const { sid } = req.query;
   const { userId, roleId, slot, action } = req.body;
+  const currentUserId = (req as any).session?.userid;
 
   if (!sid || !roleId || slot === undefined || !action) {
     return res
@@ -74,6 +75,55 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         .status(404)
         .json({ success: false, error: "Session not found" });
     }
+    const currentUser = await prisma.user.findFirst({
+      where: { userid: BigInt(currentUserId) },
+      include: {
+        roles: {
+          where: {
+            workspaceGroupId: parseInt(req.query.id as string),
+          },
+        },
+      },
+    });
+
+    if (!currentUser || !currentUser.roles[0]) {
+      return res.status(403).json({ 
+        success: false, 
+        error: "You do not have permission to perform this action" 
+      });
+    }
+
+    const userPermissions = currentUser.roles[0].permissions;
+    const isOwner = currentUser.roles[0].isOwnerRole;
+    const hasAssignPermission = isOwner || userPermissions.includes("sessions_assign");
+    const hasClaimPermission = isOwner || userPermissions.includes("sessions_claim");
+    const hasHostPermission = isOwner || userPermissions.includes("sessions_host");
+    const isAssigningToSelf = userId && userId.toString() === currentUserId.toString();
+
+    if (action === "unclaim") {
+      const existingAssignment = await prisma.sessionUser.findFirst({
+        where: {
+          sessionid: sid as string,
+          roleID: roleId,
+          slot: slot,
+        },
+      });
+
+      const isRemovingSelf = existingAssignment && existingAssignment.userid.toString() === currentUserId.toString();
+      if (!hasAssignPermission && !((hasClaimPermission || hasHostPermission) && isRemovingSelf)) {
+        return res.status(403).json({ 
+          success: false, 
+          error: "You do not have permission to remove this role" 
+        });
+      }
+    } else if (action === "claim") {
+      if (!hasAssignPermission && !((hasClaimPermission || hasHostPermission) && isAssigningToSelf)) {
+        return res.status(403).json({ 
+          success: false, 
+          error: "You do not have permission to assign this role" 
+        });
+      }
+    }
 
     console.log(
       `Role ${action} attempt: session=${sid}, roleId=${roleId}, slot=${slot}, userId=${userId}`
@@ -89,11 +139,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
           });
       }
 
-      const user = await prisma.user.findUnique({
+      const targetUser = await prisma.user.findFirst({
         where: { userid: BigInt(userId) },
+        include: {
+          roles: {
+            where: {
+              workspaceGroupId: parseInt(req.query.id as string),
+            },
+          },
+        },
       });
 
-      if (!user) {
+      if (!targetUser) {
         return res
           .status(404)
           .json({ success: false, error: "User not found" });
@@ -148,4 +205,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   }
 }
 
-export default withSessionRoute(handler);
+export default withPermissionCheck(handler);

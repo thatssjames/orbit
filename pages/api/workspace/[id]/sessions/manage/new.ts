@@ -44,10 +44,10 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (req.method !== "POST")
     return res
       .status(405)
-      .json({ success: false, error: "Method not allowed" });  const { name, description, schedule, permissions, slots, statues } =
+      .json({ success: false, error: "Method not allowed" });  const { name, description, schedule, slots, statues } =
     req.body;
 
-  if (!name || !permissions)
+  if (!name)
     return res
       .status(400)
       .json({ success: false, error: "Missing required fields" });
@@ -80,14 +80,10 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         allowUnscheduled: schedule?.allowUnscheduled || false,
         statues: statues || [],
         slots: slots || [],
-        hostingRoles: {
-          connect: [...permissions.map((role: string) => ({ id: role }))],
-        },
         ...(scheduleData && { schedule: scheduleData }),
       },
       include: {
         schedule: true,
-        hostingRoles: true,
       },
     });
 

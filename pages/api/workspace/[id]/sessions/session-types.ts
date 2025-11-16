@@ -23,12 +23,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         allowUnscheduled: true,
       },
       include: {
-        hostingRoles: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+        schedule: true,
       },
     });
 

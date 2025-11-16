@@ -21,7 +21,7 @@ export default withPermissionCheck(
           owner: true,
           sessionType: {
             include: {
-              hostingRoles: true,
+              schedule: true,
             },
           },
           users: {

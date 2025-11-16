@@ -62,7 +62,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   try {
     const sessionType = await prisma.sessionType.findUnique({
       where: { id: sessionTypeId },
-      include: { hostingRoles: true },
+      include: { schedule: true },
     });
 
     if (!sessionType) {
@@ -99,7 +99,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       include: {
         sessionType: {
           include: {
-            hostingRoles: true,
+            schedule: true,
           },
         },
         owner: true,
