@@ -85,50 +85,47 @@ export default async function handler(
       },
     });
 
-    const formattedSessions = sessions.map((session) => {
-      const sessionDuration = (session as any).duration || 30;
-      const endTime = new Date(new Date(session.date).getTime() + sessionDuration * 60 * 1000);
-
-      return {
-        description: session.name || null,
-        id: session.id,
-        date: session.date,
-        endTime: endTime,
-        duration: sessionDuration,
-        startedAt: session.startedAt,
-        ended: session.ended,
-        type: {
-          id: session.sessionType.id,
-          name: session.sessionType.name,
-          description: (session.sessionType as any).description || null,
-          gameId: session.sessionType.gameId
-            ? Number(session.sessionType.gameId)
-            : null,
-          slots: session.sessionType.slots,
-        },
-        host: session.owner
-          ? {
-              userId: Number(session.owner.userid),
-              username: session.owner.username,
-              thumbnail: session.owner.picture,
-            }
+    const formattedSessions = sessions.map((session) => ({
+      id: session.id,
+      title: session.name || null,
+      description: (session.sessionType as any).description || null,
+      tag: session.type || null,
+      date: session.date,
+      startedAt: session.startedAt,
+      ended: session.ended,
+      duration: (session as any).duration || 30,
+      endTime: new Date(new Date(session.date).getTime() + (((session as any).duration || 30) * 60 * 1000)),
+      type: {
+        id: session.sessionType.id,
+        name: session.sessionType.name,
+        description: (session.sessionType as any).description || null,
+        gameId: session.sessionType.gameId
+          ? Number(session.sessionType.gameId)
           : null,
-        participants: session.users.map((user) => ({
-          userId: Number(user.user.userid),
-          username: user.user.username,
-          thumbnail: user.user.picture,
-          slot: user.slot,
-          role: user.roleID,
-        })),
-        status: session.ended
-          ? "ended"
-          : session.startedAt
-          ? "in-progress"
-          : session.date < new Date()
-          ? "missed"
-          : "scheduled",
-      };
-    });
+        slots: session.sessionType.slots,
+      },
+      host: session.owner
+        ? {
+            userId: Number(session.owner.userid),
+            username: session.owner.username,
+            thumbnail: session.owner.picture,
+          }
+        : null,
+      participants: session.users.map((user) => ({
+        userId: Number(user.user.userid),
+        username: user.user.username,
+        thumbnail: user.user.picture,
+        slot: user.slot,
+        role: user.roleID,
+      })),
+      status: session.ended
+        ? "concluded"
+        : session.startedAt
+        ? "in-progress"
+        : session.date < new Date()
+        ? "missed"
+        : "scheduled",
+    }));
 
     const sessionsByDate = formattedSessions.reduce(
       (acc: { [key: string]: any[] }, session) => {
