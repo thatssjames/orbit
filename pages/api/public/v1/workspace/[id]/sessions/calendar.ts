@@ -98,7 +98,6 @@ export default async function handler(
       type: {
         id: session.sessionType.id,
         name: session.sessionType.name,
-        description: (session.sessionType as any).description || null,
         gameId: session.sessionType.gameId
           ? Number(session.sessionType.gameId)
           : null,
