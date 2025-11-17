@@ -29,28 +29,31 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
           lastUsed: true,
           createdAt: true,
           expiresAt: true,
+          createdBy: {
+            select: {
+              userid: true,
+              username: true,
+              picture: true,
+            },
+          },
         },
         orderBy: {
           createdAt: "desc",
         },
       })
-      const maskedKeys = apiKeys.map((key: {
-        id: string
-        name: string
-        key: string
-        lastUsed: Date | null
-        createdAt: Date
-        expiresAt: Date | null
-        createdBy?: { userid: string }
-      }) => ({
+      const maskedKeys = apiKeys.map((key: any) => ({
         ...key,
         key: `****${key.key.slice(-4)}`,
+        lastUsedAt: key.lastUsed ? key.lastUsed.toISOString() : null,
+        createdAt: key.createdAt.toISOString(),
+        expiresAt: key.expiresAt ? key.expiresAt.toISOString() : null,
         createdBy: key.createdBy
           ? {
-              ...key.createdBy,
               userid: Number(key.createdBy.userid),
+              username: key.createdBy.username,
+              picture: key.createdBy.picture,
             }
-          : undefined,
+          : null,
       }))
 
       return res.status(200).json({ success: true, apiKeys: maskedKeys })
