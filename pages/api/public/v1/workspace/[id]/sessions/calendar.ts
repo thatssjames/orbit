@@ -84,41 +84,48 @@ export default async function handler(
       },
     });
 
-    const formattedSessions = sessions.map((session) => ({
-      id: session.id,
-      date: session.date,
-      startedAt: session.startedAt,
-      ended: session.ended,
-      type: {
-        id: session.sessionType.id,
-        name: session.sessionType.name,
-        gameId: session.sessionType.gameId
-          ? Number(session.sessionType.gameId)
+    const formattedSessions = sessions.map((session) => {
+      const sessionDuration = (session as any).duration || 30;
+      const endTime = new Date(new Date(session.date).getTime() + sessionDuration * 60 * 1000);
+
+      return {
+        id: session.id,
+        date: session.date,
+        endTime: endTime,
+        duration: sessionDuration,
+        startedAt: session.startedAt,
+        ended: session.ended,
+        type: {
+          id: session.sessionType.id,
+          name: session.sessionType.name,
+          gameId: session.sessionType.gameId
+            ? Number(session.sessionType.gameId)
+            : null,
+          slots: session.sessionType.slots,
+        },
+        host: session.owner
+          ? {
+              userId: Number(session.owner.userid),
+              username: session.owner.username,
+              thumbnail: session.owner.picture,
+            }
           : null,
-        slots: session.sessionType.slots,
-      },
-      host: session.owner
-        ? {
-            userId: Number(session.owner.userid),
-            username: session.owner.username,
-            thumbnail: session.owner.picture,
-          }
-        : null,
-      participants: session.users.map((user) => ({
-        userId: Number(user.user.userid),
-        username: user.user.username,
-        thumbnail: user.user.picture,
-        slot: user.slot,
-        role: user.roleID,
-      })),
-      status: session.ended
-        ? "ended"
-        : session.startedAt
-        ? "in-progress"
-        : session.date < new Date()
-        ? "missed"
-        : "scheduled",
-    }));
+        participants: session.users.map((user) => ({
+          userId: Number(user.user.userid),
+          username: user.user.username,
+          thumbnail: user.user.picture,
+          slot: user.slot,
+          role: user.roleID,
+        })),
+        status: session.ended
+          ? "ended"
+          : session.startedAt
+          ? "in-progress"
+          : session.date < new Date()
+          ? "missed"
+          : "scheduled",
+      };
+    });
 
     const sessionsByDate = formattedSessions.reduce(
       (acc: { [key: string]: any[] }, session) => {
