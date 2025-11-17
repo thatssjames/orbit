@@ -63,6 +63,7 @@ export default async function handler(
           select: {
             id: true,
             name: true,
+            description: true,
             gameId: true,
             slots: true,
           },
@@ -89,6 +90,7 @@ export default async function handler(
       const endTime = new Date(new Date(session.date).getTime() + sessionDuration * 60 * 1000);
 
       return {
+        description: session.name || null,
         id: session.id,
         date: session.date,
         endTime: endTime,
@@ -98,6 +100,7 @@ export default async function handler(
         type: {
           id: session.sessionType.id,
           name: session.sessionType.name,
+          description: (session.sessionType as any).description || null,
           gameId: session.sessionType.gameId
             ? Number(session.sessionType.gameId)
             : null,
