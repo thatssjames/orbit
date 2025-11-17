@@ -63,7 +63,6 @@ export default async function handler(
           select: {
             id: true,
             name: true,
-            description: true,
             gameId: true,
             slots: true,
           },
@@ -87,14 +86,9 @@ export default async function handler(
 
     const formattedSessions = sessions.map((session) => ({
       id: session.id,
-      title: session.name || null,
-      description: (session.sessionType as any).description || null,
-      tag: session.type || null,
       date: session.date,
       startedAt: session.startedAt,
       ended: session.ended,
-      duration: (session as any).duration || 30,
-      endTime: new Date(new Date(session.date).getTime() + (((session as any).duration || 30) * 60 * 1000)),
       type: {
         id: session.sessionType.id,
         name: session.sessionType.name,
@@ -118,7 +112,7 @@ export default async function handler(
         role: user.roleID,
       })),
       status: session.ended
-        ? "concluded"
+        ? "ended"
         : session.startedAt
         ? "in-progress"
         : session.date < new Date()
