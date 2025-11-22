@@ -223,6 +223,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
             "manage_activity",
             "post_on_wall",
             "manage_wall",
+            "manage_views",
             "view_wall",
             "view_members",
             "sessions_assign",

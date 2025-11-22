@@ -132,6 +132,7 @@ export async function handler(
 					'manage_activity',
 					'post_on_wall',
 					'manage_wall',
+					'manage_views',
 					'view_wall',
 					'view_members',
 					'manage_members',
