@@ -18,6 +18,9 @@ import {
   IconPlus,
   IconUsers,
   IconUserCircle,
+  IconBug,
+  IconHome,
+  IconBook,
 } from "@tabler/icons-react";
 
 const BG_COLORS = [
@@ -163,6 +166,17 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [selectedType, setSelectedType] = useState<
+    "" | "holiday" | "sickness" | "personal" | "school" | "other"
+  >("");
+
+  const TYPE_LABELS: Record<string, string> = {
+    holiday: "Holiday",
+    sickness: "Sickness",
+    personal: "Personal",
+    school: "School",
+    other: "Other",
+  };
 
   const createNotice = async () => {
     if (!reason.trim() || !startTime || !endTime) {
@@ -407,6 +421,88 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                   </h2>
                 </div>
 
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                    Type
+                  </label>
+                  <div className="flex gap-2 flex-wrap">
+                    <button
+                      onClick={() => {
+                        setSelectedType("holiday");
+                        setReason("Holiday");
+                      }}
+                      className={`px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
+                        selectedType === "holiday"
+                          ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm"
+                          : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                      }`}
+                    >
+                      <IconCalendarTime className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+                      Holiday
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setSelectedType("sickness");
+                        setReason("Sickness");
+                      }}
+                      className={`px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
+                        selectedType === "sickness"
+                          ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm"
+                          : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                      }`}
+                    >
+                      <IconBug className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+                      Sickness
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setSelectedType("personal");
+                        setReason("Personal");
+                      }}
+                      className={`px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
+                        selectedType === "personal"
+                          ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm"
+                          : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                      }`}
+                    >
+                      <IconHome className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+                      Personal
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setSelectedType("school");
+                        setReason("School");
+                      }}
+                      className={`px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
+                        selectedType === "school"
+                          ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm"
+                          : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                      }`}
+                    >
+                      <IconBook className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+                      School
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setSelectedType("other");
+                        setReason("");
+                      }}
+                      className={`px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
+                        selectedType === "other"
+                          ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm"
+                          : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                      }`}
+                    >
+                      <IconPlus className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+                      Other
+                    </button>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
                     <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
@@ -434,18 +530,26 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                   </div>
                 </div>
 
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                    Reason for Inactivity
-                  </label>
-                  <textarea
-                    value={reason}
-                    onChange={(e) => setReason(e.target.value)}
-                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white resize-none"
-                    rows={3}
-                    placeholder="Please provide a brief explanation for your requested inactivity period..."
-                  />
-                </div>
+                {selectedType !== "" && (
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                      Reason for Inactivity
+                    </label>
+                    {selectedType !== "other" ? (
+                      <div className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                        {TYPE_LABELS[selectedType] ?? reason}
+                      </div>
+                    ) : (
+                      <textarea
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white resize-none"
+                        rows={3}
+                        placeholder="Please provide a brief explanation for your requested inactivity period..."
+                      />
+                    )}
+                  </div>
+                )}
 
                 <button
                   onClick={createNotice}
