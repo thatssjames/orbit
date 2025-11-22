@@ -1,21 +1,21 @@
-import { useState, useEffect } from "react"
-import { IconX, IconPin } from "@tabler/icons-react"
-const ANNOUNCEMENT_KEY = "announcementDismissed_v2_1_3b1";
+import { useState, useEffect } from "react";
+import { IconX, IconPin } from "@tabler/icons-react";
+const ANNOUNCEMENT_KEY = "announcementDismissed_v2_1_5b1";
 
 export default function StickyNoteAnnouncement() {
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const dismissed = localStorage.getItem(ANNOUNCEMENT_KEY)
-    if (!dismissed) setIsVisible(true)
-  }, [])
+    const dismissed = localStorage.getItem(ANNOUNCEMENT_KEY);
+    if (!dismissed) setIsVisible(true);
+  }, []);
 
   const handleDismiss = () => {
-    localStorage.setItem(ANNOUNCEMENT_KEY, "true")
-    setIsVisible(false)
-  }
+    localStorage.setItem(ANNOUNCEMENT_KEY, "true");
+    setIsVisible(false);
+  };
 
-  if (!isVisible) return null
+  if (!isVisible) return null;
 
   return (
     <div className="z-0 bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-4 flex items-start space-x-4 mb-6 relative">
@@ -30,32 +30,63 @@ export default function StickyNoteAnnouncement() {
           Planetary
         </h3>
 
-    <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0"></p>
-    <div className="text-zinc-800 dark:text-zinc-300 text-sm space-y-2">
-      <p>
-        👋 <strong>Orbit v2.1.4 is live!</strong>
-        <br />
-        Here’s what’s new since the last announcement:
-      </p>
-
-      <p className="mt-4 font-semibold">Introduction</p>
-      <p>
-        We've taken on feedback and redesigned some core features to enhance your user experience.
-      </p>
-
-      <p className="mt-4 font-semibold">Changes</p>
-      <ul className="list-disc list-inside space-y-1">
-        <li>Sessions has a sleek new design for easier navigation.</li>
-        <li>Audit Logs - Most APIs are now tracked and monitored.</li>
-        <li>Documents Support external links.</li>
-        <li>Built in Document editor now supports markdown.</li>
-        <li>And more...</li>
-      </ul>
-
-      <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">
-        Orbit remains in <em>beta</em>. We’re iterating fast — thank you for testing, reporting, and shaping the platform. 🛰️
-      </p>
-    </div>
+        <div className="text-zinc-800 dark:text-zinc-300 text-sm space-y-3">
+          <h4 className="text-base font-semibold text-zinc-900 dark:text-white">
+            ✨ Shipping Saturday — A recap of this week in Planetary and Orbit
+          </h4>
+          <p>
+            We're keeping this going with a well needed update — here are a few
+            highlights from this week's work and community feedback.
+          </p>
+          <div>
+            <p className="font-semibold mt-2">🔍 Saved Views</p>
+            <p>
+              Save your Filters and Column selection to a reusable view. Choose
+              colours and icons, and your column sorting is persisted too making
+              staff tracking easier for everyone.
+            </p>
+          </div>
+          <div>
+            <p className="font-semibold mt-2">📅 Inactivity Notices</p>
+            <p>
+              Notices now include quick predefined options. Pending notices appear on user profiles with a quick manage
+              button — and workspace staff can cancel notices directly from the
+              profile.
+            </p>
+          </div>
+          <div>
+            <p className="font-semibold mt-2">📢 Sessions Management</p>
+            <p>
+              Scheduled sessions now support adding multiple times to speed up
+              creating.
+            </p>
+          </div>
+          <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+            That’s a wrap for this week — we’ll see you next Saturday for more
+            updates from Team Planetary.
+          </p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            Read the full changelog
+            <a
+              href="/api/changelog"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="ml-1 text-primary underline"
+            >
+              here
+            </a>
+            . Submit suggestions in
+            <a
+              href="https://discord.gg/planetary"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="ml-1 text-primary underline"
+            >
+              .gg/planetary
+            </a>
+            .
+          </p>
+        </div>
       </div>
       <button
         onClick={handleDismiss}
@@ -65,5 +96,5 @@ export default function StickyNoteAnnouncement() {
         <IconX className="w-5 h-5" />
       </button>
     </div>
-  )
+  );
 }
