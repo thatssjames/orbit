@@ -225,13 +225,15 @@ const Allies: pageWithLayout<pageProps> = (props) => {
     "bg-orange-200",
   ];
 
-  function getRandomBg(userid: string | number) {
-    const str = String(userid);
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  function getRandomBg(userid: string | number, username?: string) {
+    const key = `${userid ?? ""}:${username ?? ""}`;
+    let hash = 5381;
+    const s = String(key);
+    for (let i = 0; i < s.length; i++) {
+      hash = (hash * 33) ^ s.charCodeAt(i);
     }
-    return BG_COLORS[Math.abs(hash) % BG_COLORS.length];
+    const index = (hash >>> 0) % BG_COLORS.length;
+    return BG_COLORS[index];
   }
 
   const colors = [

@@ -224,13 +224,15 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
     "bg-orange-200",
   ];
 
-  function getRandomBg(userid: string | number) {
-    const str = String(userid);
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  function getRandomBg(userid: string | number, username?: string) {
+    const key = `${userid ?? ""}:${username ?? ""}`;
+    let hash = 5381;
+    const s = String(key);
+    for (let i = 0; i < s.length; i++) {
+      hash = (hash * 33) ^ s.charCodeAt(i);
     }
-    return BG_COLORS[Math.abs(hash) % BG_COLORS.length];
+    const index = (hash >>> 0) % BG_COLORS.length;
+    return BG_COLORS[index];
   }
 
   const form = useForm();
@@ -290,20 +292,6 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
     time: "",
     id: "",
   });
-
-  const colors = [
-    "bg-red-500",
-    "bg-yellow-500",
-    "bg-green-500",
-    "bg-blue-500",
-    "bg-indigo-500",
-    "bg-purple-500",
-    "bg-pink-500",
-  ];
-
-  const getRandomColor = () => {
-    return colors[Math.floor(Math.random() * colors.length)];
-  };
 
   const handleVisitChange = async (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -622,13 +610,13 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                         tooltipText={rep.username}
                       >
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center ${getRandomBg(
+                          className={`w-8 h-8 p-0.5 rounded-full flex items-center justify-center ${getRandomBg(
                             rep.userid
                           )} border-2 border-white hover:scale-110 transition-transform`}
                         >
                           <img
                             src={rep.thumbnail}
-                            className="w-8 h-8 rounded-full object-cover border-2 border-white"
+                            className="w-full h-full rounded-full object-cover"
                             alt={rep.username}
                             style={{ background: "transparent" }}
                           />
@@ -791,13 +779,13 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                           className="rounded border-gray-300 text-primary focus:ring-primary"
                         />
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center ${getRandomBg(
+                          className={`w-8 h-8 p-0.5 rounded-full flex items-center justify-center ${getRandomBg(
                             user.userid
                           )} border-2 border-gray-200 dark:border-zinc-600`}
                         >
                           <img
                             src={user.thumbnail}
-                            className="w-8 h-8 rounded-full object-cover border-2 border-white"
+                            className="w-full h-full rounded-full object-cover"
                             alt={user.username}
                             style={{ background: "transparent" }}
                           />
@@ -868,7 +856,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                   {visits.map((visit: any) => (
                     <div
                       key={visit.id}
-                      className="bg-zinc-50 dark:bg-zinc-700rounded-lg p-4"
+                      className="bg-zinc-50 dark:bg-zinc-700 rounded-lg p-4"
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div>
@@ -876,11 +864,18 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                             {visit.name}
                           </h3>
                           <div className="flex items-center gap-2 mt-2">
-                            <img
-                              src={visit.hostThumbnail}
-                              className="w-6 h-6 rounded-full bg-primary"
-                              alt={visit.hostUsername}
-                            />
+                            <div
+                              className={`w-6 h-6 p-0.5 rounded-full flex items-center justify-center ${getRandomBg(
+                                visit.hostId
+                              )} border-2 border-white`}
+                            >
+                              <img
+                                src={visit.hostThumbnail}
+                                className="w-full h-full rounded-full object-cover"
+                                alt={visit.hostUsername}
+                                style={{ background: "transparent" }}
+                              />
+                            </div>
                             <p className="text-xs dark:text-zinc-400 text-zinc-500">
                               Hosted by {visit.hostUsername}
                             </p>
