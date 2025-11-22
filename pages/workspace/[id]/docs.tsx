@@ -290,16 +290,20 @@ const Home: pageWithLayout<pageProps> = ({ documents, canManage }) => {
 						<h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-1">
 							No documents yet
 						</h3>
-						<p className="text-sm text-zinc-500 dark:text-zinc-300 mb-4">
-							Get started by creating your first document
-						</p>
-						<button
-							onClick={() => router.push(`/workspace/${router.query.id}/docs/new`)}
-							className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white text-sm rounded-md hover:bg-primary/90 transition-colors"
-						>
-							<IconPlus className="w-4 h-4" />
-							Create Document
-						</button>
+						{canManage && (
+							<>
+								<p className="text-sm text-zinc-500 dark:text-zinc-300 mb-4">
+									Get started by creating your first document
+								</p>
+								<button
+									onClick={() => router.push(`/workspace/${router.query.id}/docs/new`)}
+									className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white text-sm rounded-md hover:bg-primary/90 transition-colors"
+								>
+									<IconPlus className="w-4 h-4" />
+									Create Document
+								</button>
+							</>
+						)}
 					</div>
 				)}
 			</div>
