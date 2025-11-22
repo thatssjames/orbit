@@ -345,61 +345,10 @@ export async function checkGroupRoles(groupID: number) {
                   )
                 )
                   continue;
-                  try {
-                    const currentRank = await noblox
-                      .getRankInGroup(groupID, Number(user.userid))
-                      .catch(() => null);
-                    if (currentRank) {
-                      const currentRankInfo = await noblox
-                        .getRole(groupID, currentRank)
-                        .catch(() => null);
-                      if (
-                        currentRankInfo &&
-                        role?.groupRoles?.includes(currentRankInfo.id)
-                      ) {
-                        continue;
-                      }
-                    }
-                  } catch (e) {
-                    console.error(
-                      `[checkGroupRoles] Failed to verify current rank for user ${user.userid}:`,
-                      e
-                    );
-                  }
-                const userHasThisRole = user.roles.find((r) => r.id === role?.id);
-                if (userHasThisRole?.isOwnerRole) {
-                  try {
-                    const ownerCurrentRank = await noblox
-                      .getRankInGroup(groupID, Number(user.userid))
-                      .catch(() => null);
-                    if (ownerCurrentRank) {
-                      const ownerRankValue = BigInt(ownerCurrentRank);
-                      await prisma.rank.upsert({
-                        where: {
-                          userId_workspaceGroupId: {
-                            userId: BigInt(user.userid),
-                            workspaceGroupId: groupID,
-                          },
-                        },
-                        update: { rankId: ownerRankValue },
-                        create: {
-                          userId: BigInt(user.userid),
-                          workspaceGroupId: groupID,
-                          rankId: ownerRankValue,
-                        },
-                      }).catch((err) =>
-                        console.error(
-                          `[checkGroupRoles] Failed to refresh rank for owner ${user.userid}:`,
-                          err
-                        )
-                      );
-                    }
-                  } catch (e) {
-                    console.error(
-                      `[checkGroupRoles] Error refreshing rank for owner ${user.userid}:`,
-                      e
-                    );
-                  }
+                if (user.roles.find((r) => r.id === role?.id)?.isOwnerRole) {
+                  console.log(
+                    `Skipping role removal for user ${user.userid} - they have an owner role`
+                  );
                   continue;
                 }
                 await prisma.user
