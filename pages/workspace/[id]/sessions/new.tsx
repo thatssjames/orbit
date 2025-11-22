@@ -82,6 +82,8 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
   const [sessionLength, setSessionLength] = useState(30); // Default to 30 minutes
   const [unscheduledDate, setUnscheduledDate] = useState("");
   const [unscheduledTime, setUnscheduledTime] = useState("");
+  const [times, setTimes] = useState<string[]>([]);
+  const [timeInput, setTimeInput] = useState("");
   const [statues, setStatues] = useState<
     {
       name: string;
@@ -138,12 +140,14 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
     setFormError("");
 
     try {
-      const timeValue = form.getValues().time || "00:00";
-      const [localHours, localMinutes] = timeValue.split(":").map(Number);
+      const selectedTimes = times.length > 0 ? times : [form.getValues().time || "00:00"];
       const selectedDays: number[] = days.map((day) => {
         const dayMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         return dayMap.indexOf(day);
       });
+
+      // use the first selected time as the representative schedule time when creating the session type
+      const [firstHours, firstMinutes] = selectedTimes[0].split(":").map(Number);
 
       const sessionTypeResponse = await axios.post(
         `/api/workspace/${workspace.groupId}/sessions/manage/new`,
@@ -154,8 +158,8 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
           schedule: {
             enabled,
             days: selectedDays,
-            hours: localHours,
-            minutes: localMinutes,
+            hours: firstHours,
+            minutes: firstMinutes,
             allowUnscheduled,
           },
           slots,
@@ -166,48 +170,56 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
       const createdSessionType = sessionTypeResponse.data.session;
 
       if (enabled && selectedDays.length > 0) {
-        for (const dayOfWeek of selectedDays) {
-          const today = new Date();
-          const currentDay = today.getDay();
-          let daysUntilTarget = (dayOfWeek - currentDay + 7) % 7;
-          if (daysUntilTarget === 0) {
-            const scheduledTime = new Date(today);
-            scheduledTime.setHours(localHours, localMinutes, 0, 0);
-            if (today.getTime() >= scheduledTime.getTime()) {
-              daysUntilTarget = 7;
+        const overlapsAggregate: Array<{ time: string; day: number; overlapping: any[] }>
+          = [];
+
+        for (const timeValue of selectedTimes) {
+          const [localHours, localMinutes] = timeValue.split(":").map(Number);
+          for (const dayOfWeek of selectedDays) {
+            const today = new Date();
+            const currentDay = today.getDay();
+            let daysUntilTarget = (dayOfWeek - currentDay + 7) % 7;
+            if (daysUntilTarget === 0) {
+              const scheduledTime = new Date(today);
+              scheduledTime.setHours(localHours, localMinutes, 0, 0);
+              if (today.getTime() >= scheduledTime.getTime()) {
+                daysUntilTarget = 7;
+              }
+            }
+
+            const nextOccurrence = new Date(today);
+            nextOccurrence.setDate(today.getDate() + daysUntilTarget);
+            nextOccurrence.setHours(localHours, localMinutes, 0, 0);
+
+            const overlapping = await checkOverlaps(nextOccurrence, sessionLength);
+            if (overlapping.length > 0) {
+              overlapsAggregate.push({ time: timeValue, day: dayOfWeek, overlapping });
             }
           }
+        }
 
-          const nextOccurrence = new Date(today);
-          nextOccurrence.setDate(today.getDate() + daysUntilTarget);
-          nextOccurrence.setHours(localHours, localMinutes, 0, 0);
+        if (overlapsAggregate.length > 0) {
+          const first = overlapsAggregate[0];
+          const dayName = [
+            "Sunday",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+          ][first.day];
+          const sampleDate = new Date();
+          const [h, m] = first.time.split(":").map(Number);
+          sampleDate.setHours(h, m, 0, 0);
 
-          const overlapping = await checkOverlaps(
-            nextOccurrence,
-            sessionLength
-          );
+          const message = `One or more of the requested scheduled times overlap with existing session(s). Example: scheduled session on ${dayName} at ${sampleDate.toLocaleString()} overlaps with ${first.overlapping.length} existing session(s):\n${first.overlapping
+            .map((s: any) => `• ${s.name} (${new Date(s.date).toLocaleString()})`)
+            .join("\n")}\n\nDo you want to create all requested recurring sessions anyway?`;
 
-          if (overlapping.length > 0) {
-            const dayName = [
-              "Sunday",
-              "Monday",
-              "Tuesday",
-              "Wednesday",
-              "Thursday",
-              "Friday",
-              "Saturday",
-            ][dayOfWeek];
-            const message = `The scheduled session on ${dayName} at ${nextOccurrence.toLocaleString()} overlaps with ${
-              overlapping.length
-            } existing session(s):\n${overlapping
-              .map(
-                (s: any) => `• ${s.name} (${new Date(s.date).toLocaleString()})`
-              )
-              .join(
-                "\n"
-              )}\n\nDo you want to create this recurring session anyway?`;
-
-            setPendingCreation(async () => {
+          setPendingCreation(async () => {
+            for (const timeValue of selectedTimes) {
+              const [localHours, localMinutes] = timeValue.split(":").map(Number);
               await axios.post(
                 `/api/workspace/${workspace.groupId}/sessions/create-scheduled`,
                 {
@@ -224,17 +236,18 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                   timezoneOffset: new Date().getTimezoneOffset(),
                 }
               );
-            });
-            setOverlapMessage(message);
-            setShowOverlapModal(true);
-            setIsSubmitting(false);
-            return;
-          }
+            }
+          });
+
+          setOverlapMessage(message);
+          setShowOverlapModal(true);
+          setIsSubmitting(false);
+          return;
         }
 
-        await axios.post(
-          `/api/workspace/${workspace.groupId}/sessions/create-scheduled`,
-          {
+        for (const timeValue of selectedTimes) {
+          const [localHours, localMinutes] = timeValue.split(":").map(Number);
+          await axios.post(`/api/workspace/${workspace.groupId}/sessions/create-scheduled`, {
             sessionTypeId: createdSessionType.id,
             name: form.getValues().name,
             type: form.getValues().type,
@@ -246,8 +259,8 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
             },
             duration: sessionLength,
             timezoneOffset: new Date().getTimezoneOffset(),
-          }
-        );
+          });
+        }
       }
 
       if (allowUnscheduled && unscheduledDate && unscheduledTime) {
@@ -405,6 +418,20 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
     );
   };
 
+  const addTime = () => {
+    if (!timeInput) return;
+    if (times.includes(timeInput)) {
+      setTimeInput("");
+      return;
+    }
+    setTimes((prev) => [...prev, timeInput]);
+    setTimeInput("");
+  };
+
+  const removeTime = (t: string) => {
+    setTimes((prev) => prev.filter((x) => x !== t));
+  };
+
   const tabs = [
     { id: "basic", label: "Basic Info", icon: <IconInfoCircle size={18} /> },
     {
@@ -426,7 +453,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
     if (fallbackToManual && !form.getValues().gameId) return false;
     if (!allowUnscheduled && !enabled) return false;
     if (allowUnscheduled && enabled) return false;
-    if (enabled && !form.getValues().time) return false;
+    if (enabled && times.length === 0 && !form.getValues().time) return false;
     if (enabled && days.length === 0) return false;
     if (allowUnscheduled && (!unscheduledDate || !unscheduledTime))
       return false;
@@ -893,26 +920,52 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Input
-                          {...form.register("time", {
-                            required: {
-                              value: enabled,
-                              message:
-                                "Time is required for scheduled sessions",
-                            },
-                          })}
-                          label="Session Time"
-                          type="time"
-                        />
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                          Set the time in your local timezone. Will be displayed
-                          in local time on the calendar.
-                        </p>
-                        {form.formState.errors.time && (
-                          <p className="mt-1 text-sm text-red-500">
-                            {form.formState.errors.time.message as string}
-                          </p>
-                        )}
+                          <div>
+                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                              Session Times
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="time"
+                                value={timeInput}
+                                onChange={(e) => setTimeInput(e.target.value)}
+                                className="px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                              />
+                              <button
+                                type="button"
+                                onClick={addTime}
+                                className="px-3 py-2 bg-primary text-white rounded-md"
+                              >
+                                Add time
+                              </button>
+                            </div>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                              Add one or more times
+                            </p>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {times.length > 0 ? (
+                                times.map((t) => (
+                                  <span
+                                    key={t}
+                                    className="flex items-center gap-2 px-3 py-1 rounded-full dark:text-white bg-zinc-100 dark:bg-zinc-700 text-sm"
+                                  >
+                                    {t}
+                                    <button
+                                      type="button"
+                                      onClick={() => removeTime(t)}
+                                      className="text-red-500 ml-1"
+                                    >
+                                      ✕
+                                    </button>
+                                  </span>
+                                ))
+                              ) : form.getValues().time ? (
+                                <div className="px-3 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-700">
+                                  {form.getValues().time}
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
                       </div>
 
                       <div>
