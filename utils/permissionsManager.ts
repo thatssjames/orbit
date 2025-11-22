@@ -400,6 +400,29 @@ export async function checkGroupRoles(groupID: number) {
                         error
                       );
                     });
+                  await prisma.rank
+                    .upsert({
+                      where: {
+                        userId_workspaceGroupId: {
+                          userId: BigInt(member.userId),
+                          workspaceGroupId: groupID,
+                        },
+                      },
+                      update: {
+                        rankId: BigInt(rank.rank),
+                      },
+                      create: {
+                        userId: BigInt(member.userId),
+                        workspaceGroupId: groupID,
+                        rankId: BigInt(rank.rank),
+                      },
+                    })
+                    .catch((error) => {
+                      console.error(
+                        `[checkGroupRoles] Failed to upsert rank for existing user ${member.userId}:`,
+                        error
+                      );
+                    });
                   continue;
                 }
 
