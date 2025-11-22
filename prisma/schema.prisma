@@ -18,6 +18,7 @@ model workspace {
   sessionTypes      SessionType[]
   apiKey            apiKey[]
   config            config[]
+  savedViews        SavedView[]
   documents         document[]
   inactivityNotices inactivityNotice[]
   ranks             rank[]
@@ -276,6 +277,9 @@ model userBook {
   adminId          BigInt
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
+  redacted         Boolean?  @default(false)
+  redactedBy       BigInt?
+  redactedAt       DateTime?
   workspaceGroupId Int
   rankBefore       Int?
   rankAfter        Int?
@@ -403,6 +407,21 @@ model workspaceExternalServices {
   rankingWorkspaceId String?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
+  workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
+
+  @@index([workspaceGroupId])
+}
+
+model SavedView {
+  id               String    @id @default(uuid()) @db.Uuid
+  workspaceGroupId Int
+  name             String
+  color            String?
+  icon             String?
+  filters          Json
+  columnVisibility Json
+  createdAt        DateTime  @default(now())
+
   workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
 
   @@index([workspaceGroupId])
