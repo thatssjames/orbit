@@ -1610,6 +1610,8 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
                               `px-4 py-3 text-left text-xs font-semibold text-zinc-900 dark:text-zinc-300 uppercase tracking-widest cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-700/50 transition-colors` +
                               (header.column.id === "info"
                                 ? " md:w-1/4 min-w-[90px]"
+                                : header.column.id === "select"
+                                ? " w-12 text-center px-2"
                                 : "")
                             }
                             onClick={header.column.getToggleSortingHandler()}
@@ -1649,6 +1651,8 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
                             className={
                               cell.column.id === "info"
                                 ? "pl-1 pr-2 py-3 text-sm text-zinc-700 dark:text-zinc-300 overflow-hidden"
+                                : cell.column.id === "select"
+                                ? "px-2 py-3 text-sm text-zinc-700 dark:text-zinc-300 overflow-hidden text-center"
                                 : "px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300 overflow-hidden"
                             }
                             style={
@@ -1658,6 +1662,8 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
                                     maxWidth: "30%",
                                     minHeight: 44,
                                   }
+                                : cell.column.id === "select"
+                                ? { width: 48 }
                                 : { maxWidth: 0 }
                             }
                           >
