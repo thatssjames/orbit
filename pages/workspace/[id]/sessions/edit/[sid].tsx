@@ -10,8 +10,12 @@ import {
   IconArrowLeft,
   IconDeviceFloppy,
   IconTrash,
+  IconPlus,
   IconAlertCircle,
   IconUserPlus,
+  IconInfoCircle,
+  IconCalendarEvent,
+  IconClipboardList,
 } from "@tabler/icons-react";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
 import { useRouter } from "next/router";
@@ -134,27 +138,79 @@ const EditSession: pageWithLayout<
   const [deleteAll, setDeleteAll] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [updateAll, setUpdateAll] = useState(false);
+  const [activeTab, setActiveTab] = useState("basic");
+
+  const tabs = [
+    { id: "basic", label: "Basic", icon: <IconInfoCircle size={18} /> },
+    { id: "scheduling", label: "Scheduling", icon: <IconCalendarEvent size={18} /> },
+    { id: "statuses", label: "Statuses", icon: <IconClipboardList size={18} /> },
+    { id: "slots", label: "Slots", icon: <IconUserPlus size={18} /> },
+  ];
+
+  const goToSection = (id: string) => {
+    setActiveTab(id);
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const form = useForm({
     mode: "onChange",
-    defaultValues: {
-      date: (() => {
-        const utcDate = new Date(session.date);
-        const localDate = new Date(utcDate.getTime());
-        const year = localDate.getFullYear();
-        const month = String(localDate.getMonth() + 1).padStart(2, "0");
-        const day = String(localDate.getDate()).padStart(2, "0");
-        const hours = String(localDate.getHours()).padStart(2, "0");
-        const minutes = String(localDate.getMinutes()).padStart(2, "0");
+    defaultValues: (() => {
+      const utcDate = new Date(session.date);
+      const localDate = new Date(utcDate.getTime());
+      const year = localDate.getFullYear();
+      const month = String(localDate.getMonth() + 1).padStart(2, "0");
+      const day = String(localDate.getDate()).padStart(2, "0");
+      const hours = String(localDate.getHours()).padStart(2, "0");
+      const minutes = String(localDate.getMinutes()).padStart(2, "0");
+      const dateOnly = `${year}-${month}-${day}`;
+      const timeOnly = `${hours}:${minutes}`;
 
-        return `${year}-${month}-${day}T${hours}:${minutes}`;
-      })(),
-      description: session.sessionType.description || "",
-      duration: session.duration || 30,
-    },
+      return {
+        name: session.name || session.sessionType?.name || "",
+        description: session.sessionType?.description || "",
+        date: dateOnly,
+        time: timeOnly,
+        duration: session.duration || 30,
+        gameId: (session as any).gameId || session.sessionType?.gameId || "",
+      };
+    })(),
   });
 
+  const [statues, setStatues] = useState<{
+    name: string;
+    timeAfter: number;
+    color: string;
+    id: string;
+  }[]>(() => (session.sessionType?.statues ? session.sessionType.statues : []));
+
+  const newStatus = () => {
+    setStatues((prev) => [
+      ...prev,
+      {
+        name: "New status",
+        timeAfter: 0,
+        color: "green",
+        id: `${Date.now()}-${Math.random()}`,
+      },
+    ]);
+  };
+
+  const deleteStatus = (id: string) => {
+    setStatues((prev) => prev.filter((status) => status.id !== id));
+  };
+
+  const updateStatus = (id: string, name: string, color: string, timeafter: number) => {
+    setStatues((prev) => prev.map((status) => (status.id === id ? { ...status, name, color, timeAfter: timeafter } : status)));
+  };
+
   const router = useRouter();
+
+  const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+
+  const sessionTypeLabel = (() => {
+    if (typeof session.type === "string" && !/^[0-9]+$/.test(session.type)) return capitalize(session.type);
+  })();
 
   useEffect(() => {
     const loadWorkspaceUsers = async () => {
@@ -176,7 +232,9 @@ const EditSession: pageWithLayout<
 
     try {
       const formData = form.getValues();
-      const localDateTime = formData.date; // expected format: YYYY-MM-DDTHH:MM
+      const datePart = formData.date;
+      const timePart = formData.time || "00:00";
+      const localDateTime = `${datePart}T${timePart}`;
       const newDate = new Date(localDateTime);
 
       // Prevent updating a session to a past date/time
@@ -193,10 +251,13 @@ const EditSession: pageWithLayout<
       await axios.put(
         `/api/workspace/${workspace.groupId}/sessions/manage/${session.id}/manage`,
         {
+          name: formData.name,
+          gameId: formData.gameId,
           date: dateStr,
           time: timeStr,
           description: formData.description,
           duration: formData.duration,
+          statues: statues,
           updateAll: applyToAll,
           timezoneOffset: new Date().getTimezoneOffset(),
         }
@@ -309,65 +370,88 @@ const EditSession: pageWithLayout<
         </div>
       )}
 
+      <div className="mb-6 overflow-x-auto">
+        <div className="flex space-x-1 min-w-max border-b border-gray-200 dark:border-zinc-700">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => goToSection(tab.id)}
+              className={`px-4 py-3 flex items-center gap-2 text-sm font-medium transition-all border-b-2 -mb-px ${
+                activeTab === tab.id
+                  ? "border-primary text-primary dark:border-primary dark:text-primary"
+                  : "border-transparent text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+              }`}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <FormProvider {...form}>
         <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden">
-          <div className="p-6">
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold dark:text-white mb-2">
-                {session.name || session.sessionType.name}
-              </h2>
-              <div className="bg-zinc-50 dark:bg-zinc-700/30 p-4 rounded-lg space-y-2">
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  <strong>Session Type:</strong>{" "}
-                  {session.type
-                    ? session.type.charAt(0).toUpperCase() +
-                      session.type.slice(1)
-                    : "Session"}
-                </p>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  <strong>Original Date:</strong>{" "}
-                  {new Date(session.date).toLocaleString()}
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-6 max-w-2xl">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {activeTab === "basic" && (
+            <div className="p-6" id="basic">
+              <div className="space-y-6 max-w-2xl">
                 <div>
                   <Input
-                    {...form.register("date", {
-                      required: {
-                        value: true,
-                        message: "Session date is required",
-                      },
+                    {...form.register("name", {
+                      required: { value: true, message: "Session name is required" },
                     })}
-                    label="Session Date & Time"
-                    type="datetime-local"
+                    label="Session Name"
+                    placeholder="Weekly Training Session"
                   />
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                    Enter date and time in your local timezone.
-                  </p>
-                  {form.formState.errors.date && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {form.formState.errors.date.message as string}
-                    </p>
+                  {form.formState.errors.name && (
+                    <p className="mt-1 text-sm text-red-500">{form.formState.errors.name.message as string}</p>
                   )}
+                </div>
+                <div>
+                  <Input {...form.register("description")} label="Description" textarea placeholder="Describe what this session is about..." />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Session Type</label>
+                  <div className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md shadow-sm bg-white dark:bg-zinc-700 text-zinc-700 dark:text-white">
+                    {sessionTypeLabel}
+                  </div>
+                </div>
+                <div>
+                  <Input {...form.register("gameId")} label="Game ID" placeholder="Optional game ID" />
+                </div>
+                <div className="mt-8 flex justify-end">
+                  <Button onPress={() => setActiveTab("scheduling")} classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90">Continue to Scheduling</Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "scheduling" && (
+            <div className="p-6" id="scheduling">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Session Date</label>
+                  <input
+                    type="date"
+                    {...form.register("date", { required: { value: true, message: "Session date is required" } })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white"
+                  />
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Enter date in your local timezone.</p>
+                  {form.formState.errors.date && <p className="mt-1 text-sm text-red-500">{form.formState.errors.date.message as string}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                    Session Duration
-                  </label>
-                  <select
-                    {...form.register("duration", {
-                      required: {
-                        value: true,
-                        message: "Duration is required",
-                      },
-                      valueAsNumber: true,
-                    })}
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Session Time</label>
+                  <input
+                    type="time"
+                    {...form.register("time", { required: { value: true, message: "Session time is required" } })}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white"
-                  >
+                  />
+                  {form.formState.errors.time && <p className="mt-1 text-sm text-red-500">{form.formState.errors.time.message as string}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Session Length</label>
+                  <select {...form.register("duration", { required: { value: true, message: "Duration is required" }, valueAsNumber: true })} className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white">
                     <option value={5}>5 minutes</option>
                     <option value={10}>10 minutes</option>
                     <option value={15}>15 minutes</option>
@@ -379,154 +463,122 @@ const EditSession: pageWithLayout<
                     <option value={90}>1.5 hours</option>
                     <option value={120}>2 hours</option>
                   </select>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                    Length of session
-                  </p>
-                  {form.formState.errors.duration && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {form.formState.errors.duration.message as string}
-                    </p>
-                  )}
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Length of session</p>
+                  {form.formState.errors.duration && <p className="mt-1 text-sm text-red-500">{form.formState.errors.duration.message as string}</p>}
                 </div>
               </div>
 
-              <div>
-                <Input
-                  {...form.register("description")}
-                  label="Description"
-                  textarea
-                  placeholder="Describe what this session is about..."
-                />
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                  Provide details about the session's purpose and activities.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-medium dark:text-white mb-4">
-                  Role Claims
-                </h3>
-
-                <div className="bg-zinc-50 dark:bg-zinc-700/30 rounded-lg p-4 mb-4">
-                  <h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-3">
-                    Host
-                  </h4>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400 w-16">
-                      Slot 1:
-                    </span>
-                    <div className="flex-1 px-3 py-2 text-sm bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-md flex items-center gap-2">
-                      {session.owner?.username ? (
-                        <div
-                          className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${getRandomBg(
-                            session.owner.userid?.toString() ||
-                              session.owner.userid ||
-                              ""
-                          )}`}
-                        >
-                          <img
-                            src={session.owner.picture || "/default-avatar.jpg"}
-                            alt={session.owner.username}
-                            className="w-6 h-6 rounded-full object-cover border border-white"
-                            onError={(e) => {
-                              e.currentTarget.src = "/default-avatar.jpg";
-                            }}
-                          />
-                        </div>
-                      ) : null}
-                      <span className="text-zinc-700 dark:text-white">
-                        {session.owner?.username || "Unclaimed"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {session.sessionType.slots &&
-                  Array.isArray(session.sessionType.slots) &&
-                  session.sessionType.slots.length > 0 && (
-                    <div className="space-y-4">
-                      {session.sessionType.slots.map(
-                        (slot: any, slotIndex: number) => {
-                          if (typeof slot !== "object") return null;
-                          const slotData = JSON.parse(JSON.stringify(slot));
-
-                          return (
-                            <div
-                              key={slotIndex}
-                              className="bg-zinc-50 dark:bg-zinc-700/30 rounded-lg p-4"
-                            >
-                              <h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-3">
-                                {slotData.name}
-                              </h4>
-                              <div className="space-y-2">
-                                {Array.from(Array(slotData.slots)).map(
-                                  (_, i) => {
-                                    const assignedUser = session.users?.find(
-                                      (u: any) =>
-                                        u.roleID === slotData.id && u.slot === i
-                                    );
-                                    const username = assignedUser
-                                      ? availableUsers.find(
-                                          (user: any) =>
-                                            user.userid ===
-                                            assignedUser.userid.toString()
-                                        )?.username
-                                      : null;
-                                    const userPicture = assignedUser
-                                      ? availableUsers.find(
-                                          (user: any) =>
-                                            user.userid ===
-                                            assignedUser.userid.toString()
-                                        )?.picture
-                                      : null;
-
-                                    return (
-                                      <div
-                                        key={i}
-                                        className="flex items-center gap-2"
-                                      >
-                                        <span className="text-sm text-zinc-600 dark:text-zinc-400 w-16">
-                                          Slot {i + 1}:
-                                        </span>
-                                        <div className="flex-1 px-3 py-2 text-sm bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-md flex items-center gap-2">
-                                          {username ? (
-                                            <div
-                                              className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${getRandomBg(
-                                                assignedUser.userid.toString()
-                                              )}`}
-                                            >
-                                              <img
-                                                src={
-                                                  userPicture ||
-                                                  "/default-avatar.jpg"
-                                                }
-                                                alt={username}
-                                                className="w-6 h-6 rounded-full object-cover border border-white"
-                                                onError={(e) => {
-                                                  e.currentTarget.src =
-                                                    "/default-avatar.jpg";
-                                                }}
-                                              />
-                                            </div>
-                                          ) : null}
-                                          <span className="text-zinc-700 dark:text-white">
-                                            {username || "Unclaimed"}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    );
-                                  }
-                                )}
-                              </div>
-                            </div>
-                          );
-                        }
-                      )}
-                    </div>
-                  )}
+              <div className="mt-8 flex justify-between w-full">
+                <Button onPress={() => setActiveTab("basic")} classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600">Back</Button>
+                <Button onPress={() => setActiveTab("statuses")} classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90">Continue to Statuses</Button>
               </div>
             </div>
-          </div>
+          )}
+
+          {activeTab === "statuses" && (
+            <div className="p-6" id="statuses">
+              <div className="flex items-start mb-6">
+                <div className="bg-primary/10 p-2 rounded-lg mr-4">
+                  <IconClipboardList className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold dark:text-white">Session Statuses</h2>
+                  <p className="text-zinc-500 dark:text-zinc-400 mt-1">Define status updates that occur during a session</p>
+                </div>
+              </div>
+
+              <div className="max-w-2xl">
+                <div className="flex justify-between items-center mb-4">
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">Statuses automatically update after the specified time has passed</p>
+                  <Button onPress={newStatus} compact classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90 flex items-center gap-1"><IconPlus size={16} /> Add Status</Button>
+                </div>
+
+                {statues.length === 0 ? (
+                  <div className="text-center py-10 bg-zinc-50 dark:bg-zinc-700/30 rounded-lg border border-dashed border-gray-300 dark:border-zinc-600">
+                    <IconClipboardList className="mx-auto text-zinc-400 dark:text-zinc-500" size={32} />
+                    <p className="text-zinc-500 dark:text-zinc-400 mt-2">No statuses added yet</p>
+                    <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-1 max-w-xs mx-auto">Add statuses to track session progress (e.g., "Starting Soon", "In Progress", "Completed")</p>
+                    <Button onPress={newStatus} classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90 mt-4 flex items-center gap-1 mx-auto"><IconPlus size={16} /> Add Your First Status</Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {statues.map((status, index) => (
+                      <div key={status.id} className="border border-gray-200 dark:border-zinc-700 rounded-lg p-4 bg-white dark:bg-zinc-800 shadow-sm">
+                        <Status updateStatus={(value, mins, color) => updateStatus(status.id, value, color, mins)} deleteStatus={() => deleteStatus(status.id)} data={status} index={index + 1} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-8 flex justify-between w-full">
+                <Button onPress={() => setActiveTab("scheduling")} classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600">Back</Button>
+                <Button onPress={() => setActiveTab("slots")} classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90">Continue to Slots</Button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "slots" && (
+            <div className="p-6" id="slots">
+              <h2 className="text-xl font-semibold dark:text-white mb-4">Session Slots (Read-Only)</h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">Define roles and how many people can claim each role</p>
+
+              <div className="bg-zinc-50 dark:bg-zinc-700/30 rounded-lg p-4 mb-4">
+                <h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-3">Host</h4>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-zinc-600 dark:text-zinc-400 w-16">Slot 1:</span>
+                  <div className="flex-1 px-3 py-2 text-sm bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-md flex items-center gap-2">
+                    {session.owner?.username ? (
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${getRandomBg(session.owner.userid?.toString() || session.owner.userid || "")}`}>
+                        <img src={session.owner.picture || "/default-avatar.jpg"} alt={session.owner.username} className="w-6 h-6 rounded-full object-cover border border-white" onError={(e) => { e.currentTarget.src = "/default-avatar.jpg"; }} />
+                      </div>
+                    ) : null}
+                    <span className="text-zinc-700 dark:text-white">{session.owner?.username || "Unclaimed"}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4 max-w-2xl">
+                {session.sessionType.slots && Array.isArray(session.sessionType.slots) && session.sessionType.slots.length > 0 ? (
+                  session.sessionType.slots.map((slot: any, slotIndex: number) => {
+                    if (typeof slot !== "object") return null;
+                    const slotData = JSON.parse(JSON.stringify(slot));
+                    return (
+                      <div key={slotIndex} className="bg-zinc-50 dark:bg-zinc-700/30 rounded-lg p-4">
+                        <h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-3">{slotData.name}</h4>
+                        <div className="space-y-2">
+                          {Array.from(Array(slotData.slots)).map((_, i) => {
+                            const assignedUser = session.users?.find((u: any) => u.roleID === slotData.id && u.slot === i);
+                            const username = assignedUser ? availableUsers.find((user: any) => user.userid === assignedUser.userid.toString())?.username : null;
+                            const userPicture = assignedUser ? availableUsers.find((user: any) => user.userid === assignedUser.userid.toString())?.picture : null;
+                            return (
+                              <div key={i} className="flex items-center gap-2">
+                                <span className="text-sm text-zinc-600 dark:text-zinc-400 w-16">Slot {i + 1}:</span>
+                                <div className="flex-1 px-3 py-2 text-sm bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-md flex items-center gap-2">
+                                  {username ? (
+                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${getRandomBg(assignedUser.userid.toString())}`}>
+                                      <img src={userPicture || "/default-avatar.jpg"} alt={username} className="w-6 h-6 rounded-full object-cover border border-white" onError={(e) => { e.currentTarget.src = "/default-avatar.jpg"; }} />
+                                    </div>
+                                  ) : null}
+                                  <span className="text-zinc-700 dark:text-white">{username || "Unclaimed"}</span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-sm text-zinc-500 dark:text-zinc-400">No slots defined for this session type</div>
+                )}
+              </div>
+              <div className="mt-8 flex justify-between w-full">
+                <Button onPress={() => setActiveTab("statuses")} classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600">Back</Button>
+                <Button onPress={form.handleSubmit(handleSaveClick)} classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90">{isSubmitting ? "Saving..." : "Save Changes"}</Button>
+              </div>
+            </div>
+          )}
         </div>
       </FormProvider>
 
@@ -713,3 +765,47 @@ const EditSession: pageWithLayout<
 EditSession.layout = Workspace;
 
 export default EditSession;
+
+const Status: React.FC<{
+  data: any;
+  updateStatus: (value: string, minutes: number, color: string) => void;
+  deleteStatus: () => void;
+  index?: number;
+}> = ({ updateStatus, deleteStatus, data, index }) => {
+  const methods = useForm<{
+    minutes: number;
+    value: string;
+  }>({
+    defaultValues: {
+      value: data.name,
+      minutes: data.timeAfter,
+    },
+  });
+  const { register, watch } = methods;
+
+  useEffect(() => {
+    const subscription = methods.watch((value) => {
+      updateStatus(methods.getValues().value, Number(methods.getValues().minutes), "green");
+    });
+    return () => subscription.unsubscribe();
+  }, [methods, updateStatus]);
+
+  return (
+    <FormProvider {...methods}>
+      <div className="flex justify-between items-center mb-3">
+        <div className="flex items-center">
+          {index !== undefined && (
+            <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium mr-2">{index}</span>
+          )}
+          <h3 className="font-medium dark:text-white">{watch("value") || "New Status"}</h3>
+        </div>
+        <Button onPress={deleteStatus} compact classoverride="bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 flex items-center gap-1"><IconTrash size={16} /> Delete</Button>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Input {...register("value")} label="Status Name" placeholder="In Progress" />
+        <Input {...register("minutes")} label="Time After (minutes)" type="number" placeholder="15" />
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 md:col-span-2">Status will activate {watch("minutes") || 0} minutes after session starts</p>
+      </div>
+    </FormProvider>
+  );
+};
