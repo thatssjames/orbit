@@ -32,10 +32,10 @@ export default function StickyNoteAnnouncement() {
 
         <div className="text-zinc-800 dark:text-zinc-300 text-sm space-y-3">
           <h4 className="text-base font-semibold text-zinc-900 dark:text-white">
-            ✨ Shipping Saturday — A recap of this week in Planetary and Orbit
+            Update: v2.1.5 is now live!
           </h4>
           <p>
-            We're keeping this going with a well needed update — here are a few
+            We're keeping this going with a well needed update. Here are a few
             highlights from this week's work and community feedback.
           </p>
           <div>
@@ -50,7 +50,7 @@ export default function StickyNoteAnnouncement() {
             <p className="font-semibold mt-2">📅 Inactivity Notices</p>
             <p>
               Notices now include quick predefined options. Pending notices appear on user profiles with a quick manage
-              button — and workspace staff can cancel notices directly from the
+              button and workspace staff can cancel notices directly from the
               profile.
             </p>
           </div>
