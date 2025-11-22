@@ -19,6 +19,46 @@ type MiddlewareData = {
   permissions: string;
 };
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function retryNobloxRequest<T>(
+  fn: () => Promise<T>,
+  maxRetries = 5,
+  initialDelay = 1000
+): Promise<T> {
+  let lastError: any;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      if (attempt > 0) {
+        const delayMs = initialDelay * Math.pow(2, attempt - 1);
+        console.log(`[retryNobloxRequest] Retrying after ${delayMs}ms (attempt ${attempt + 1}/${maxRetries})`);
+        await delay(delayMs);
+      }
+      
+      return await fn();
+    } catch (error: any) {
+      lastError = error;
+      // prevent rate limited requests from failing immediately (hopefully)
+      const isRateLimitError = 
+        error?.statusCode === 429 || 
+        error?.statusCode === 401 ||
+        (error?.message && error.message.toLowerCase().includes('too many requests'));
+      
+      if (isRateLimitError && attempt < maxRetries - 1) {
+        console.log(`[retryNobloxRequest] Rate limit hit, will retry (attempt ${attempt + 1}/${maxRetries})`);
+        continue;
+      }
+      
+      if (!isRateLimitError || attempt === maxRetries - 1) {
+        throw error;
+      }
+    }
+  }
+  
+  throw lastError;
+}
+
 export function withPermissionCheck(
   handler: NextApiHandler,
   permission?: string
@@ -200,7 +240,7 @@ export async function checkGroupRoles(groupID: number) {
   try {
     console.log(`[checkGroupRoles] Starting role sync for group ${groupID}`);
 
-    const rss = await noblox.getRoles(groupID).catch((error) => {
+    const rss = await retryNobloxRequest(() => noblox.getRoles(groupID)).catch((error) => {
       console.error(
         `[checkGroupRoles] Failed to get roles for group ${groupID}:`,
         error
@@ -253,15 +293,16 @@ export async function checkGroupRoles(groupID: number) {
           );
 
           const role = rs.find((r) => r.groupRoles?.includes(rank.id));
-          const members = await noblox
-            .getPlayers(groupID, rank.id)
-            .catch((error) => {
-              console.error(
-                `[checkGroupRoles] Failed to get players for rank ${rank.id}:`,
-                error
-              );
-              return null;
-            });
+          
+          // Add delay and retry for getPlayers
+          await delay(500); // Small delay between rank processing
+          const members = await retryNobloxRequest(() => noblox.getPlayers(groupID, rank.id)).catch((error) => {
+            console.error(
+              `[checkGroupRoles] Failed to get players for rank ${rank.id}:`,
+              error
+            );
+            return null;
+          });
           if (!members) {
             console.log(
               `[checkGroupRoles] No members found for rank ${rank.id}, skipping`
@@ -453,7 +494,9 @@ export async function checkGroupRoles(groupID: number) {
                   continue;
                 }
 
-                const thumbnail = await getThumbnail(member.userId).catch(
+                // Add delay and retry for getThumbnail
+                await delay(300); // Small delay before thumbnail fetch
+                const thumbnail = await retryNobloxRequest(() => getThumbnail(member.userId)).catch(
                   (error) => {
                     console.error(
                       `[checkGroupRoles] Failed to get thumbnail for user ${member.userId}:`,
@@ -547,8 +590,9 @@ export async function checkGroupRoles(groupID: number) {
 export async function checkSpecificUser(userID: number) {
   const ws = await prisma.workspace.findMany({});
   for (const w of ws) {
-    const rankId = await noblox
-      .getRankInGroup(w.groupId, userID)
+    await delay(500); // Delay between workspace checks
+    
+    const rankId = await retryNobloxRequest(() => noblox.getRankInGroup(w.groupId, userID))
       .catch(() => null);
     await prisma.rank.upsert({
       where: {
@@ -568,7 +612,10 @@ export async function checkSpecificUser(userID: number) {
     });
 
     if (!rankId) continue;
-    const rankInfo = await noblox.getRole(w.groupId, rankId).catch(() => null);
+    
+    await delay(300); // Small delay before getRole
+    const rankInfo = await retryNobloxRequest(() => noblox.getRole(w.groupId, rankId))
+      .catch(() => null);
     if (!rankInfo) continue;
     const rank = rankInfo.id;
 
