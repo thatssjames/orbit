@@ -10,7 +10,8 @@ import * as noblox from 'noblox.js'
 type Data = {
 	success: boolean
 	error?: string
-	sessions?: Session[]
+	sessions?: (Session & { isLive?: boolean })[]
+	nextSession?: Session & { isLive?: boolean }
 }
 
 export default withPermissionCheck(handler);
@@ -20,25 +21,53 @@ export async function handler(
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'GET') return res.status(405).json({ success: false, error: 'Method not allowed' });
-	const sessions = await prisma.session.findMany({
+	
+	const now = new Date();
+	const allSessions = await prisma.session.findMany({
 		where: {
 			sessionType: {
 				workspaceGroupId: parseInt(req.query.id as string)
 			},
-			startedAt: {
-				not: null
-			},
-			ended: null
 		},
 		include: {
 			owner: {
 				select: {
 					username: true,
 					picture: true,
+					userid: true,
+				}
+			},
+			sessionType: {
+				select: {
+					name: true
 				}
 			}
+		},
+		orderBy: {
+			date: 'asc'
 		}
 	});
 	
-	res.status(200).json({ success: true, sessions: JSON.parse(JSON.stringify(sessions, (key, value) => (typeof value === 'bigint' ? value.toString() : value))) })
+	const activeSessions = allSessions.filter(session => {
+		const startTime = new Date(session.date);
+		const endTime = new Date(startTime.getTime() + session.duration * 60000); // duration in minutes to milliseconds
+		return now >= startTime && now <= endTime;
+	}).map(session => ({ ...session, isLive: true }));
+	
+	let nextSession = null;
+	if (activeSessions.length === 0) {
+		nextSession = allSessions.find(session => {
+			const startTime = new Date(session.date);
+			return startTime > now;
+		});
+		if (nextSession) {
+			nextSession = { ...nextSession, isLive: false };
+		}
+	}
+	
+	res.status(200).json({ 
+		success: true, 
+		sessions: JSON.parse(JSON.stringify(activeSessions, (key, value) => (typeof value === 'bigint' ? value.toString() : value))),
+		nextSession: nextSession ? JSON.parse(JSON.stringify(nextSession, (key, value) => (typeof value === 'bigint' ? value.toString() : value))) : undefined
+	})
 }
