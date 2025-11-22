@@ -41,6 +41,17 @@ a {
 	}
 
 }
+.dark input[type="date"]::-webkit-calendar-picker-indicator,
+.dark input[type="time"]::-webkit-calendar-picker-indicator {
+	filter: invert(1) brightness(1.5) !important;
+}
+.dark input::-webkit-clear-button,
+.dark input::-webkit-inner-spin-button {
+	filter: invert(1) brightness(1.5) !important;
+}
+.dark .force-light-icon {
+	color: #fff !important;
+}
 
 ul[data-type="taskList"] {
 	list-style: none;

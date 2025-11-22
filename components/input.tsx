@@ -18,8 +18,9 @@ type Props = {
 const Input = React.forwardRef<
 	HTMLInputElement | HTMLTextAreaElement,
 	Props & ReturnType<UseFormRegister<any>>
->(({ placeholder, label, classoverride, id, onChange, onBlur, name, type, textarea, append, prepend, disabled, value }, ref) => {
-	const { formState: { errors } } = useFormContext();
+>(({ placeholder, label, classoverride = "", id, onChange, onBlur, name, type, textarea, append, prepend, disabled, value }, ref) => {
+	const formContext = useFormContext();
+	const errors = formContext ? (formContext.formState?.errors as any) : {};
 	return (
 		<div className="mb-3">
 			{label &&
