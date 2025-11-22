@@ -1,6 +1,7 @@
 import Activity from "@/components/profile/activity";
 import Book from "@/components/profile/book";
 import Notices from "@/components/profile/notices";
+import { Toaster } from "react-hot-toast";
 import { InformationPanel } from "@/components/profile/info";
 import workspace from "@/layouts/workspace";
 import { pageWithLayout } from "@/layoutTypes";
@@ -631,6 +632,7 @@ const Profile: pageWithLayout<pageProps> = ({
 
   return (
     <div className="pagePadding">
+      <Toaster position="bottom-center" />
       <div className="max-w-7xl mx-auto">
         <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 shadow-sm mb-6">
           <div className="flex items-center gap-4">
