@@ -213,10 +213,17 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       }
 
       if (result && !result.success) {
-        const errorMessage = result.error || "Ranking operation failed.";
+        let errorMessage = result.error || "Ranking operation failed.";
+        if (typeof errorMessage === "object") {
+          try {
+            errorMessage = JSON.stringify(errorMessage);
+          } catch (e) {
+            errorMessage = String(errorMessage);
+          }
+        }
         return res.status(400).json({
           success: false,
-          error: errorMessage,
+          error: String(errorMessage),
         });
       }
 
@@ -403,13 +410,20 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         console.error("Error updating user rank in database:", rankUpdateError);
       }
     } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.error ||
-        error.message ||
+      let errorMessage =
+        error?.response?.data?.error ||
+        error?.message ||
         "RankGun operation failed";
+      if (typeof errorMessage === "object") {
+        try {
+          errorMessage = JSON.stringify(errorMessage);
+        } catch (e) {
+          errorMessage = String(errorMessage);
+        }
+      }
       return res.status(500).json({
         success: false,
-        error: errorMessage,
+        error: String(errorMessage),
       });
     }
   }
