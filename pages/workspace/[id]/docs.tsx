@@ -210,23 +210,25 @@ const Home: pageWithLayout<pageProps> = ({ documents, canManage }) => {
 				</div>
 
 				{/* New Document Button */}
-				<button 
-					onClick={() => router.push(`/workspace/${router.query.id}/docs/new`)}
-					className="w-full bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4 mb-4 hover:shadow-md transition-shadow group">
-					<div className="flex items-center gap-3">
-						<div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-							<IconPlus className="w-5 h-5 text-primary" />
+				{canManage && (
+					<button 
+						onClick={() => router.push(`/workspace/${router.query.id}/docs/new`)}
+						className="w-full bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4 mb-4 hover:shadow-md transition-shadow group">
+						<div className="flex items-center gap-3">
+							<div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+								<IconPlus className="w-5 h-5 text-primary" />
+							</div>
+							<div className="flex-1 text-left">
+								<h3 className="text-lg font-medium text-zinc-900 dark:text-white">
+									New Document
+								</h3>
+								<p className="text-sm text-zinc-500 dark:text-zinc-300 mt-0.5">
+									Create a new document for your workspace
+								</p>
+							</div>
 						</div>
-						<div className="flex-1 text-left">
-							<h3 className="text-lg font-medium text-zinc-900 dark:text-white">
-								New Document
-							</h3>
-							<p className="text-sm text-zinc-500 dark:text-zinc-300 mt-0.5">
-								Create a new document for your workspace
-							</p>
-						</div>
-					</div>
-				</button>
+					</button>
+				)}
 
 				{/* Documents Grid */}
 				{documents.length > 0 ? (
