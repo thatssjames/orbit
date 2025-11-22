@@ -114,6 +114,11 @@ const Wall: pageWithLayout<pageProps> = (props) => {
   };
 
   function sendPost() {
+    if (!canPostOnWall()) {
+      toast.error("You don't have permission to post on the wall.");
+      return;
+    }
+
     setLoading(true);
     axios
       .post(`/api/workspace/${id}/wall/post`, {
@@ -218,6 +223,19 @@ const Wall: pageWithLayout<pageProps> = (props) => {
     return BG_COLORS[index];
   }
 
+  const canPostOnWall = () => {
+    try {
+      const role = workspace?.roles?.find(
+        (r: any) => r.id === workspace?.yourRole
+      );
+      const isOwner = !!(role && role.isOwnerRole);
+      const hasPerm = !!workspace?.yourPermission?.includes("post_on_wall");
+      return isOwner || hasPerm || !!login?.canMakeWorkspace;
+    } catch (e) {
+      return false;
+    }
+  };
+
   return (
     <div className="pagePadding">
       <Toaster position="bottom-center" />
@@ -233,98 +251,104 @@ const Wall: pageWithLayout<pageProps> = (props) => {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-4 mb-8">
-        <div className="flex items-start gap-4">
-          <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(
-              login.userId.toString()
-            )}`}
-          >
-            <img
-              src={login.thumbnail}
-              alt="Your avatar"
-              className="w-10 h-10 rounded-full object-cover border-2 border-white"
-              style={{ background: "transparent" }}
-            />
-          </div>
-          <div className="flex-1">
-            <textarea
-              className="w-full border-0 focus:ring-0 resize-none bg-transparent placeholder-gray-400 dark:placeholder-gray-500 text-zinc-900 dark:text-white"
-              placeholder="What's on your mind?"
-              value={wallMessage}
-              onChange={(e) => setWallMessage(e.target.value)}
-              rows={3}
-              maxLength={10000}
-            />
-            {selectedImage && (
-              <div className="relative mt-2">
-                <img
-                  src={selectedImage}
-                  alt="Selected"
-                  className="max-h-64 rounded-lg object-contain"
-                />
-                <button
-                  onClick={removeImage}
-                  className="absolute top-2 right-2 p-1 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
-                >
-                  <IconX size={16} />
-                </button>
-              </div>
-            )}
-            <div className="flex items-center justify-between pt-3 border-t border-zinc-100 dark:border-zinc-700">
-              <div className="flex items-center gap-4">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  className="hidden"
-                  accept="image/jpeg,image/png,image/gif,image/webp"
-                  onChange={handleImageSelect}
-                />
-                <button
-                  className="p-2 text-zinc-500 hover:text-primary rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <IconPhoto size={20} />
-                </button>
-                <div className="relative z-10">
+      {canPostOnWall() ? (
+        <div className="bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-4 mb-8">
+          <div className="flex items-start gap-4">
+            <div
+              className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(
+                login.userId.toString()
+              )}`}
+            >
+              <img
+                src={login.thumbnail}
+                alt="Your avatar"
+                className="w-10 h-10 rounded-full object-cover border-2 border-white"
+                style={{ background: "transparent" }}
+              />
+            </div>
+            <div className="flex-1">
+              <textarea
+                className="w-full border-0 focus:ring-0 resize-none bg-transparent placeholder-gray-400 dark:placeholder-gray-500 text-zinc-900 dark:text-white"
+                placeholder="What's on your mind?"
+                value={wallMessage}
+                onChange={(e) => setWallMessage(e.target.value)}
+                rows={3}
+                maxLength={10000}
+              />
+              {selectedImage && (
+                <div className="relative mt-2">
+                  <img
+                    src={selectedImage}
+                    alt="Selected"
+                    className="max-h-64 rounded-lg object-contain"
+                  />
+                  <button
+                    onClick={removeImage}
+                    className="absolute top-2 right-2 p-1 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
+                  >
+                    <IconX size={16} />
+                  </button>
+                </div>
+              )}
+              <div className="flex items-center justify-between pt-3 border-t border-zinc-100 dark:border-zinc-700">
+                <div className="flex items-center gap-4">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={handleImageSelect}
+                  />
                   <button
                     className="p-2 text-zinc-500 hover:text-primary rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
-                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    onClick={() => fileInputRef.current?.click()}
                   >
-                    <IconMoodSmile size={20} />
+                    <IconPhoto size={20} />
                   </button>
-                  {showEmojiPicker && (
-                    <div className="absolute top-full left-0 mt-2 z-10">
-                      <EmojiPicker
-                        onEmojiClick={onEmojiClick}
-                        theme={
-                          document.documentElement.classList.contains("dark")
-                            ? Theme.DARK
-                            : Theme.LIGHT
-                        }
-                        width={350}
-                        height={400}
-                        lazyLoadEmojis={true}
-                        searchPlaceholder="Search emojis..."
-                      />
-                    </div>
-                  )}
+                  <div className="relative z-10">
+                    <button
+                      className="p-2 text-zinc-500 hover:text-primary rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    >
+                      <IconMoodSmile size={20} />
+                    </button>
+                    {showEmojiPicker && (
+                      <div className="absolute top-full left-0 mt-2 z-10">
+                        <EmojiPicker
+                          onEmojiClick={onEmojiClick}
+                          theme={
+                            document.documentElement.classList.contains("dark")
+                              ? Theme.DARK
+                              : Theme.LIGHT
+                          }
+                          width={350}
+                          height={400}
+                          lazyLoadEmojis={true}
+                          searchPlaceholder="Search emojis..."
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
+                <Button
+                  classoverride="bg-primary hover:bg-primary/90 text-white dark:text-white px-6 dark:bg-primary dark:hover:bg-primary/80"
+                  workspace
+                  onPress={sendPost}
+                  loading={loading}
+                  disabled={!wallMessage.trim() && !selectedImage}
+                >
+                  <IconSend size={18} className="mr-2" />
+                  Post
+                </Button>
               </div>
-              <Button
-                classoverride="bg-primary hover:bg-primary/90 text-white dark:text-white px-6 dark:bg-primary dark:hover:bg-primary/80"
-                workspace
-                onPress={sendPost}
-                loading={loading}
-                disabled={!wallMessage.trim() && !selectedImage}
-              >
-                <IconSend size={18} className="mr-2" />
-                Post
-              </Button>
             </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-4 mb-8 text-sm text-zinc-600 dark:text-zinc-400">
+          You don't have permission to post on the wall.
+        </div>
+      )}
 
       <div className="space-y-6">
         {posts.length < 1 ? (
