@@ -177,7 +177,7 @@ const Login: NextPage = () => {
 								{...signupform.register("username", {
 									required: "Username is required"
 								})} 
-								label="Username" 
+								label="Roblox Username" 
 							/>
 							{signupform.formState.errors.username && (
 								<p className="text-red-500 text-sm mt-1">
