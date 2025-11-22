@@ -141,9 +141,12 @@ const Book: FC<Props> = ({ userBook, onRefetch }) => {
       router.reload();
     } catch (error: any) {
       console.error("Error adding note:", error);
+      // log server response body for debugging
+      try {
+        console.error("Server response:", error?.response?.data);
+      } catch (e) {}
       const raw = error?.response?.data?.error || error?.message || "Failed to add note";
-      const errorMessage =
-        typeof raw === "object" ? JSON.stringify(raw) : String(raw);
+      const errorMessage = typeof raw === "object" ? JSON.stringify(raw) : String(raw);
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);

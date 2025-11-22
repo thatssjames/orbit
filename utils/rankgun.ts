@@ -46,6 +46,8 @@ export class RankGunAPI {
           errorMessage = data.message;
         } else if (data.detail) {
           errorMessage = data.detail;
+        } else if (data.error) {
+          errorMessage = data.error;
         } else if (data.code) {
           switch (data.code) {
             case "PERMISSION_DENIED":
@@ -72,21 +74,21 @@ export class RankGunAPI {
     }
   }
 
-  async promoteUser(userId: number, groupId: number): Promise<RankGunResponse> {
+  async promoteUser(userId: number, _groupId: string): Promise<RankGunResponse> {
     return this.makeRequest("/roblox/promote", {
       user_id: userId,
       workspace_id: this.workspaceId,
     });
   }
 
-  async demoteUser(userId: number, groupId: number): Promise<RankGunResponse> {
+  async demoteUser(userId: number, _groupId: string): Promise<RankGunResponse> {
     return this.makeRequest("/roblox/demote", {
       user_id: userId,
       workspace_id: this.workspaceId,
     });
   }
 
-  async terminateUser(userId: number, groupId: number): Promise<RankGunResponse> {
+  async terminateUser(userId: number, _groupId: string): Promise<RankGunResponse> {
     return this.makeRequest("/roblox/set-rank", {
       user_id: userId,
       workspace_id: this.workspaceId,
@@ -96,7 +98,7 @@ export class RankGunAPI {
 
   async setUserRank(
     userId: number,
-    groupId: number,
+    _groupId: string,
     rank: number
   ): Promise<RankGunResponse> {
     return this.makeRequest("/roblox/set-rank", {
@@ -126,7 +128,7 @@ export async function getRankGun(
 
     return {
       apiKey: settings.rankingToken,
-      workspaceId: settings.rankingWorkspaceId,
+      workspaceId: String(settings.rankingWorkspaceId),
     };
   } catch (error) {
     return null;

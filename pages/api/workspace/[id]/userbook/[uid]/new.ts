@@ -140,17 +140,17 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       switch (type) {
         case "promotion":
           if (rankGunAPI) {
-            result = await rankGunAPI.promoteUser(userId, workspaceGroupId);
+            result = await rankGunAPI.promoteUser(userId, rankGun.workspaceId);
           }
           break;
         case "demotion":
           if (rankGunAPI) {
-            result = await rankGunAPI.demoteUser(userId, workspaceGroupId);
+            result = await rankGunAPI.demoteUser(userId, rankGun.workspaceId);
           }
           break;
         case "termination":
           if (rankGunAPI) {
-            result = await rankGunAPI.terminateUser(userId, workspaceGroupId);
+            result = await rankGunAPI.terminateUser(userId, rankGun.workspaceId);
           }
           break;
         case "rank_change":
@@ -205,7 +205,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
           if (rankGunAPI) {
             result = await rankGunAPI.setUserRank(
               userId,
-              workspaceGroupId,
+              rankGun.workspaceId,
               parseInt(targetRank)
             );
           }
@@ -213,6 +213,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       }
 
       if (result && !result.success) {
+        // Log the full result for debugging so we can see RankGun's response shape
+        console.error("RankGun returned an error result:", result);
         let errorMessage = result.error || "Ranking operation failed.";
         if (typeof errorMessage === "object") {
           try {
