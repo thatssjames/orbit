@@ -210,7 +210,7 @@ const Home: pageWithLayout<pageProps> = ({ documents, canManage }) => {
 				</div>
 
 				{/* New Document Button */}
-				{canManage && (
+				{canManage ? (
 					<button 
 						onClick={() => router.push(`/workspace/${router.query.id}/docs/new`)}
 						className="w-full bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4 mb-4 hover:shadow-md transition-shadow group">
@@ -228,6 +228,10 @@ const Home: pageWithLayout<pageProps> = ({ documents, canManage }) => {
 							</div>
 						</div>
 					</button>
+				) : (
+					<div className="bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-4 mb-8 text-sm text-zinc-600 dark:text-zinc-400">
+						You don't have permission to create documents.
+					</div>
 				)}
 
 				{/* Documents Grid */}
@@ -304,6 +308,13 @@ const Home: pageWithLayout<pageProps> = ({ documents, canManage }) => {
 									<IconPlus className="w-4 h-4" />
 									Create Document
 								</button>
+							</>
+						)}
+						{!canManage && (
+							<>
+								<p className="text-sm text-zinc-500 dark:text-zinc-300 mb-4">
+									Contact your workspace admin to create a document.
+								</p>
 							</>
 						)}
 					</div>
