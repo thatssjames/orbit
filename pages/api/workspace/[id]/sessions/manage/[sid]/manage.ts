@@ -47,6 +47,7 @@ export default withPermissionCheck(
       const {
         date,
         time,
+        name,
         description,
         duration,
         updateAll,
@@ -83,6 +84,9 @@ export default withPermissionCheck(
           date: sessionDate,
         };
 
+        if (name !== undefined) {
+          sessionUpdateData.name = name;
+        }
         if (ownerId !== undefined) {
           sessionUpdateData.ownerId = ownerId ? BigInt(ownerId) : null;
         }
