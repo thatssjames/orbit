@@ -939,105 +939,120 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
   useEffect(() => {
     const filteredUsers = usersInGroup.filter((user) => {
       let valid = true;
-      colFilters.forEach((filter) => {
+      
+      for (const filter of colFilters) {
+        if (!filter.value) continue;
+        
         if (filter.column === "username") {
-          if (!filter.value) return;
           if (filter.filter === "equal") {
             if (user.info.username !== filter.value) {
               valid = false;
+              break;
             }
           } else if (filter.filter === "notEqual") {
             if (user.info.username === filter.value) {
               valid = false;
+              break;
             }
           } else if (filter.filter === "contains") {
             if (!user.info.username?.includes(filter.value)) {
               valid = false;
+              break;
             }
           }
         } else if (filter.column === "minutes") {
-          if (!filter.value) return;
           if (filter.filter === "equal") {
             if (user.minutes !== parseInt(filter.value)) {
               valid = false;
+              break;
             }
           } else if (filter.filter === "greaterThan") {
             if (user.minutes <= parseInt(filter.value)) {
               valid = false;
+              break;
             }
           } else if (filter.filter === "lessThan") {
             if (user.minutes >= parseInt(filter.value)) {
               valid = false;
+              break;
             }
           }
         } else if (filter.column === "idle") {
-          if (!filter.value) return;
           if (filter.filter === "equal") {
             if (user.idleMinutes !== parseInt(filter.value)) {
               valid = false;
+              break;
             }
           } else if (filter.filter === "greaterThan") {
             if (user.idleMinutes <= parseInt(filter.value)) {
               valid = false;
+              break;
             }
           } else if (filter.filter === "lessThan") {
             if (user.idleMinutes >= parseInt(filter.value)) {
               valid = false;
+              break;
             }
           }
         } else if (filter.column === "rank") {
-          if (!filter.value) return;
           if (filter.filter === "equal") {
             if (user.rankID !== parseInt(filter.value)) {
               valid = false;
+              break;
             }
           } else if (filter.filter === "greaterThan") {
             if (user.rankID <= parseInt(filter.value)) {
               valid = false;
+              break;
             }
           } else if (filter.filter === "lessThan") {
             if (user.rankID >= parseInt(filter.value)) {
               valid = false;
+              break;
             }
           }
         } else if (filter.column === "hosted") {
-          if (!filter.value) return;
           if (filter.filter === "equal") {
             if (user.hostedSessions.length !== parseInt(filter.value)) {
               valid = false;
+              break;
             }
           } else if (filter.filter === "greaterThan") {
             if (user.hostedSessions.length <= parseInt(filter.value)) {
               valid = false;
+              break;
             }
           } else if (filter.filter === "lessThan") {
             if (user.hostedSessions.length >= parseInt(filter.value)) {
               valid = false;
+              break;
             }
           }
         } else if (filter.column === "sessions") {
-          if (!filter.value) return;
           if (filter.filter === "equal") {
             if (user.sessions.length !== parseInt(filter.value)) {
               valid = false;
+              break;
             }
           } else if (filter.filter === "greaterThan") {
             if (user.sessions.length <= parseInt(filter.value)) {
               valid = false;
+              break;
             }
           } else if (filter.filter === "lessThan") {
             if (user.sessions.length >= parseInt(filter.value)) {
               valid = false;
+              break;
             }
           }
         } else if (filter.column === "warnings") {
-          if (!filter.value) return;
           if (filter.filter === "equal") {
             if (
               user.book.filter((x) => x.type == "warning").length !==
               parseInt(filter.value)
             ) {
               valid = false;
+              break;
             }
           } else if (filter.filter === "greaterThan") {
             if (
@@ -1045,6 +1060,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
               parseInt(filter.value)
             ) {
               valid = false;
+              break;
             }
           } else if (filter.filter === "lessThan") {
             if (
@@ -1052,54 +1068,60 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
               parseInt(filter.value)
             ) {
               valid = false;
+              break;
             }
           }
         } else if (filter.column === "messages") {
-          if (!filter.value) return;
           if (filter.filter === "equal") {
             if (user.messages !== parseInt(filter.value)) {
               valid = false;
+              break;
             }
           } else if (filter.filter === "greaterThan") {
             if (user.messages <= parseInt(filter.value)) {
               valid = false;
+              break;
             }
           } else if (filter.filter === "lessThan") {
             if (user.messages >= parseInt(filter.value)) {
               valid = false;
+              break;
             }
           }
         } else if (filter.column === "notices") {
-          if (!filter.value) return;
           if (filter.filter === "equal") {
             if (user.inactivityNotices.length !== parseInt(filter.value)) {
               valid = false;
+              break;
             }
           } else if (filter.filter === "greaterThan") {
             if (user.inactivityNotices.length <= parseInt(filter.value)) {
               valid = false;
+              break;
             }
           } else if (filter.filter === "lessThan") {
             if (user.inactivityNotices.length >= parseInt(filter.value)) {
               valid = false;
+              break;
             }
           }
         } else if (filter.column === "registered") {
-          if (!filter.value) return;
           if (filter.filter === "equal") {
             if (user.registered.toString() !== filter.value.toLowerCase()) {
               valid = false;
+              break;
             }
           }
         } else if (filter.column === "quota") {
-          if (!filter.value) return;
           if (filter.filter === "equal") {
             if (user.quota.toString() !== filter.value.toLowerCase()) {
               valid = false;
+              break;
             }
           }
         }
-      });
+      }
+      
       return valid;
     });
     setUsers(filteredUsers);
