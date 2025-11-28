@@ -11,14 +11,22 @@ export default withSessionRoute(async function handler(req: NextApiRequest, res:
 
 	const userid = req.session.userid ? Number(req.session.userid) : null;
 	if (userid) {
-		try {
-		await prisma.workspaceMember.upsert({
-			where: { workspaceGroupId_userId: { workspaceGroupId, userId: userid } },
-			create: { workspaceGroupId, userId: userid, joinDate: new Date() },
-			update: {},
+		const userRoles = await prisma.role.findMany({
+			where: { 
+				workspaceGroupId,
+				members: { some: { userid: BigInt(userid) } }
+			}
 		});
-		} catch (e) {
-		// ignore constraint errors
+		if (userRoles.length > 0) {
+			try {
+				await prisma.workspaceMember.upsert({
+					where: { workspaceGroupId_userId: { workspaceGroupId, userId: userid } },
+					create: { workspaceGroupId, userId: userid, joinDate: new Date() },
+					update: {},
+				});
+			} catch (e) {
+				// ignore constraint errors
+			}
 		}
 	}
 
