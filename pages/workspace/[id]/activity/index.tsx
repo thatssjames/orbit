@@ -466,19 +466,23 @@ const Activity: pageWithLayout = () => {
             </div>
           </div>
         )}
-        <h2 className="text-base font-medium text-zinc-900 dark:text-white mb-2">
-          Quick Actions
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-          {workspace.yourPermission.includes("admin") && (
-            <ActionButton
-              icon={IconTarget}
-              title="Manage Quotas"
-              desc="Configure quotas"
-              onClick={() => router.push(`/workspace/${id}/activity/quotas`)}
-            />
-          )}
-        </div>
+        {(workspace.yourPermission.includes("admin") || workspace.yourPermission.includes("manage_quotas")) && (
+          <>
+            <h2 className="text-base font-medium text-zinc-900 dark:text-white mb-2">
+              Quick Actions
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {(workspace.yourPermission.includes("admin") || workspace.yourPermission.includes("manage_quotas")) && (
+                <ActionButton
+                  icon={IconTarget}
+                  title="Manage Quotas"
+                  desc="Configure quotas"
+                  onClick={() => router.push(`/workspace/${id}/activity/quotas`)}
+                />
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       <Transition appear show={isSessionModalOpen} as={Fragment}>
@@ -536,7 +540,7 @@ const Activity: pageWithLayout = () => {
                           {concurrentUsers.map((user: any) => (
                             <div
                               key={user.sessionId}
-                              className={`w-8 h-8 rounded-full overflow-hidden ring-2 ring-white dark:ring-zinc-800 ${getRandomBg(user.userId)}`}
+                              className={`w-8 h-8 rounded-full overflow-hidden ring-2 ring-white dark:ring-zinc-800 ${getRandomBg(user.userId, user.username)}`}
                               title={user.username}
                             >
                               <img
@@ -631,34 +635,33 @@ const ActionButton = ({ icon: Icon, title, desc, onClick }: any) => (
 );
 
 const BG_COLORS = [
-  "bg-rose-200",
-  "bg-lime-200",
-  "bg-sky-200",
-  "bg-amber-200",
-  "bg-violet-200",
-  "bg-fuchsia-200",
-  "bg-emerald-200",
-  "bg-indigo-200",
-  "bg-pink-200",
-  "bg-cyan-200",
-  "bg-red-200",
-  "bg-green-200",
-  "bg-blue-200",
-  "bg-yellow-200",
-  "bg-teal-200",
-  "bg-orange-200",
+	"bg-red-200",
+	"bg-green-200",
+	"bg-emerald-200",
+	"bg-red-300",
+	"bg-green-300",
+	"bg-emerald-300",
+	"bg-amber-200",
+	"bg-yellow-200",
+	"bg-red-100",
+	"bg-green-100",
+	"bg-lime-200",
+	"bg-rose-200",
+	"bg-amber-300",
+	"bg-teal-200",
+	"bg-lime-300",
+	"bg-rose-300",
 ];
 
 function getRandomBg(userid: string, username?: string) {
   const key = `${userid ?? ""}:${username ?? ""}`;
   let hash = 5381;
   for (let i = 0; i < key.length; i++) {
-    hash = (hash * 33) ^ key.charCodeAt(i);
+    hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
   }
   const index = (hash >>> 0) % BG_COLORS.length;
   return BG_COLORS[index];
 }
-
 
 Activity.layout = workspace;
 

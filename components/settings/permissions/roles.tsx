@@ -31,6 +31,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 		'Host/Co-Host Sessions': 'sessions_host',
 		"Manage sessions": "manage_sessions",
 		"Manage activity": "manage_activity",
+		"Manage quotas": "manage_quotas",
 		"Manage members": "manage_members",
 		"Manage docs": "manage_docs",
 		"Manage views": "manage_views",

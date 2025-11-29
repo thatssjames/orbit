@@ -136,6 +136,7 @@ export async function handler(
 					'view_wall',
 					'view_members',
 					'manage_members',
+					'manage_quotas',
 					'manage_docs',
 					'view_entire_groups_activity',
 					'manage_alliances',

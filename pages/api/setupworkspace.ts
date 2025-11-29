@@ -230,6 +230,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
             "sessions_claim",
             "sessions_host",
             "manage_members",
+            "manage_quotas",
             "manage_docs",
             "view_entire_groups_activity",
             "manage_alliances",

@@ -97,6 +97,7 @@ export async function handler(
 		'Host Sessions': 'sessions_host',
 		"Manage sessions": "manage_sessions",
 		"Manage activity": "manage_activity",
+		"Manage quotas": "manage_quotas",
 		"Manage members": "manage_members",
 		"Manage docs": "manage_docs",
 		"Manage alliances": "manage_alliances",
@@ -116,7 +117,7 @@ export async function handler(
 			leaderboardEnabled: (await getConfig('leaderboard', workspace.groupId))?.enabled || false,
 			sessionsEnabled: (await getConfig('sessions', workspace.groupId))?.enabled || false,
 			alliesEnabled: (await getConfig('allies', workspace.groupId))?.enabled || false,
-			noticesEnabled: false,
+			noticesEnabled: (await getConfig('notices', workspace.groupId))?.enabled || false,
 			widgets: (await getConfig('home', workspace.groupId))?.widgets || []
 		}
 	} })
