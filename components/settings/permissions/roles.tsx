@@ -34,6 +34,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 		"Manage quotas": "manage_quotas",
 		"Manage members": "manage_members",
 		"Manage docs": "manage_docs",
+		"Manage policies": "manage_policies",
 		"Manage views": "manage_views",
 		"Manage alliances": "manage_alliances",
 		"Admin (Manage workspace)": "admin",

@@ -25,6 +25,7 @@ type Data = {
 			sessionsEnabled: boolean
 			alliesEnabled: boolean
 			noticesEnabled: boolean
+			policiesEnabled: boolean
 			widgets: string[]
 		}
 	}
@@ -104,6 +105,7 @@ export async function handler(
 			sessionsEnabled: (await getConfig('sessions', workspace.groupId))?.enabled || false,
 			alliesEnabled: (await getConfig('allies', workspace.groupId))?.enabled || false,
 			noticesEnabled: (await getConfig('notices', workspace.groupId))?.enabled || false,
+			policiesEnabled: (await getConfig('policies', workspace.groupId))?.enabled || false,
 			widgets: (await getConfig('home', workspace.groupId))?.widgets || []
 		}
 	} })

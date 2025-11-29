@@ -138,6 +138,7 @@ export async function handler(
 					'manage_members',
 					'manage_quotas',
 					'manage_docs',
+					'manage_policies',
 					'view_entire_groups_activity',
 					'manage_alliances',
 					'represent_alliance'
