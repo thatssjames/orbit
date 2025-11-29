@@ -13,45 +13,46 @@ import {
   IconUsers,
   IconClock,
   IconUserCircle,
+  IconFilter,
+  IconX,
 } from "@tabler/icons-react";
 import prisma, { Session, user, SessionType } from "@/utils/database";
 import { useRecoilState } from "recoil";
 import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 import randomText from "@/utils/randomText";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Fragment } from "react";
 import { useSessionColors } from "@/hooks/useSessionColors";
 import axios from "axios";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
 import toast, { Toaster } from "react-hot-toast";
 import SessionTemplate from "@/components/sessioncard";
+import { Dialog, Transition } from "@headlessui/react";
 
 const BG_COLORS = [
-  "bg-rose-200",
-  "bg-lime-200",
-  "bg-sky-200",
-  "bg-amber-200",
-  "bg-violet-200",
-  "bg-fuchsia-200",
-  "bg-emerald-200",
-  "bg-indigo-200",
-  "bg-pink-200",
-  "bg-cyan-200",
   "bg-red-200",
   "bg-green-200",
-  "bg-blue-200",
+  "bg-emerald-200",
+  "bg-red-300",
+  "bg-green-300",
+  "bg-emerald-300",
+  "bg-amber-200",
   "bg-yellow-200",
+  "bg-red-100",
+  "bg-green-100",
+  "bg-lime-200",
+  "bg-rose-200",
+  "bg-amber-300",
   "bg-teal-200",
-  "bg-orange-200",
+  "bg-lime-300",
+  "bg-rose-300",
 ];
 
-function getRandomBg(userid: any, username?: any) {
-  const idStr = String(userid ?? "");
-  const nameStr = String(username ?? "");
-  const key = `${idStr}:${nameStr}`;
+function getRandomBg(userid: string, username?: string) {
+  const key = `${userid ?? ""}:${username ?? ""}`;
   let hash = 5381;
   for (let i = 0; i < key.length; i++) {
-    hash = (hash * 33) ^ key.charCodeAt(i);
+    hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
   }
   const index = (hash >>> 0) % BG_COLORS.length;
   return BG_COLORS[index];
@@ -544,6 +545,9 @@ const Home: pageWithLayout<pageProps> = (props) => {
   const [selectedSession, setSelectedSession] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [workspaceMembers, setWorkspaceMembers] = useState<any[]>([]);
+  const [isVisibilityModalOpen, setIsVisibilityModalOpen] = useState(false);
+  const [visibilityFilters, setVisibilityFilters] = useState<any>({});
+  const [workspaceRoles, setWorkspaceRoles] = useState<any[]>([]);
   const router = useRouter();
   const workspaceIdForColors = Array.isArray(router.query.id)
     ? router.query.id[0]
@@ -555,6 +559,58 @@ const Home: pageWithLayout<pageProps> = (props) => {
     getTextColorForBackground,
   } = useSessionColors(workspaceIdForColors);
   const { userSessionMetrics } = props;
+
+  const SESSION_TYPES = ["shift", "training", "event", "other"];
+
+  const loadVisibilityFilters = async () => {
+    try {
+      const response = await axios.get(
+        `/api/workspace/${router.query.id}/sessions/filters`
+      );
+      if (response.data.success) {
+        setVisibilityFilters(response.data.filters || {});
+      }
+    } catch (error) {
+      console.error("Failed to load filters:", error);
+    }
+  };
+
+  const loadWorkspaceRoles = async () => {
+    try {
+      const response = await axios.get(
+        `/api/workspace/${router.query.id}/settings/roles`
+      );
+      if (response.data.success) {
+        setWorkspaceRoles(response.data.roles || []);
+      }
+    } catch (error) {
+      console.error("Failed to load workspace roles:", error);
+    }
+  };
+
+  const saveVisibilityFilters = async () => {
+    try {
+      await axios.post(`/api/workspace/${router.query.id}/sessions/filters`, {
+        filters: visibilityFilters,
+      });
+      toast.success("Filters saved successfully!");
+      setIsVisibilityModalOpen(false);
+      loadAllSessions();
+    } catch (error) {
+      console.error("Failed to save filters:", error);
+      toast.error("Failed to save filters");
+    }
+  };
+
+  const toggleSessionTypeForRole = (roleId: string, sessionType: string) => {
+    setVisibilityFilters((prev: any) => {
+      const current = prev[roleId] || [];
+      const newTypes = current.includes(sessionType)
+        ? current.filter((t: string) => t !== sessionType)
+        : [...current, sessionType];
+      return { ...prev, [roleId]: newTypes };
+    });
+  };
 
   const monday = getMonday(currentWeek);
   const weekDates = getWeekDates(monday);
@@ -668,8 +724,12 @@ const Home: pageWithLayout<pageProps> = (props) => {
   useEffect(() => {
     if (router.query.id) {
       loadWorkspaceMembers();
+      if (workspace.yourPermission?.includes("admin")) {
+        loadVisibilityFilters();
+        loadWorkspaceRoles();
+      }
     }
-  }, [router.query.id]);
+  }, [router.query.id, workspace.yourPermission]);
 
   const endSession = async (id: string) => {
     const axiosPromise = axios.delete(
@@ -820,6 +880,15 @@ const Home: pageWithLayout<pageProps> = (props) => {
             </div>
 
             <div>
+              {workspace.yourPermission?.includes("admin") && (
+                <button
+                  onClick={() => setIsVisibilityModalOpen(true)}
+                  className="inline-flex items-center justify-center px-4 py-2 mr-2 shadow-sm text-sm font-medium rounded-md text-zinc-700 dark:text-zinc-200 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
+                >
+                  <IconFilter className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Visibility Filters</span>
+                </button>
+              )}
               {workspace.yourPermission?.includes("manage_sessions") && (
                 <button
                   onClick={() =>
@@ -1028,6 +1097,131 @@ const Home: pageWithLayout<pageProps> = (props) => {
             colorsReady={!colorsLoading}
           />
         )}
+
+        <Transition appear show={isVisibilityModalOpen} as={Fragment}>
+          <Dialog
+            as="div"
+            className="relative z-50"
+            onClose={() => setIsVisibilityModalOpen(false)}
+          >
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+            >
+              <div className="fixed inset-0 bg-black bg-opacity-25" />
+            </Transition.Child>
+
+            <div className="fixed inset-0 overflow-y-auto">
+              <div className="flex min-h-full items-center justify-center p-4 text-center md:ml-64">
+                <Transition.Child
+                  as={Fragment}
+                  enter="ease-out duration-300"
+                  enterFrom="opacity-0 scale-95"
+                  enterTo="opacity-100 scale-100"
+                  leave="ease-in duration-200"
+                  leaveFrom="opacity-100 scale-100"
+                  leaveTo="opacity-0 scale-95"
+                >
+                  <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white dark:bg-zinc-800 p-6 text-left align-middle shadow-xl transition-all">
+                    <Dialog.Title
+                      as="div"
+                      className="flex items-center justify-between mb-4"
+                    >
+                      <div>
+                        <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
+                          Session Visibility Filters
+                        </h3>
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                          Control which session types each role can see
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setIsVisibilityModalOpen(false)}
+                        className="text-zinc-400 hover:text-zinc-500"
+                      >
+                        <IconX className="w-5 h-5" />
+                      </button>
+                    </Dialog.Title>
+
+                    <div className="mt-4 space-y-4 max-h-96 overflow-y-auto">
+                      {workspaceRoles
+                        .filter((role) => !role.isOwnerRole)
+                        .map((role) => (
+                          <div
+                            key={role.id}
+                            className="p-4 border border-zinc-200 dark:border-zinc-700 rounded-lg"
+                          >
+                            <h4 className="font-medium text-zinc-900 dark:text-white mb-3">
+                              {role.name}
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                              {SESSION_TYPES.map((type) => {
+                                const isSelected = (
+                                  visibilityFilters[role.id] || []
+                                ).includes(type);
+                                return (
+                                  <button
+                                    key={type}
+                                    onClick={() =>
+                                      toggleSessionTypeForRole(role.id, type)
+                                    }
+                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                                      isSelected
+                                        ? "bg-primary text-white"
+                                        : "bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600"
+                                    }`}
+                                  >
+                                    {type.charAt(0).toUpperCase() +
+                                      type.slice(1)}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            {(!visibilityFilters[role.id] ||
+                              visibilityFilters[role.id].length === 0) && (
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                                No filters set - this role can see all session
+                                types
+                              </p>
+                            )}
+                          </div>
+                        ))}
+
+                      {workspaceRoles.filter((role) => !role.isOwnerRole)
+                        .length === 0 && (
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center py-4">
+                          No roles available to configure
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="mt-6 flex justify-end gap-2">
+                      <button
+                        type="button"
+                        className="inline-flex justify-center px-4 py-2 text-sm font-medium text-zinc-700 bg-white dark:text-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-600 focus:outline-none"
+                        onClick={() => setIsVisibilityModalOpen(false)}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md hover:bg-primary/90 focus:outline-none"
+                        onClick={saveVisibilityFilters}
+                      >
+                        Save Filters
+                      </button>
+                    </div>
+                  </Dialog.Panel>
+                </Transition.Child>
+              </div>
+            </div>
+          </Dialog>
+        </Transition>
       </div>
     </div>
   );

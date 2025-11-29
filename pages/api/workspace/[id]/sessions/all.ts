@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { withPermissionCheck } from "@/utils/permissionsManager";
+import { getConfig } from "@/utils/configEngine";
 
 export default withPermissionCheck(
   async (req: NextApiRequest, res: NextApiResponse) => {
@@ -9,6 +10,7 @@ export default withPermissionCheck(
     }
 
     const { id } = req.query;
+    const userId = (req as any).session?.userid;
 
     try {
       const sessions = await prisma.session.findMany({
@@ -35,8 +37,44 @@ export default withPermissionCheck(
         },
       });
 
+      let userRole = null;
+      if (userId) {
+        const user = await prisma.user.findFirst({
+          where: { userid: BigInt(userId) },
+          include: {
+            roles: {
+              where: { workspaceGroupId: parseInt(id as string) },
+              orderBy: { isOwnerRole: "desc" },
+            },
+          },
+        });
+        userRole = user?.roles?.[0];
+      }
+
+      const visibilityFilters = await getConfig(
+        "session_filters",
+        parseInt(id as string)
+      );
+
+      let filteredSessions = sessions;
+      if (
+        visibilityFilters &&
+        userRole &&
+        !userRole.isOwnerRole &&
+        !userRole.permissions?.includes("admin")
+      ) {
+        const roleId = userRole.id;
+        const allowedTypes = visibilityFilters[roleId];
+
+        if (allowedTypes && Array.isArray(allowedTypes)) {
+          filteredSessions = sessions.filter((session) =>
+            allowedTypes.includes(session.type)
+          );
+        }
+      }
+
       const serializedSessions = JSON.parse(
-        JSON.stringify(sessions, (key, value) =>
+        JSON.stringify(filteredSessions, (key, value) =>
           typeof value === "bigint" ? value.toString() : value
         )
       );
