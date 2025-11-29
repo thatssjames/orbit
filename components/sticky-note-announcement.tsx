@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { IconX, IconPin } from "@tabler/icons-react";
-const ANNOUNCEMENT_KEY = "announcementDismissed_v2_1_5b1";
+const ANNOUNCEMENT_KEY = "announcementDismissed_v2_1_6b1";
 
 export default function StickyNoteAnnouncement() {
   const [isVisible, setIsVisible] = useState(false);
@@ -32,14 +32,14 @@ export default function StickyNoteAnnouncement() {
 
         <div className="text-zinc-800 dark:text-zinc-300 text-sm space-y-3">
           <h4 className="text-base font-semibold text-zinc-900 dark:text-white">
-            Update: v2.1.5 is now live!
+            Update: v2.1.6 is now live!
           </h4>
           <p>
             We're keeping this going with a well needed update. Here are a few
             highlights from this week's work and community feedback.
           </p>
           <div>
-            <p className="font-semibold mt-2">🔍 Saved Views</p>
+            <p className="font-semibold mt-2">💼 Policies</p>
             <p>
               Save your Filters and Column selection to a reusable view. Choose
               colours and icons, and your column sorting is persisted too making
@@ -49,16 +49,16 @@ export default function StickyNoteAnnouncement() {
           <div>
             <p className="font-semibold mt-2">📅 Inactivity Notices</p>
             <p>
-              Notices now include quick predefined options. Pending notices appear on user profiles with a quick manage
-              button and workspace staff can cancel notices directly from the
-              profile.
+              Notices has a nice easy to use layout allowing you to see who's
+              away at the moment. Admins can now directly create auto-approved
+              notices directly on your profile.
             </p>
           </div>
           <div>
-            <p className="font-semibold mt-2">📢 Sessions Management</p>
+            <p className="font-semibold mt-2">🐛 Bug Fixes</p>
             <p>
-              Scheduled sessions now support adding multiple times to speed up
-              creating.
+              All known reported bugs have been fixed in this release, including
+              various UI issues across the board.
             </p>
           </div>
           <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
