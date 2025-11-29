@@ -372,16 +372,14 @@ const PoliciesPage: pageWithLayout<pageProps> = ({ documents, roles }) => {
 				requiresAcknowledgment: editPolicy.requiresAcknowledgment,
 				acknowledgmentDeadline: editPolicy.acknowledgmentDeadline || null,
 				acknowledgmentMethod: editPolicy.acknowledgmentMethod,
-				acknowledgmentWord: editPolicy.acknowledgmentWord || null,
-				isTrainingDocument: editPolicy.isTrainingDocument,
-				assignToEveryone: editPolicy.assignToEveryone,
-				roles: editPolicy.assignToEveryone ? [] : editPolicy.roles
-			};
+			acknowledgmentWord: editPolicy.acknowledgmentWord || null,
+			isTrainingDocument: editPolicy.isTrainingDocument,
+			assignToEveryone: editPolicy.assignToEveryone,
+			roles: editPolicy.assignToEveryone ? [] : editPolicy.roles
+		};
 
-			await axios.put(`/api/workspace/${router.query.id}/policies/${editPolicy.id}`, policyData);
-			toast.success('Policy updated successfully');
-
-			setEditPolicy({
+		await axios.put(`/api/workspace/${router.query.id}/policies/${editPolicy.id}/update`, policyData);
+		toast.success('Policy updated successfully');			setEditPolicy({
 				id: '', name: '', content: '', externalUrl: '', requiresAcknowledgment: true,
 				acknowledgmentDeadline: '', acknowledgmentMethod: 'signature',
 				acknowledgmentWord: '', isTrainingDocument: false, assignToEveryone: false, roles: []
@@ -625,7 +623,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({ documents, roles }) => {
 													<div className="mt-1 flex items-center space-x-4 text-sm text-zinc-500 dark:text-zinc-400">
 														<span>
 															{(document as any).assignToEveryone
-																? '📢 Everyone'
+																? 'Everyone'
 																: document.roles.map(r => r.name).join(', ')
 															}
 														</span>
