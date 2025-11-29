@@ -98,6 +98,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [docsEnabled, setDocsEnabled] = useState(false);
   const [alliesEnabled, setAlliesEnabled] = useState(false);
   const [sessionsEnabled, setSessionsEnabled] = useState(false);
+  const [noticesEnabled, setNoticesEnabled] = useState(false);
   const [leaderboardEnabled, setLeaderboardEnabled] = useState(false);
   const router = useRouter()
 
@@ -130,7 +131,13 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       filledIcon: IconTrophyFilled,
       accessible: workspace.yourPermission.includes("view_entire_groups_activity"),
     }] : []),
-    { name: "Notices", href: "/workspace/[id]/notices", icon: IconClock, filledIcon: IconClockFilled, accessible: true },
+   ...(noticesEnabled ? [{
+      name: "Notices",
+      href: "/workspace/[id]/notices",
+      icon: IconClock,
+      filledIcon: IconClockFilled,
+      accessible: true,
+    }] : []),
     ...(alliesEnabled ? [{
       name: "Alliances",
       href: "/workspace/[id]/alliances",
@@ -242,6 +249,24 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         setSessionsEnabled(enabled);
       })
       .catch(() => setSessionsEnabled(false));
+  }, [workspace.groupId]);
+
+    useEffect(() => {
+    fetch(`/api/workspace/${workspace.groupId}/settings/general/notices`)
+      .then(res => res.json())
+      .then(data => {
+        let enabled = false;
+        let val = data.value ?? data;
+        if (typeof val === "string") {
+          try { val = JSON.parse(val); } catch { val = {}; }
+        }
+        enabled =
+          typeof val === "object" && val !== null && "enabled" in val
+            ? (val as { enabled?: boolean }).enabled ?? false
+            : false;
+        setNoticesEnabled(enabled);
+      })
+      .catch(() => setNoticesEnabled(false));
   }, [workspace.groupId]);
 
   useEffect(() => {
