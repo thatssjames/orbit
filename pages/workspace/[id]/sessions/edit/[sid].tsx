@@ -28,29 +28,29 @@ import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
 
 const BG_COLORS = [
-  "bg-rose-200",
-  "bg-lime-200",
-  "bg-sky-200",
-  "bg-amber-200",
-  "bg-violet-200",
-  "bg-fuchsia-200",
-  "bg-emerald-200",
-  "bg-indigo-200",
-  "bg-pink-200",
-  "bg-cyan-200",
   "bg-red-200",
   "bg-green-200",
-  "bg-blue-200",
+  "bg-emerald-200",
+  "bg-red-300",
+  "bg-green-300",
+  "bg-emerald-300",
+  "bg-amber-200",
   "bg-yellow-200",
+  "bg-red-100",
+  "bg-green-100",
+  "bg-lime-200",
+  "bg-rose-200",
+  "bg-amber-300",
   "bg-teal-200",
-  "bg-orange-200",
+  "bg-lime-300",
+  "bg-rose-300",
 ];
 
 function getRandomBg(userid: string, username?: string) {
   const key = `${userid ?? ""}:${username ?? ""}`;
   let hash = 5381;
   for (let i = 0; i < key.length; i++) {
-    hash = (hash * 33) ^ key.charCodeAt(i);
+    hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
   }
   const index = (hash >>> 0) % BG_COLORS.length;
   return BG_COLORS[index];
@@ -529,7 +529,7 @@ const EditSession: pageWithLayout<
                   <span className="text-sm text-zinc-600 dark:text-zinc-400 w-16">Slot 1:</span>
                   <div className="flex-1 px-3 py-2 text-sm bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-md flex items-center gap-2">
                     {session.owner?.username ? (
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${getRandomBg(session.owner.userid?.toString() || session.owner.userid || "")}`}>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${getRandomBg(session.owner.userid?.toString(), session.owner.username)}`}>
                         <img src={session.owner.picture || "/default-avatar.jpg"} alt={session.owner.username} className="w-6 h-6 rounded-full object-cover border border-white" onError={(e) => { e.currentTarget.src = "/default-avatar.jpg"; }} />
                       </div>
                     ) : null}
@@ -556,7 +556,7 @@ const EditSession: pageWithLayout<
                                 <span className="text-sm text-zinc-600 dark:text-zinc-400 w-16">Slot {i + 1}:</span>
                                 <div className="flex-1 px-3 py-2 text-sm bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-md flex items-center gap-2">
                                   {username ? (
-                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${getRandomBg(assignedUser.userid.toString())}`}>
+                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${getRandomBg(assignedUser.userid.toString(), username)}`}>
                                       <img src={userPicture || "/default-avatar.jpg"} alt={username} className="w-6 h-6 rounded-full object-cover border border-white" onError={(e) => { e.currentTarget.src = "/default-avatar.jpg"; }} />
                                     </div>
                                   ) : null}

@@ -27,29 +27,29 @@ import clsx from "clsx";
 import { motion } from "framer-motion";
 
 const BG_COLORS = [
-  "bg-rose-200",
-  "bg-lime-200",
-  "bg-sky-200",
-  "bg-amber-200",
-  "bg-violet-200",
-  "bg-fuchsia-200",
-  "bg-emerald-200",
-  "bg-indigo-200",
-  "bg-pink-200",
-  "bg-cyan-200",
   "bg-red-200",
   "bg-green-200",
-  "bg-blue-200",
+  "bg-emerald-200",
+  "bg-red-300",
+  "bg-green-300",
+  "bg-emerald-300",
+  "bg-amber-200",
   "bg-yellow-200",
+  "bg-red-100",
+  "bg-green-100",
+  "bg-lime-200",
+  "bg-rose-200",
+  "bg-amber-300",
   "bg-teal-200",
-  "bg-orange-200",
+  "bg-lime-300",
+  "bg-rose-300",
 ];
 
 function getRandomBg(userid: string, username?: string) {
   const key = `${userid ?? ""}:${username ?? ""}`;
   let hash = 5381;
   for (let i = 0; i < key.length; i++) {
-    hash = (hash * 33) ^ key.charCodeAt(i);
+    hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
   }
   const index = (hash >>> 0) % BG_COLORS.length;
   return BG_COLORS[index];
@@ -92,9 +92,11 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
       })
       .catch(() => null);
     if (!guide) return { notFound: true };
-    const userRoles = (user?.roles || []);
+    const userRoles = user?.roles || [];
     const isOwner = userRoles.some((r: any) => r.isOwnerRole);
-    const canManageDocs = userRoles.some((r: any) => r.permissions?.includes("manage_docs"));
+    const canManageDocs = userRoles.some((r: any) =>
+      r.permissions?.includes("manage_docs")
+    );
     const hasRoleAccess = guide.roles.some((gr: any) =>
       userRoles.some((ur: any) => ur.id === gr.id)
     );
@@ -177,7 +179,7 @@ const Settings: pageWithLayout<Props> = ({ document }) => {
 
   const proceedWithLink = () => {
     if (pendingUrl) {
-      window.open(pendingUrl, '_blank');
+      window.open(pendingUrl, "_blank");
     }
     setShowExternalLinkModal(false);
     setPendingUrl(null);
@@ -209,9 +211,14 @@ const Settings: pageWithLayout<Props> = ({ document }) => {
 
           <div className="flex items-center gap-6 text-sm text-zinc-500">
             <div className="flex items-center gap-2">
-              <div className={`h-5 w-5 rounded-full flex items-center justify-center overflow-hidden ${getRandomBg("", document.owner?.username || "")}`}>
+              <div
+                className={`h-5 w-5 rounded-full flex items-center justify-center overflow-hidden ${getRandomBg(
+                  "",
+                  document.owner?.username || ""
+                )}`}
+              >
                 <img
-                  src={document.owner?.picture || '/default-avatar.jpg'}
+                  src={document.owner?.picture || "/default-avatar.jpg"}
                   alt={`${document.owner?.username}'s avatar`}
                   className="h-5 w-5 object-cover rounded-full border-2 border-white"
                 />
@@ -232,10 +239,14 @@ const Settings: pageWithLayout<Props> = ({ document }) => {
                 dangerouslySetInnerHTML={{ __html: output.content }}
                 onClick={(e) => {
                   const target = e.target as HTMLElement;
-                  const link = target.closest('a');
+                  const link = target.closest("a");
                   if (link && link.href) {
-                    const href = link.getAttribute('href');
-                    if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
+                    const href = link.getAttribute("href");
+                    if (
+                      href &&
+                      (href.startsWith("http://") ||
+                        href.startsWith("https://"))
+                    ) {
                       e.preventDefault();
                       handleExternalLink(href);
                     }
@@ -248,7 +259,10 @@ const Settings: pageWithLayout<Props> = ({ document }) => {
                 rehypePlugins={[rehypeSanitize]}
                 components={{
                   a: ({ node, href, children, ...props }: any) => {
-                    const isExternal = href && (href.startsWith('http://') || href.startsWith('https://'));
+                    const isExternal =
+                      href &&
+                      (href.startsWith("http://") ||
+                        href.startsWith("https://"));
                     return (
                       <a
                         {...props}
@@ -270,11 +284,7 @@ const Settings: pageWithLayout<Props> = ({ document }) => {
                 {output.content}
               </ReactMarkdown>
             )}
-            {output.type === "external" && (
-              <div className="">
-
-              </div>
-            )}
+            {output.type === "external" && <div className=""></div>}
           </div>
         </div>
       </div>
@@ -326,11 +336,16 @@ const Settings: pageWithLayout<Props> = ({ document }) => {
                 </div>
 
                 <div className="flex-1">
-                  <h2 id="external-link-title" className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                  <h2
+                    id="external-link-title"
+                    className="text-lg font-semibold text-zinc-900 dark:text-zinc-100"
+                  >
                     External Link Warning
                   </h2>
                   <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                    This is a link submitted by a member in this workspace. Links are not verified by Planetary so please proceed at your own risk.
+                    This is a link submitted by a member in this workspace.
+                    Links are not verified by Planetary so please proceed at
+                    your own risk.
                   </p>
                 </div>
               </div>

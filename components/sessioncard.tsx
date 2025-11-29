@@ -19,35 +19,40 @@ import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
 import type { SessionColors } from "@/hooks/useSessionColors";
 
+// Mobile detection utility
+const isMobile = () => {
+  if (typeof window === 'undefined') return false;
+  return window.innerWidth <= 768;
+};
+
 const BG_COLORS = [
-  "bg-rose-200",
-  "bg-lime-200",
-  "bg-sky-200",
-  "bg-amber-200",
-  "bg-violet-200",
-  "bg-fuchsia-200",
-  "bg-emerald-200",
-  "bg-indigo-200",
-  "bg-pink-200",
-  "bg-cyan-200",
   "bg-red-200",
   "bg-green-200",
-  "bg-blue-200",
+  "bg-emerald-200",
+  "bg-red-300",
+  "bg-green-300",
+  "bg-emerald-300",
+  "bg-amber-200",
   "bg-yellow-200",
+  "bg-red-100",
+  "bg-green-100",
+  "bg-lime-200",
+  "bg-rose-200",
+  "bg-amber-300",
   "bg-teal-200",
-  "bg-orange-200",
+  "bg-lime-300",
+  "bg-rose-300",
 ];
 
 function getRandomBg(userid: string, username?: string) {
   const key = `${userid ?? ""}:${username ?? ""}`;
   let hash = 5381;
   for (let i = 0; i < key.length; i++) {
-    hash = (hash * 33) ^ key.charCodeAt(i);
+    hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
   }
   const index = (hash >>> 0) % BG_COLORS.length;
   return BG_COLORS[index];
 }
-
 
 interface SessionModalProps {
   session: any;
@@ -304,7 +309,14 @@ const SessionModal: React.FC<SessionModalProps> = ({
 
   if (colorsReady === false) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+        onClick={(e) => {
+          if (e.target === e.currentTarget && !isMobile()) {
+            onClose();
+          }
+        }}
+      >
         <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-xl w-full max-w-2xl mx-auto p-6 text-center">
           <div className="text-zinc-700 dark:text-zinc-200">Loading…</div>
         </div>
@@ -324,8 +336,15 @@ const SessionModal: React.FC<SessionModalProps> = ({
   const isConcluded = now > sessionEnd;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-xl w-full max-w-2xl mx-auto max-h-[90vh] overflow-y-auto lg:mr-0 lg:ml-auto lg:max-w-[calc(100%-280px)]">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 lg:pl-[280px]"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !isMobile()) {
+          onClose();
+        }
+      }}
+    >
+      <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-xl w-full max-w-3xl mx-auto max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-zinc-700">
           <div className="flex items-center gap-3">
             <div className="bg-primary/10 p-2 rounded-lg">

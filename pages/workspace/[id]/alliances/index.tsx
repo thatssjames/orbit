@@ -207,30 +207,29 @@ const Allies: pageWithLayout<pageProps> = (props) => {
   } | null>(null);
 
   const BG_COLORS = [
-    "bg-rose-200",
-    "bg-lime-200",
-    "bg-sky-200",
-    "bg-amber-200",
-    "bg-violet-200",
-    "bg-fuchsia-200",
-    "bg-emerald-200",
-    "bg-indigo-200",
-    "bg-pink-200",
-    "bg-cyan-200",
     "bg-red-200",
     "bg-green-200",
-    "bg-blue-200",
+    "bg-emerald-200",
+    "bg-red-300",
+    "bg-green-300",
+    "bg-emerald-300",
+    "bg-amber-200",
     "bg-yellow-200",
+    "bg-red-100",
+    "bg-green-100",
+    "bg-lime-200",
+    "bg-rose-200",
+    "bg-amber-300",
     "bg-teal-200",
-    "bg-orange-200",
+    "bg-lime-300",
+    "bg-rose-300",
   ];
 
-  function getRandomBg(userid: string | number, username?: string) {
+  function getRandomBg(userid: string, username?: string) {
     const key = `${userid ?? ""}:${username ?? ""}`;
     let hash = 5381;
-    const s = String(key);
-    for (let i = 0; i < s.length; i++) {
-      hash = (hash * 33) ^ s.charCodeAt(i);
+    for (let i = 0; i < key.length; i++) {
+      hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
     }
     const index = (hash >>> 0) % BG_COLORS.length;
     return BG_COLORS[index];
@@ -292,7 +291,7 @@ const Allies: pageWithLayout<pageProps> = (props) => {
                     className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
                   >
                     <IconPlus className="w-4 h-4" />
-                    <span className="text-sm font-medium">New Ally</span>
+                    <span className="text-sm font-medium">New Alliance</span>
                   </button>
                 )}
               </div>
@@ -304,20 +303,11 @@ const Allies: pageWithLayout<pageProps> = (props) => {
                       <IconClipboardList className="w-8 h-8 text-primary" />
                     </div>
                     <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-1">
-                      No Allies
+                      No Alliances
                     </h3>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
                       You haven't created any allies yet
                     </p>
-                    {canManageAlliances && (
-                      <button
-                        onClick={() => setIsOpen(true)}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-                      >
-                        <IconPlus className="w-4 h-4" />
-                        <span className="text-sm font-medium">Create Ally</span>
-                      </button>
-                    )}
                   </div>
                 </div>
               ) : (

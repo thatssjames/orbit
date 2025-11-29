@@ -10,29 +10,29 @@ import { IconChevronRight, IconFileText, IconAlertTriangle, IconExternalLink } f
 import { motion } from "framer-motion";
 
 const BG_COLORS = [
-  "bg-rose-200",
-  "bg-lime-200",
-  "bg-sky-200",
-  "bg-amber-200",
-  "bg-violet-200",
-  "bg-fuchsia-200",
-  "bg-emerald-200",
-  "bg-indigo-200",
-  "bg-pink-200",
-  "bg-cyan-200",
-  "bg-red-200",
-  "bg-green-200",
-  "bg-blue-200",
-  "bg-yellow-200",
-  "bg-teal-200",
-  "bg-orange-200",
+	"bg-red-200",
+	"bg-green-200",
+	"bg-emerald-200",
+	"bg-red-300",
+	"bg-green-300",
+	"bg-emerald-300",
+	"bg-amber-200",
+	"bg-yellow-200",
+	"bg-red-100",
+	"bg-green-100",
+	"bg-lime-200",
+	"bg-rose-200",
+	"bg-amber-300",
+	"bg-teal-200",
+	"bg-lime-300",
+	"bg-rose-300",
 ];
 
 function getRandomBg(userid: string, username?: string) {
   const key = `${userid ?? ""}:${username ?? ""}`;
   let hash = 5381;
   for (let i = 0; i < key.length; i++) {
-    hash = (hash * 33) ^ key.charCodeAt(i);
+    hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
   }
   const index = (hash >>> 0) % BG_COLORS.length;
   return BG_COLORS[index];
@@ -128,7 +128,7 @@ const Docs: React.FC = () => {
                     {document.name}
                   </p>
                   <div className="mt-1 flex items-center gap-2">
-                    <div className={`h-6 w-6 rounded-full flex items-center justify-center overflow-hidden ${getRandomBg("", document.owner?.username || "")}`}>
+                    <div className={`h-6 w-6 rounded-full flex items-center justify-center overflow-hidden ${getRandomBg(document.owner?.userid?.toString() || "", document.owner?.username || "")}`}>
                       <img
                         src={document.owner?.picture || '/default-avatar.jpg'}
                         alt={`${document.owner?.username}'s avatar`}

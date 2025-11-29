@@ -1,147 +1,166 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { IconKey, IconTrash, IconCopy, IconPlus, IconCalendar, IconClock } from "@tabler/icons-react"
-import axios from "axios"
-import { useRouter } from "next/router"
-import { Dialog } from "@headlessui/react"
-import { motion } from "framer-motion"
-import clsx from "clsx"
+import { useState, useEffect } from "react";
+import {
+  IconKey,
+  IconTrash,
+  IconCopy,
+  IconPlus,
+  IconCalendar,
+  IconClock,
+} from "@tabler/icons-react";
+import axios from "axios";
+import { useRouter } from "next/router";
+import { Dialog } from "@headlessui/react";
+import { motion } from "framer-motion";
+import clsx from "clsx";
 
 interface ApiKey {
-  id: string
-  name: string
-  key: string
-  lastUsedAt: string | null
-  createdAt: string
-  expiresAt: string | null
+  id: string;
+  name: string;
+  key: string;
+  lastUsedAt: string | null;
+  createdAt: string;
+  expiresAt: string | null;
   createdBy: {
-    userid: number
-    username: string
-    picture: string
-  } | null
+    userid: number;
+    username: string;
+    picture: string;
+  } | null;
 }
 
 const BG_COLORS = [
-  "bg-rose-200",
-  "bg-lime-200",
-  "bg-sky-200",
-  "bg-amber-200",
-  "bg-violet-200",
-  "bg-fuchsia-200",
-  "bg-emerald-200",
-  "bg-indigo-200",
-  "bg-pink-200",
-  "bg-cyan-200",
   "bg-red-200",
   "bg-green-200",
-  "bg-blue-200",
+  "bg-emerald-200",
+  "bg-red-300",
+  "bg-green-300",
+  "bg-emerald-300",
+  "bg-amber-200",
   "bg-yellow-200",
+  "bg-red-100",
+  "bg-green-100",
+  "bg-lime-200",
+  "bg-rose-200",
+  "bg-amber-300",
   "bg-teal-200",
-  "bg-orange-200",
+  "bg-lime-300",
+  "bg-rose-300",
 ];
 
 function getRandomBg(userid: string, username?: string) {
   const key = `${userid ?? ""}:${username ?? ""}`;
   let hash = 5381;
   for (let i = 0; i < key.length; i++) {
-    hash = (hash * 33) ^ key.charCodeAt(i);
+    hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
   }
   const index = (hash >>> 0) % BG_COLORS.length;
   return BG_COLORS[index];
 }
 
 export const ApiKeys = ({ triggerToast }: { triggerToast: any }) => {
-  const router = useRouter()
-  const { id: workspaceId } = router.query
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
-  const [loading, setLoading] = useState(true)
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [selectedKey, setSelectedKey] = useState<ApiKey | null>(null)
-  const [newKeyData, setNewKeyData] = useState({ name: "", expiresIn: "90days" })
-  const [createdKey, setCreatedKey] = useState<{ key: string } | null>(null)
+  const router = useRouter();
+  const { id: workspaceId } = router.query;
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedKey, setSelectedKey] = useState<ApiKey | null>(null);
+  const [newKeyData, setNewKeyData] = useState({
+    name: "",
+    expiresIn: "90days",
+  });
+  const [createdKey, setCreatedKey] = useState<{ key: string } | null>(null);
 
   useEffect(() => {
-    fetchApiKeys()
-  }, [workspaceId])
+    fetchApiKeys();
+  }, [workspaceId]);
 
   const fetchApiKeys = async () => {
     try {
-      const { data } = await axios.get(`/api/workspace/${workspaceId}/settings/api-keys`)
+      const { data } = await axios.get(
+        `/api/workspace/${workspaceId}/settings/api-keys`
+      );
       if (data.success) {
-        setApiKeys(data.apiKeys)
+        setApiKeys(data.apiKeys);
       }
     } catch (error) {
-      console.error("Error fetching API keys:", error)
-      triggerToast.error("Failed to fetch API keys")
+      console.error("Error fetching API keys:", error);
+      triggerToast.error("Failed to fetch API keys");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-const createApiKey = async () => {
-	try {
-		const { data } = await axios.post(`/api/workspace/${workspaceId}/settings/api-keys/create`, newKeyData)
-		if (data.success) {
-			setCreatedKey(data.apiKey)
-			fetchApiKeys()
-			triggerToast.success("API key created successfully")
-		}
-	} catch (error: any) {
-		if (axios.isAxiosError(error) && error.response) {
-			const status = error.response.status
-			const message = error.response.data?.error || "An error occurred"
-			if (status === 400 || status === 500) {
-				triggerToast.error(message)
-				return
-			}
-		}
-		console.error("Error creating API key:", error)
-		triggerToast.error("Failed to create API key")
-	}
-}
+  const createApiKey = async () => {
+    try {
+      const { data } = await axios.post(
+        `/api/workspace/${workspaceId}/settings/api-keys/create`,
+        newKeyData
+      );
+      if (data.success) {
+        setCreatedKey(data.apiKey);
+        fetchApiKeys();
+        triggerToast.success("API key created successfully");
+      }
+    } catch (error: any) {
+      if (axios.isAxiosError(error) && error.response) {
+        const status = error.response.status;
+        const message = error.response.data?.error || "An error occurred";
+        if (status === 400 || status === 500) {
+          triggerToast.error(message);
+          return;
+        }
+      }
+      console.error("Error creating API key:", error);
+      triggerToast.error("Failed to create API key");
+    }
+  };
 
   const deleteApiKey = async (keyId: string) => {
     try {
-      const { data } = await axios.delete(`/api/workspace/${workspaceId}/settings/api-keys/${keyId}/delete`)
+      const { data } = await axios.delete(
+        `/api/workspace/${workspaceId}/settings/api-keys/${keyId}/delete`
+      );
       if (data.success) {
-        fetchApiKeys()
-        triggerToast.success("API key deleted successfully")
-        setIsDeleteModalOpen(false)
+        fetchApiKeys();
+        triggerToast.success("API key deleted successfully");
+        setIsDeleteModalOpen(false);
       }
     } catch (error) {
-      console.error("Error deleting API key:", error)
-      triggerToast.error("Failed to delete API key")
+      console.error("Error deleting API key:", error);
+      triggerToast.error("Failed to delete API key");
     }
-  }
+  };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    triggerToast.success("Copied to clipboard")
-  }
+    navigator.clipboard.writeText(text);
+    triggerToast.success("Copied to clipboard");
+  };
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
-    })
-  }
+    });
+  };
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
-    )
+    );
   }
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h3 className="text-lg font-medium text-zinc-900 dark:text-white">API Keys</h3>
+          <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
+            API Keys
+          </h3>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
             Manage API keys for accessing workspace data programmatically
           </p>
@@ -158,7 +177,9 @@ const createApiKey = async () => {
       {apiKeys.length === 0 ? (
         <div className="text-center py-12 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
           <IconKey size={48} className="mx-auto text-zinc-400 mb-4" />
-          <p className="text-zinc-500 dark:text-zinc-400">No API keys created yet</p>
+          <p className="text-zinc-500 dark:text-zinc-400">
+            No API keys created yet
+          </p>
           <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-2">
             Create an API key to start using the public API
           </p>
@@ -172,8 +193,12 @@ const createApiKey = async () => {
             >
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <h4 className="font-medium text-zinc-900 dark:text-white">{key.name}</h4>
-                  <code className="text-sm bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-300 px-2 py-1 rounded">{key.key}</code>
+                  <h4 className="font-medium text-zinc-900 dark:text-white">
+                    {key.name}
+                  </h4>
+                  <code className="text-sm bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-300 px-2 py-1 rounded">
+                    {key.key}
+                  </code>
                 </div>
                 <div className="flex items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400 flex-wrap">
                   <span className="flex items-center gap-1">
@@ -188,9 +213,13 @@ const createApiKey = async () => {
                   )}
                   {key.createdBy && (
                     <span className="flex items-center gap-1.5">
-                      <div className={`h-4 w-4 rounded-full flex items-center justify-center overflow-hidden ${getRandomBg(key.createdBy.userid.toString(), key.createdBy.username)}`}>
+                      <div
+                        className={`h-4 w-4 rounded-full flex items-center justify-center overflow-hidden ${getRandomBg(
+                          key.createdBy.userid.toString()
+                        )}`}
+                      >
                         <img
-                          src={key.createdBy.picture || '/default-avatar.jpg'}
+                          src={key.createdBy.picture || "/default-avatar.jpg"}
                           alt={key.createdBy.username}
                           className="h-4 w-4 object-cover rounded-full border border-white"
                         />
@@ -202,8 +231,8 @@ const createApiKey = async () => {
               </div>
               <button
                 onClick={() => {
-                  setSelectedKey(key)
-                  setIsDeleteModalOpen(true)
+                  setSelectedKey(key);
+                  setIsDeleteModalOpen(true);
                 }}
                 className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
               >
@@ -235,12 +264,16 @@ const createApiKey = async () => {
                 </div>
 
                 <div className="flex-1">
-                  <h2 id="api-key-title" className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                  <h2
+                    id="api-key-title"
+                    className="text-lg font-semibold text-zinc-900 dark:text-zinc-100"
+                  >
                     {createdKey ? "API Key Created" : "Create API Key"}
                   </h2>
                   {!createdKey && (
                     <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                      Create a new API key to access workspace data programmatically.
+                      Create a new API key to access workspace data
+                      programmatically.
                     </p>
                   )}
                 </div>
@@ -250,7 +283,8 @@ const createApiKey = async () => {
                 <div className="mt-5">
                   <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4">
                     <p className="text-sm text-amber-800 dark:text-amber-200 mb-2">
-                      Make sure to copy your API key now. You won't be able to see it again!
+                      Make sure to copy your API key now. You won't be able to
+                      see it again!
                     </p>
                     <div className="flex items-center gap-2">
                       <code className="flex-1 bg-white dark:bg-zinc-900 dark:text-white p-2 rounded text-sm break-all">
@@ -266,9 +300,9 @@ const createApiKey = async () => {
                   </div>
                   <button
                     onClick={() => {
-                      setIsCreateModalOpen(false)
-                      setCreatedKey(null)
-                      setNewKeyData({ name: "", expiresIn: "90days" })
+                      setIsCreateModalOpen(false);
+                      setCreatedKey(null);
+                      setNewKeyData({ name: "", expiresIn: "90days" });
                     }}
                     className="w-full px-4 py-2 rounded-lg bg-[#ff0099] hover:bg-[#ff0099]/95 text-white font-medium shadow-md"
                   >
@@ -278,31 +312,42 @@ const createApiKey = async () => {
               ) : (
                 <form
                   onSubmit={(e) => {
-                    e.preventDefault()
+                    e.preventDefault();
                     if (newKeyData.name) {
-                      createApiKey()
+                      createApiKey();
                     }
                   }}
                   className="mt-5"
                 >
                   <div className="space-y-4">
                     <div>
-                      <label className="sr-only" htmlFor="api-key-name">Key Name</label>
+                      <label className="sr-only" htmlFor="api-key-name">
+                        Key Name
+                      </label>
                       <input
                         id="api-key-name"
                         type="text"
                         value={newKeyData.name}
-                        onChange={(e) => setNewKeyData({ ...newKeyData, name: e.target.value })}
+                        onChange={(e) =>
+                          setNewKeyData({ ...newKeyData, name: e.target.value })
+                        }
                         placeholder="e.g., Production API Key"
                         className="w-full rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#ff0099]/40"
                       />
                     </div>
                     <div>
-                      <label className="sr-only" htmlFor="api-key-expiration">Expiration</label>
+                      <label className="sr-only" htmlFor="api-key-expiration">
+                        Expiration
+                      </label>
                       <select
                         id="api-key-expiration"
                         value={newKeyData.expiresIn}
-                        onChange={(e) => setNewKeyData({ ...newKeyData, expiresIn: e.target.value })}
+                        onChange={(e) =>
+                          setNewKeyData({
+                            ...newKeyData,
+                            expiresIn: e.target.value,
+                          })
+                        }
                         className="w-full rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#ff0099]/40"
                       >
                         <option value="30days">30 days</option>
@@ -325,8 +370,8 @@ const createApiKey = async () => {
                     <button
                       type="button"
                       onClick={() => {
-                        setIsCreateModalOpen(false)
-                        setNewKeyData({ name: "", expiresIn: "90days" })
+                        setIsCreateModalOpen(false);
+                        setNewKeyData({ name: "", expiresIn: "90days" });
                       }}
                       className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100/90"
                     >
@@ -341,7 +386,11 @@ const createApiKey = async () => {
       )}
 
       {/* Delete Confirmation Modal */}
-      <Dialog open={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} className="relative z-50">
+      <Dialog
+        open={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        className="relative z-50"
+      >
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <Dialog.Panel className="mx-auto max-w-sm rounded-lg bg-white dark:bg-zinc-800 p-6 shadow-xl">
@@ -349,7 +398,8 @@ const createApiKey = async () => {
               Delete API Key
             </Dialog.Title>
             <p className="text-zinc-500 dark:text-zinc-400 mb-6">
-              Are you sure you want to delete "{selectedKey?.name}"? This action cannot be undone.
+              Are you sure you want to delete "{selectedKey?.name}"? This action
+              cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
@@ -369,7 +419,7 @@ const createApiKey = async () => {
         </div>
       </Dialog>
     </div>
-  )
-}
+  );
+};
 
-ApiKeys.title = "API Keys"
+ApiKeys.title = "API Keys";

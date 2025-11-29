@@ -446,7 +446,11 @@ const Activity: FC<Props> = ({
             </div>
           )}
 
-          <div className={`grid gap-4 ${isHistorical ? 'xl:grid-cols-1' : 'xl:grid-cols-2'}`}>
+          <div
+            className={`grid gap-4 ${
+              isHistorical ? "xl:grid-cols-1" : "xl:grid-cols-2"
+            }`}
+          >
             {!isHistorical &&
               workspace.yourPermission?.includes("manage_activity") && (
                 <div className="flex justify-end xl:col-span-2">
@@ -519,7 +523,9 @@ const Activity: FC<Props> = ({
                                         Inactivity Notice
                                       </p>
                                       <time className="text-xs text-zinc-500">
-                                        {moment(item.startTime).format("DD MMM")}{" "}
+                                        {moment(item.startTime).format(
+                                          "DD MMM"
+                                        )}{" "}
                                         -{" "}
                                         {moment(item.endTime).format(
                                           "DD MMM YYYY"
@@ -580,7 +586,9 @@ const Activity: FC<Props> = ({
                                   (1000 * 60)
                               )
                             : Math.floor(
-                                (new Date(item.endTime || new Date()).getTime() -
+                                (new Date(
+                                  item.endTime || new Date()
+                                ).getTime() -
                                   new Date(item.startTime).getTime()) /
                                   (1000 * 60)
                               );
@@ -610,7 +618,9 @@ const Activity: FC<Props> = ({
                                   )}
                                 </span>
                                 <div
-                                  onClick={() => !isLive && fetchSession(item.id)}
+                                  onClick={() =>
+                                    !isLive && fetchSession(item.id)
+                                  }
                                   className={`p-4 ${
                                     isLive
                                       ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700"
@@ -636,13 +646,18 @@ const Activity: FC<Props> = ({
                                       {isLive ? (
                                         <>
                                           Started at{" "}
-                                          {moment(item.startTime).format("HH:mm")}{" "}
+                                          {moment(item.startTime).format(
+                                            "HH:mm"
+                                          )}{" "}
                                           • {sessionDuration}m
                                         </>
                                       ) : (
                                         <>
-                                          {moment(item.startTime).format("HH:mm")}{" "}
-                                          - {moment(item.endTime).format("HH:mm")}{" "}
+                                          {moment(item.startTime).format(
+                                            "HH:mm"
+                                          )}{" "}
+                                          -{" "}
+                                          {moment(item.endTime).format("HH:mm")}{" "}
                                           on{" "}
                                           {moment(item.startTime).format(
                                             "DD MMM YYYY"
@@ -1066,33 +1081,32 @@ const Activity: FC<Props> = ({
 };
 
 const BG_COLORS = [
-  "bg-rose-200",
-  "bg-lime-200",
-  "bg-sky-200",
-  "bg-amber-200",
-  "bg-violet-200",
-  "bg-fuchsia-200",
-  "bg-emerald-200",
-  "bg-indigo-200",
-  "bg-pink-200",
-  "bg-cyan-200",
   "bg-red-200",
   "bg-green-200",
-  "bg-blue-200",
+  "bg-emerald-200",
+  "bg-red-300",
+  "bg-green-300",
+  "bg-emerald-300",
+  "bg-amber-200",
   "bg-yellow-200",
+  "bg-red-100",
+  "bg-green-100",
+  "bg-lime-200",
+  "bg-rose-200",
+  "bg-amber-300",
   "bg-teal-200",
-  "bg-orange-200",
+  "bg-lime-300",
+  "bg-rose-300",
 ];
 
 function getRandomBg(userid: string, username?: string) {
   const key = `${userid ?? ""}:${username ?? ""}`;
   let hash = 5381;
   for (let i = 0; i < key.length; i++) {
-    hash = (hash * 33) ^ key.charCodeAt(i);
+    hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
   }
   const index = (hash >>> 0) % BG_COLORS.length;
   return BG_COLORS[index];
 }
-
 
 export default Activity;
