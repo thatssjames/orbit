@@ -41,9 +41,9 @@ export default function StickyNoteAnnouncement() {
           <div>
             <p className="font-semibold mt-2">💼 Policies</p>
             <p>
-              Save your Filters and Column selection to a reusable view. Choose
-              colours and icons, and your column sorting is persisted too making
-              staff tracking easier for everyone.
+              Require staff to digitally "sign" or acknowledge new group
+              policies or documents within Orbit. Automatically track who has
+              viewed and signed the updated policies for compliance purposes.
             </p>
           </div>
           <div>

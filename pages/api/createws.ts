@@ -110,6 +110,16 @@ export async function handler(
 					value: { enabled: false }
 				},
 				{
+					key: 'notices',
+					workspaceGroupId: groupId,
+					value: { enabled: false }
+				},
+				{
+					key: 'policies',
+					workspaceGroupId: groupId,
+					value: { enabled: false }
+				},
+				{
 					key: 'leaderboard',
 					workspaceGroupId: groupId,
 					value: { enabled: false }

@@ -625,7 +625,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({ documents, roles }) => {
 													<div className="mt-1 flex items-center space-x-4 text-sm text-zinc-500 dark:text-zinc-400">
 														<span>
 															{(document as any).assignToEveryone
-																? '📢 Everyone (Entire Workspace)'
+																? '📢 Everyone'
 																: document.roles.map(r => r.name).join(', ')
 															}
 														</span>
@@ -1244,7 +1244,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({ documents, roles }) => {
 														className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
 													/>
 													<span className="ml-2 text-sm font-medium text-zinc-900 dark:text-white">
-														📢 Everyone (Entire Workspace)
+														📢 Everyone
 													</span>
 												</label>
 
@@ -1293,11 +1293,11 @@ const PoliciesPage: pageWithLayout<pageProps> = ({ documents, roles }) => {
 													className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
 												/>
 												<span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
-													Training Document
+													Create Document
 												</span>
 											</label>
 											<p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-												Mark as a training document rather than a policy
+												Create a Document but require an acknowledgment
 											</p>
 										</div>
 									</div>

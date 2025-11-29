@@ -360,7 +360,7 @@ const PolicyLinkManager: FC<PolicyLinkManagerProps> = ({
 														)}
 													</div>
 
-													<div className="mt-3 p-2 bg-zinc-50 dark:bg-zinc-900 rounded border text-xs font-mono break-all">
+													<div className="mt-3 p-2 bg-zinc-50 dark:bg-zinc-900 dark:text-white rounded border text-xs font-mono break-all">
 														{link.url}
 													</div>
 												</div>

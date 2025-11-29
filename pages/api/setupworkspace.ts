@@ -195,6 +195,24 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         }),
         prisma.config.create({
           data: {
+            key: "notices",
+            workspaceGroupId: groupIdNumber,
+            value: {
+              enabled: true,
+            },
+          },
+        }),
+        prisma.config.create({
+          data: {
+            key: "policies",
+            workspaceGroupId: groupIdNumber,
+            value: {
+              enabled: true,
+            },
+          },
+        }),
+        prisma.config.create({
+          data: {
             key: "home",
             workspaceGroupId: groupIdNumber,
             value: {
