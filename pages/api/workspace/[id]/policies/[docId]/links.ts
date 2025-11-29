@@ -54,15 +54,7 @@ export async function handler(
 		});
 
 		// Generate actual URLs for each link
-		let baseUrl: string;
-		if (process.env.NEXTAUTH_URL) {
-			baseUrl = process.env.NEXTAUTH_URL;
-		} else {
-			const protocol = req.headers['x-forwarded-proto'] ||
-				(req.headers.host?.includes('localhost') ? 'http' : 'https');
-			baseUrl = `${protocol}://${req.headers.host}`;
-		}
-
+		const baseUrl = typeof window !== "undefined" ? window.location.origin : ""
 		const linksWithUrls = links.map(link => ({
 			...link,
 			url: `${baseUrl}/workspace/${id}/policies/sign/${docId}?link=${link.id}`,
