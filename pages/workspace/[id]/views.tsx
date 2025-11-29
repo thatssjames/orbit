@@ -1238,7 +1238,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 
         <div className="flex gap-6">
           <aside className="w-64 hidden md:block">
-            <div className="sticky top-24">
+            <div className="sticky top-8">
               <div className="bg-white dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700 rounded-lg p-3 space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-semibold text-zinc-900 dark:text-white">
@@ -1418,8 +1418,11 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
                     {({ open }) => (
                       <>
                         <Popover.Button
+                          disabled={selectedViewId !== null}
                           className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-all ${
-                            open
+                            selectedViewId !== null
+                              ? "bg-zinc-100 dark:bg-zinc-700/50 border-zinc-200 dark:border-zinc-600 text-zinc-400 dark:text-zinc-500 cursor-not-allowed"
+                              : open
                               ? "bg-zinc-100 dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white ring-2 ring-[#ff0099]/50"
                               : "bg-zinc-50 dark:bg-zinc-700/50 border-zinc-200 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white"
                           }`}
@@ -1478,8 +1481,11 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
                     {({ open }) => (
                       <>
                         <Popover.Button
+                          disabled={selectedViewId !== null}
                           className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-all ${
-                            open
+                            selectedViewId !== null
+                              ? "bg-zinc-100 dark:bg-zinc-700/50 border-zinc-200 dark:border-zinc-600 text-zinc-400 dark:text-zinc-500 cursor-not-allowed"
+                              : open
                               ? "bg-zinc-100 dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white ring-2 ring-[#ff0099]/50"
                               : "bg-zinc-50 dark:bg-zinc-700/50 border-zinc-200 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white"
                           }`}
@@ -2004,29 +2010,29 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 };
 
 const BG_COLORS = [
-  "bg-rose-200",
-  "bg-lime-200",
-  "bg-sky-200",
-  "bg-amber-200",
-  "bg-violet-200",
-  "bg-fuchsia-200",
-  "bg-emerald-200",
-  "bg-indigo-200",
-  "bg-pink-200",
-  "bg-cyan-200",
   "bg-red-200",
   "bg-green-200",
-  "bg-blue-200",
+  "bg-emerald-200",
+  "bg-red-300",
+  "bg-green-300",
+  "bg-emerald-300",
+  "bg-amber-200",
   "bg-yellow-200",
+  "bg-red-100",
+  "bg-green-100",
+  "bg-lime-200",
+  "bg-rose-200",
+  "bg-amber-300",
   "bg-teal-200",
-  "bg-orange-200",
+  "bg-lime-300",
+  "bg-rose-300",
 ];
 
 function getRandomBg(userid: string, username?: string) {
   const key = `${userid ?? ""}:${username ?? ""}`;
   let hash = 5381;
   for (let i = 0; i < key.length; i++) {
-    hash = (hash * 33) ^ key.charCodeAt(i);
+    hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
   }
   const index = (hash >>> 0) % BG_COLORS.length;
   return BG_COLORS[index];
