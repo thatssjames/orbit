@@ -56,6 +56,9 @@
           Track when your members are inactive with notices
         </li>
         <li>
+          Create and assign Policies for members to sign
+        </li>
+        <li>
           Host & Schedule sessions without causing a burden
         </li>
       </ul>
