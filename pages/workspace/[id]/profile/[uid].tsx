@@ -62,6 +62,11 @@ export const getServerSideProps = withPermissionCheckSsr(
         role.permissions?.includes("manage_activity")
       ) ?? false;
 
+    const hasManageMembersPermission =
+      currentUser?.roles?.some((role) =>
+        role.permissions?.includes("manage_members")
+      ) ?? false;
+
     if (!hasManagePermission) {
       return { notFound: true };
     }
@@ -108,6 +113,29 @@ export const getServerSideProps = withPermissionCheckSsr(
     const quotas = userTakingAction.roles
       .flatMap((role) => role.quotaRoles)
       .map((qr) => qr.quota);
+
+    const noticesConfig = await prisma.config.findFirst({
+      where: {
+        workspaceGroupId: parseInt(query.id as string),
+        key: "notices",
+      },
+    });
+
+    let noticesEnabled = false;
+    if (noticesConfig?.value) {
+      let val = noticesConfig.value;
+      if (typeof val === "string") {
+        try {
+          val = JSON.parse(val);
+        } catch {
+          val = {};
+        }
+      }
+      noticesEnabled =
+        typeof val === "object" && val !== null && "enabled" in val
+          ? (val as { enabled?: boolean }).enabled ?? false
+          : false;
+    }
 
     const notices = await prisma.inactivityNotice.findMany({
       where: {
@@ -381,6 +409,8 @@ export const getServerSideProps = withPermissionCheckSsr(
             ? membership.joinDate.toISOString()
             : null,
         },
+        noticesEnabled,
+        canManageMembers: hasManageMembersPermission,
       },
     };
   }
@@ -418,6 +448,8 @@ type pageProps = {
     birthdayMonth: number;
     joinDate: string | null;
   };
+  noticesEnabled: boolean;
+  canManageMembers: boolean;
 };
 const Profile: pageWithLayout<pageProps> = ({
   notices,
@@ -435,6 +467,8 @@ const Profile: pageWithLayout<pageProps> = ({
   quotas,
   user,
   isAdmin,
+  noticesEnabled,
+  canManageMembers,
 }) => {
   const [login, setLogin] = useRecoilState(loginState);
   const [userBook, setUserBook] = useState(initialUserBook);
@@ -602,29 +636,29 @@ const Profile: pageWithLayout<pageProps> = ({
   };
 
   const BG_COLORS = [
-    "bg-rose-200",
-    "bg-lime-200",
-    "bg-sky-200",
-    "bg-amber-200",
-    "bg-violet-200",
-    "bg-fuchsia-200",
-    "bg-emerald-200",
-    "bg-indigo-200",
-    "bg-pink-200",
-    "bg-cyan-200",
     "bg-red-200",
     "bg-green-200",
-    "bg-blue-200",
+    "bg-emerald-200",
+    "bg-red-300",
+    "bg-green-300",
+    "bg-emerald-300",
+    "bg-amber-200",
     "bg-yellow-200",
+    "bg-red-100",
+    "bg-green-100",
+    "bg-lime-200",
+    "bg-rose-200",
+    "bg-amber-300",
     "bg-teal-200",
-    "bg-orange-200",
+    "bg-lime-300",
+    "bg-rose-300",
   ];
 
   function getRandomBg(userid: string, username?: string) {
     const key = `${userid ?? ""}:${username ?? ""}`;
     let hash = 5381;
     for (let i = 0; i < key.length; i++) {
-      hash = (hash * 33) ^ key.charCodeAt(i);
+      hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
     }
     const index = (hash >>> 0) % BG_COLORS.length;
     return BG_COLORS[index];
@@ -703,18 +737,20 @@ const Profile: pageWithLayout<pageProps> = ({
                 <IconBook className="w-4 h-4" />
                 Userbook
               </Tab>
-              <Tab
-                className={({ selected }) =>
-                  `flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${
-                    selected
-                      ? "bg-white dark:bg-zinc-800 text-primary shadow-sm"
-                      : "text-zinc-600 dark:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white"
-                  }`
-                }
-              >
-                <IconBell className="w-4 h-4" />
-                Notices
-              </Tab>
+              {noticesEnabled && (
+                <Tab
+                  className={({ selected }) =>
+                    `flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                      selected
+                        ? "bg-white dark:bg-zinc-800 text-primary shadow-sm"
+                        : "text-zinc-600 dark:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white"
+                    }`
+                  }
+                >
+                  <IconBell className="w-4 h-4" />
+                  Notices
+                </Tab>
+              )}
             </Tab.List>
             <Tab.Panels className="p-6 bg-white dark:bg-zinc-800 rounded-b-xl">
               <Tab.Panel>
@@ -768,9 +804,15 @@ const Profile: pageWithLayout<pageProps> = ({
               <Tab.Panel>
                 <Book userBook={userBook} onRefetch={refetchUserBook} />
               </Tab.Panel>
-              <Tab.Panel>
-                <Notices notices={notices} />
-              </Tab.Panel>
+              {noticesEnabled && (
+                <Tab.Panel>
+                  <Notices
+                    notices={notices}
+                    canManageMembers={canManageMembers}
+                    userId={user.userid}
+                  />
+                </Tab.Panel>
+              )}
             </Tab.Panels>
           </Tab.Group>
         </div>
