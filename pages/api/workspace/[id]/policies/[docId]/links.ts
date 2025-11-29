@@ -54,13 +54,18 @@ export async function handler(
 		});
 
 		// Generate actual URLs for each link
-		const protocol = req.headers['x-forwarded-proto'] ||
-			(req.headers.host?.includes('localhost') ? 'http' : 'https');
-		const baseUrl = process.env.NEXTAUTH_URL || `${protocol}://${req.headers.host}`;
+		let baseUrl: string;
+		if (process.env.NEXTAUTH_URL) {
+			baseUrl = process.env.NEXTAUTH_URL;
+		} else {
+			const protocol = req.headers['x-forwarded-proto'] ||
+				(req.headers.host?.includes('localhost') ? 'http' : 'https');
+			baseUrl = `${protocol}://${req.headers.host}`;
+		}
 
 		const linksWithUrls = links.map(link => ({
 			...link,
-			url: `${baseUrl}/workspace/${id}/policies/sign/${docId}`,
+			url: `${baseUrl}/workspace/${id}/policies/sign/${docId}?link=${link.id}`,
 			isExpired: link.expiresAt ? new Date() > new Date(link.expiresAt) : false
 		}));
 
@@ -102,10 +107,15 @@ export async function handler(
 		});
 
 		// Generate the URL
-		const protocol = req.headers['x-forwarded-proto'] ||
-			(req.headers.host?.includes('localhost') ? 'http' : 'https');
-		const baseUrl = process.env.NEXTAUTH_URL || `${protocol}://${req.headers.host}`;
-		const url = `${baseUrl}/workspace/${id}/policies/sign/${docId}`;
+		let baseUrl: string;
+		if (process.env.NEXTAUTH_URL) {
+			baseUrl = process.env.NEXTAUTH_URL;
+		} else {
+			const protocol = req.headers['x-forwarded-proto'] ||
+				(req.headers.host?.includes('localhost') ? 'http' : 'https');
+			baseUrl = `${protocol}://${req.headers.host}`;
+		}
+		const url = `${baseUrl}/workspace/${id}/policies/sign/${docId}?link=${newLink.id}`;
 
 		try {
 			await logAudit(parseInt(id as string), Number(req.session.userid), 'policy.link_created', `policy:${docId}`, {
@@ -221,10 +231,15 @@ export async function handler(
 		}
 
 		// Generate the URL
-		const protocol = req.headers['x-forwarded-proto'] ||
-			(req.headers.host?.includes('localhost') ? 'http' : 'https');
-		const baseUrl = process.env.NEXTAUTH_URL || `${protocol}://${req.headers.host}`;
-		const url = `${baseUrl}/workspace/${id}/policies/sign/${docId}`;
+		let baseUrl: string;
+		if (process.env.NEXTAUTH_URL) {
+			baseUrl = process.env.NEXTAUTH_URL;
+		} else {
+			const protocol = req.headers['x-forwarded-proto'] ||
+				(req.headers.host?.includes('localhost') ? 'http' : 'https');
+			baseUrl = `${protocol}://${req.headers.host}`;
+		}
+		const url = `${baseUrl}/workspace/${id}/policies/sign/${docId}?link=${updatedLink.id}`;
 
 		return res.status(200).json({
 			success: true,
