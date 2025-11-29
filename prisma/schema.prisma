@@ -316,6 +316,8 @@ model Ally {
   icon             String
   groupId          String
   notes            String[]
+  discordServer    String?
+  theirReps        String[]
   id               String      @id @unique @default(uuid()) @db.Uuid
   workspace        workspace   @relation(fields: [workspaceGroupId], references: [groupId])
   allyVisits       allyVisit[]

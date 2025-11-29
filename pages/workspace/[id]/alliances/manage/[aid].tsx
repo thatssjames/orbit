@@ -29,6 +29,9 @@ import {
   IconCalendar,
   IconClipboardList,
   IconArrowLeft,
+  IconBrandDiscord,
+  IconUserCheck,
+  IconEdit,
 } from "@tabler/icons-react";
 
 export const getServerSideProps = withPermissionCheckSsr(
@@ -206,30 +209,29 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
   const canEdit: boolean = Boolean(props.canEdit);
 
   const BG_COLORS = [
-    "bg-rose-200",
-    "bg-lime-200",
-    "bg-sky-200",
-    "bg-amber-200",
-    "bg-violet-200",
-    "bg-fuchsia-200",
-    "bg-emerald-200",
-    "bg-indigo-200",
-    "bg-pink-200",
-    "bg-cyan-200",
     "bg-red-200",
     "bg-green-200",
-    "bg-blue-200",
+    "bg-emerald-200",
+    "bg-red-300",
+    "bg-green-300",
+    "bg-emerald-300",
+    "bg-amber-200",
     "bg-yellow-200",
+    "bg-red-100",
+    "bg-green-100",
+    "bg-lime-200",
+    "bg-rose-200",
+    "bg-amber-300",
     "bg-teal-200",
-    "bg-orange-200",
+    "bg-lime-300",
+    "bg-rose-300",
   ];
 
-  function getRandomBg(userid: string | number, username?: string) {
+  function getRandomBg(userid: string, username?: string) {
     const key = `${userid ?? ""}:${username ?? ""}`;
     let hash = 5381;
-    const s = String(key);
-    for (let i = 0; i < s.length; i++) {
-      hash = (hash * 33) ^ s.charCodeAt(i);
+    for (let i = 0; i < key.length; i++) {
+      hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
     }
     const index = (hash >>> 0) % BG_COLORS.length;
     return BG_COLORS[index];
@@ -268,8 +270,46 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
       error: "Notes were not saved due to an unknown error.",
     });
   };
+
+  const saveAllianceInfo = async () => {
+    const filteredTheirReps = theirReps.filter((rep: string) => rep.trim());
+
+    // Save alliance info
+    const allianceInfoPromise = axios.post(
+      `/api/workspace/${id}/allies/${ally.id}/update`,
+      {
+        discordServer: discordServer.trim(),
+        ourReps: reps,
+        theirReps: filteredTheirReps,
+      }
+    );
+
+    // Use old rep api
+    const repsPromise = axios.patch(
+      `/api/workspace/${id}/allies/${ally.id}/reps`,
+      { reps: reps }
+    );
+
+    const dualPromise = Promise.all([allianceInfoPromise, repsPromise]).then(
+      () => {
+        setIsEditingInfo(false);
+        router.reload();
+      }
+    );
+
+    toast.promise(dualPromise, {
+      loading: "Updating alliance information...",
+      success: () => {
+        return "Alliance information updated!";
+      },
+      error: "Alliance information was not saved due to an unknown error.",
+    });
+  };
   const [notes, setNotes] = useState(ally.notes || [""]);
   const [editNotes, setEditNotes] = useState<any[]>([]);
+  const [isEditingInfo, setIsEditingInfo] = useState(false);
+  const [discordServer, setDiscordServer] = useState(ally.discordServer || "");
+  const [theirReps, setTheirReps] = useState<string[]>(ally.theirReps || [""]);
 
   const updateReps = async () => {
     const axiosPromise = axios
@@ -314,6 +354,20 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
     updateNote[index] = newValue;
     setNotes(updateNote);
     return true;
+  };
+
+  const addTheirRep = () => {
+    setTheirReps([...theirReps, ""]);
+  };
+
+  const removeTheirRep = (index: number) => {
+    setTheirReps(theirReps.filter((_, i) => i !== index));
+  };
+
+  const updateTheirRep = (index: number, value: string) => {
+    const updated = [...theirReps];
+    updated[index] = value;
+    setTheirReps(updated);
   };
 
   const handleNoteBlur = async () => {
@@ -629,6 +683,219 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
             </div>
           </div>
 
+          {/* Alliance Information */}
+          <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden mb-6">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="bg-primary/10 p-2 rounded-lg">
+                    <IconUserCheck className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-medium text-zinc-900 dark:text-white">
+                      Alliance Information
+                    </h2>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      Discord server and representative information
+                    </p>
+                  </div>
+                </div>
+                {canEdit && (
+                  <button
+                    onClick={() => setIsEditingInfo(!isEditingInfo)}
+                    className="p-2 text-zinc-400 hover:text-primary transition-colors"
+                  >
+                    <IconEdit className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                  Discord Server
+                </label>
+                {isEditingInfo ? (
+                  <input
+                    type="text"
+                    value={discordServer}
+                    onChange={(e) => setDiscordServer(e.target.value)}
+                    placeholder="https://discord.gg/..."
+                    className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                ) : (
+                  <div className="flex items-center gap-2">
+                    {discordServer ? (
+                      <>
+                        <IconBrandDiscord className="w-5 h-5 text-indigo-500" />
+                        <a
+                          href={discordServer}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:text-primary/80 underline"
+                        >
+                          {discordServer}
+                        </a>
+                      </>
+                    ) : (
+                      <span className="text-zinc-500 dark:text-zinc-400 italic">
+                        No Discord server set
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                  Our Representatives
+                </label>
+                {isEditingInfo ? (
+                  <>
+                    <p className="text-sm text-zinc-500 mb-2">
+                      {reps.length} Reps Selected (Minimum 1)
+                    </p>
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {users.map((user: any) => (
+                        <label
+                          key={user.userid}
+                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            value={user.userid}
+                            checked={reps.includes(user.userid)}
+                            onChange={handleCheckboxChange}
+                            className="rounded border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center ${getRandomBg(
+                              user.userid
+                            )} overflow-hidden`}
+                          >
+                            <img
+                              src={user.thumbnail}
+                              className="w-full h-full object-cover"
+                              alt={user.username}
+                              style={{ background: "transparent" }}
+                            />
+                          </div>
+                          <span className="text-sm text-zinc-900 dark:text-white">
+                            {user.username}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="space-y-1">
+                    {ally.reps && ally.reps.length > 0 ? (
+                      ally.reps.map((rep: any, index: number) => (
+                        <div
+                          key={index}
+                          className="text-sm text-zinc-700 dark:text-zinc-300"
+                        >
+                          • {rep.username}
+                        </div>
+                      ))
+                    ) : (
+                      <span className="text-zinc-500 dark:text-zinc-400 italic">
+                        No representatives assigned
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Their Representatives
+                  </label>
+                  {isEditingInfo && (
+                    <button
+                      onClick={addTheirRep}
+                      className="text-primary hover:text-primary/80"
+                    >
+                      <IconPlus className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                {isEditingInfo ? (
+                  <div className="space-y-2">
+                    {theirReps.map((rep, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={rep}
+                          onChange={(e) =>
+                            updateTheirRep(index, e.target.value)
+                          }
+                          placeholder="Roblox username"
+                          className="flex-1 px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                        />
+                        <button
+                          onClick={() => removeTheirRep(index)}
+                          className="p-2 text-red-400 hover:text-red-500"
+                        >
+                          <IconTrash className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                    {theirReps.length === 0 && (
+                      <button
+                        onClick={addTheirRep}
+                        className="w-full py-2 border-2 border-dashed border-zinc-300 dark:border-zinc-600 rounded-lg text-zinc-500 dark:text-zinc-400 hover:border-primary hover:text-primary transition-colors"
+                      >
+                        Add their representative
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {theirReps.filter((rep) => rep.trim()).length > 0 ? (
+                      theirReps
+                        .filter((rep) => rep.trim())
+                        .map((rep, index) => (
+                          <div
+                            key={index}
+                            className="text-sm text-zinc-700 dark:text-zinc-300"
+                          >
+                            • {rep}
+                          </div>
+                        ))
+                    ) : (
+                      <span className="text-zinc-500 dark:text-zinc-400 italic">
+                        No representatives listed
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {isEditingInfo && (
+                <div className="flex justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                  <button
+                    onClick={() => {
+                      setIsEditingInfo(false);
+                      setDiscordServer(ally.discordServer || "");
+                      setTheirReps(ally.theirReps || [""]);
+                      setReps(ally.reps.map((r: any) => r.userid));
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={saveAllianceInfo}
+                    className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-lg transition-colors"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Notes Section */}
           <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden mb-6">
             <div className="p-6">
@@ -642,7 +909,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                       Notes
                     </h2>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                      Keep track of important information about this ally
+                      Keep track of additional information
                     </p>
                   </div>
                 </div>
@@ -730,85 +997,6 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
             </div>
           </div>
 
-          {/* Representatives Section */}
-          <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden mb-6">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="bg-primary/10 p-2 rounded-lg">
-                    <IconUsers className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-medium text-zinc-900 dark:text-white">
-                      Representatives
-                    </h2>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                      Manage who can represent this ally
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {users.length < 1 ? (
-                <div className="text-center py-8">
-                  <div className="bg-zinc-50 dark:bg-zinc-700 rounded-xl p-6 max-w-md mx-auto">
-                    <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
-                      <IconUsers className="w-6 h-6 text-primary" />
-                    </div>
-                    <h3 className="text-sm font-medium text-zinc-900 mb-1">
-                      No Representatives
-                    </h3>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                      Nobody has the represent alliance permissions
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="bg-zinc-50 dark:bg-zinc-700 rounded-lg p-4 max-h-64 overflow-y-auto">
-                    {users.map((user: any) => (
-                      <label
-                        key={user.userid}
-                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-600 cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          value={user.userid}
-                          onChange={handleCheckboxChange}
-                          checked={reps.includes(user.userid)}
-                          className="rounded border-gray-300 text-primary focus:ring-primary"
-                        />
-                        <div
-                          className={`w-8 h-8 p-0.5 rounded-full flex items-center justify-center ${getRandomBg(
-                            user.userid
-                          )} border-2 border-gray-200 dark:border-zinc-600`}
-                        >
-                          <img
-                            src={user.thumbnail}
-                            className="w-full h-full rounded-full object-cover"
-                            alt={user.username}
-                            style={{ background: "transparent" }}
-                          />
-                        </div>
-                        <span className="text-sm dark:text-white text-zinc-900">
-                          {user.username}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                  {canEdit && (
-                    <button
-                      onClick={() => updateReps()}
-                      className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
-                    >
-                      Save Representatives
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
           {/* Visits Section */}
           <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden mb-6">
             <div className="p-6">
@@ -839,7 +1027,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 
               {visits.length === 0 ? (
                 <div className="text-center py-8">
-                  <div className="bg-zinc-50 dark:bg-zinc-700 rounded-xl p-6 max-w-md mx-auto">
+                  <div className="rounded-xl p-6 max-w-md mx-auto">
                     <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
                       <IconCalendar className="w-6 h-6 text-primary" />
                     </div>
