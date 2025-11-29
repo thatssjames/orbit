@@ -24,30 +24,32 @@ import {
 } from "@tabler/icons-react";
 
 const BG_COLORS = [
-  "bg-rose-200",
-  "bg-lime-200",
-  "bg-sky-200",
-  "bg-amber-200",
-  "bg-violet-200",
-  "bg-fuchsia-200",
-  "bg-emerald-200",
-  "bg-indigo-200",
-  "bg-pink-200",
-  "bg-cyan-200",
   "bg-red-200",
   "bg-green-200",
-  "bg-blue-200",
+  "bg-emerald-200",
+  "bg-red-300",
+  "bg-green-300",
+  "bg-emerald-300",
+  "bg-amber-200",
   "bg-yellow-200",
+  "bg-red-100",
+  "bg-green-100",
+  "bg-lime-200",
+  "bg-rose-200",
+  "bg-amber-300",
   "bg-teal-200",
-  "bg-orange-200",
+  "bg-lime-300",
+  "bg-rose-300",
 ];
 
-function getRandomBg(userid: string) {
-  let hash = 0;
-  for (let i = 0; i < userid.length; i++) {
-    hash = userid.charCodeAt(i) + ((hash << 5) - hash);
+function getRandomBg(userid: string, username?: string) {
+  const key = `${userid ?? ""}:${username ?? ""}`;
+  let hash = 5381;
+  for (let i = 0; i < key.length; i++) {
+    hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
   }
-  return BG_COLORS[Math.abs(hash) % BG_COLORS.length];
+  const index = (hash >>> 0) % BG_COLORS.length;
+  return BG_COLORS[index];
 }
 
 type NoticeWithUser = inactivityNotice & {
@@ -97,6 +99,33 @@ export const getServerSideProps = withPermissionCheckSsr(
         },
       },
     });
+
+    const config = await prisma.config.findFirst({
+      where: {
+        workspaceGroupId: workspaceId,
+        key: "notices",
+      },
+    });
+
+    let noticesEnabled = false;
+    if (config?.value) {
+      let val = config.value;
+      if (typeof val === "string") {
+        try {
+          val = JSON.parse(val);
+        } catch {
+          val = {};
+        }
+      }
+      noticesEnabled =
+        typeof val === "object" && val !== null && "enabled" in val
+          ? (val as { enabled?: boolean }).enabled ?? false
+          : false;
+    }
+
+    if (!noticesEnabled) {
+      return { notFound: true };
+    }
 
     const hasManagePermission = user?.roles.some(
       (role) => role.isOwnerRole || role.permissions.includes("manage_activity")
@@ -411,6 +440,48 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
           )}
           {(!canManageNotices || activeTab === "my-notices") && (
             <>
+              {myActiveNotices.length > 0 && (
+                <div className="bg-white dark:bg-zinc-800 border border-white/10 rounded-xl p-6 shadow-sm mb-8">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-primary/10 p-2 rounded-lg">
+                      <IconCalendarTime className="w-5 h-5 text-primary" />
+                    </div>
+                    <h2 className="text-lg font-medium text-zinc-900 dark:text-white">
+                      Active Notices
+                    </h2>
+                  </div>
+                  <div className="flex flex-wrap gap-4">
+                    {myActiveNotices.map((notice) => (
+                      <div
+                        key={notice.id}
+                        className="flex flex-col items-center gap-2 bg-zinc-50 dark:bg-zinc-700 rounded-lg p-4 shadow-sm"
+                      >
+                        <div
+                          className={`w-16 h-16 rounded-full flex items-center justify-center ${getRandomBg(
+                            notice.user?.userid?.toString() ?? ""
+                          )} ring-2 ring-white dark:ring-zinc-700 overflow-hidden`}
+                        >
+                          <img
+                            src={notice.user?.picture ?? "/default-avatar.jpg"}
+                            alt={notice.user?.username ?? "User"}
+                            className="w-16 h-16 object-cover rounded-full"
+                          />
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm font-medium text-zinc-900 dark:text-white">
+                            {notice.user?.username}
+                          </p>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                            {moment(notice.startTime!).format("MMM Do")} -{" "}
+                            {moment(notice.endTime!).format("MMM Do")}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="bg-white dark:bg-zinc-800 border border-white/10 rounded-xl p-6 shadow-sm mb-8">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="bg-primary/10 p-2 rounded-lg">
@@ -561,15 +632,12 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                   {isCreating ? "Submitting..." : "Submit Notice"}
                 </button>
               </div>
-              <div className="mb-8">
-                <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
-                  My Submitted Notices
-                </h3>
-                {userNotices.length === 0 ? (
-                  <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm p-6 text-center text-zinc-500 dark:text-zinc-400">
-                    No notices submitted yet
-                  </div>
-                ) : (
+
+              {userNotices.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
+                    My Submitted Notices
+                  </h3>
                   <div className="grid gap-4">
                     {userNotices.map((notice) => (
                       <div
@@ -616,23 +684,220 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </>
           )}
           {canManageNotices && activeTab === "manage-notices" && (
             <>
-              {renderManageNoticeSection(
-                "Pending Notices",
-                pendingNotices,
-                false
+              {activeNotices.length > 0 && (
+                <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 dark:from-emerald-500/20 dark:to-emerald-500/10 border border-emerald-500/20 rounded-xl p-6 shadow-sm mb-8">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-emerald-500/20 p-2 rounded-lg">
+                      <IconCalendarTime className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <h2 className="text-lg font-medium text-zinc-900 dark:text-white">
+                      Currently Active Notices
+                    </h2>
+                  </div>
+                  <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+                    {activeNotices.map((notice) => (
+                      <div
+                        key={notice.id}
+                        className="bg-white dark:bg-zinc-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-all"
+                      >
+                        <div className="flex items-center gap-3 mb-3">
+                          <div
+                            className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(
+                              notice.user?.userid?.toString() ?? ""
+                            )} ring-2 ring-transparent hover:ring-primary transition overflow-hidden`}
+                          >
+                            <img
+                              src={notice.user?.picture ?? "/default-avatar.jpg"}
+                              alt={notice.user?.username ?? "User"}
+                              className="w-10 h-10 object-cover rounded-full border-2 border-white"
+                            />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium text-zinc-900 dark:text-white">
+                              {notice.user?.username}
+                            </h4>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                              Active period
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="bg-zinc-50 dark:bg-zinc-600 rounded-lg p-3 mb-3">
+                          <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300 mb-1">
+                            <IconCalendarTime className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
+                            <span>
+                              {moment(notice.startTime!).format("MMM Do")} -{" "}
+                              {moment(notice.endTime!).format("MMM Do YYYY")}
+                            </span>
+                          </div>
+                          <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                            {notice.reason}
+                          </p>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => updateNotice(notice.id, "cancel")}
+                            className="flex-1 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 text-sm font-medium"
+                          >
+                            Revoke
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
-              {renderManageNoticeSection(
-                "Upcoming Notices",
-                upcomingNotices,
-                true
+
+              {pendingNotices.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
+                    Pending Notices
+                  </h3>
+                  <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+                    {pendingNotices.map((notice) => (
+                      <div
+                        key={notice.id}
+                        className="bg-white dark:bg-zinc-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-all"
+                      >
+                        <div className="flex items-center gap-3 mb-3">
+                          <div
+                            className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(
+                              notice.user?.userid?.toString() ?? ""
+                            )} ring-2 ring-transparent hover:ring-primary transition overflow-hidden`}
+                          >
+                            <img
+                              src={notice.user?.picture ?? "/default-avatar.jpg"}
+                              alt={notice.user?.username ?? "User"}
+                              className="w-10 h-10 object-cover rounded-full border-2 border-white"
+                            />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium text-zinc-900 dark:text-white">
+                              {notice.user?.username}
+                            </h4>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                              Pending period
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="bg-zinc-50 dark:bg-zinc-600 rounded-lg p-3 mb-3">
+                          <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300 mb-1">
+                            <IconCalendarTime className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
+                            <span>
+                              {moment(notice.startTime!).format("MMM Do")} -{" "}
+                              {moment(notice.endTime!).format("MMM Do YYYY")}
+                            </span>
+                          </div>
+                          <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                            {notice.reason}
+                          </p>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => updateNotice(notice.id, "approve")}
+                            className="flex-1 px-3 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 text-sm font-medium"
+                          >
+                            <IconCheck className="w-4 h-4 inline-block mr-1 text-primary" />
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => updateNotice(notice.id, "deny")}
+                            className="flex-1 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 text-sm font-medium"
+                          >
+                            <IconX className="w-4 h-4 inline-block mr-1 text-red-600" />
+                            Deny
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
-              {renderManageNoticeSection("Active Notices", activeNotices, true)}
+
+              {upcomingNotices.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
+                    Upcoming Notices
+                  </h3>
+                  <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+                    {upcomingNotices.map((notice) => (
+                      <div
+                        key={notice.id}
+                        className="bg-white dark:bg-zinc-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-all"
+                      >
+                        <div className="flex items-center gap-3 mb-3">
+                          <div
+                            className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(
+                              notice.user?.userid?.toString() ?? ""
+                            )} ring-2 ring-transparent hover:ring-primary transition overflow-hidden`}
+                          >
+                            <img
+                              src={notice.user?.picture ?? "/default-avatar.jpg"}
+                              alt={notice.user?.username ?? "User"}
+                              className="w-10 h-10 object-cover rounded-full border-2 border-white"
+                            />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium text-zinc-900 dark:text-white">
+                              {notice.user?.username}
+                            </h4>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                              Upcoming period
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="bg-zinc-50 dark:bg-zinc-600 rounded-lg p-3 mb-3">
+                          <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300 mb-1">
+                            <IconCalendarTime className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
+                            <span>
+                              {moment(notice.startTime!).format("MMM Do")} -{" "}
+                              {moment(notice.endTime!).format("MMM Do YYYY")}
+                            </span>
+                          </div>
+                          <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                            {notice.reason}
+                          </p>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => updateNotice(notice.id, "cancel")}
+                            className="flex-1 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 text-sm font-medium"
+                          >
+                            Revoke
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {pendingNotices.length === 0 &&
+                upcomingNotices.length === 0 &&
+                activeNotices.length === 0 && (
+                  <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm p-12 text-center">
+                    <div className="mx-auto w-16 h-16 bg-zinc-100 dark:bg-zinc-700 rounded-full flex items-center justify-center mb-4">
+                      <IconCalendarTime className="w-8 h-8 text-zinc-400" />
+                    </div>
+                    <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-2">
+                      No Notices to Manage
+                    </h3>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      There are no pending, active, or upcoming notices at this time
+                    </p>
+                  </div>
+                )}
             </>
           )}
         </div>
