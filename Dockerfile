@@ -1,30 +1,24 @@
-FROM node:20-alpine
-
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+FROM --platform=linux/arm64 node:20.18.1
 
 # Create app directory
 WORKDIR /usr/src/app
 
 # Install app dependencies
-COPY package.json pnpm-lock.yaml ./
+COPY package*.json ./
 # Copy Prisma schema
 COPY prisma ./prisma/
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
-
 # Generate Prisma client for the specific platform
-RUN pnpm exec prisma generate
+RUN npx prisma generate
 
 # Bundle app source
 COPY . .
 
 # Build the app
-RUN pnpm run build
+RUN npm run build
 
 # Expose port 3000
 EXPOSE 3000
 
 # Start the app
-CMD ["pnpm", "run", "start"]
+CMD ["npm", "run", "start"]
