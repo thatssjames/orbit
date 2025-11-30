@@ -74,7 +74,7 @@ const Home: pageWithLayout = () => {
       icon: IconAlertTriangle,
       title: "Notices",
       description: "Staff currently on notice",
-      color: "bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20",
+      color: "bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/20 dark:to-pink-800/20",
     },
     documents: {
       component: Docs,
@@ -86,7 +86,7 @@ const Home: pageWithLayout = () => {
     policies: {
       component: Policies,
       icon: IconShield,
-      title: "Policy Dashboard",
+      title: "Policies",
       description: "Track your policy acknowledgments (BETA)",
       color: "bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20",
     },
