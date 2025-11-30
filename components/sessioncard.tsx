@@ -128,7 +128,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
   }, [isOpen, session, workspaceMembers, login.userId]);
 
   const handleHostClaim = async (username: string) => {
-    const isOwner = workspace.roles?.find((r: any) => r.id === workspace.yourRole)?.isOwnerRole || false;
+    const isOwner = workspace?.roles?.find((r: any) => r.id === workspace.yourRole)?.isOwnerRole || false;
     const userHasAssignPermission = isOwner || workspace.yourPermission.includes("sessions_assign");
     const userHasHostPermission = isOwner || workspace.yourPermission.includes("sessions_host");
     const isAssigningToSelf = username.toLowerCase() === login.username.toLowerCase();
@@ -197,7 +197,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
     slot: number,
     username: string
   ) => {
-    const isOwner = workspace.roles?.find((r: any) => r.id === workspace.yourRole)?.isOwnerRole || false;
+    const isOwner = workspace?.roles?.find((r: any) => r.id === workspace.yourRole)?.isOwnerRole || false;
     const userHasAssignPermission = isOwner || workspace.yourPermission.includes("sessions_assign");
     const userHasClaimPermission = isOwner || workspace.yourPermission.includes("sessions_claim");
     const isAssigningToSelf = username.toLowerCase() === login.username.toLowerCase();
@@ -442,7 +442,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
                       isSubmitting={isSubmitting}
                       canEdit={
                         canManage ||
-                        workspace.roles?.find((r: any) => r.id === workspace.yourRole)?.isOwnerRole ||
+                        (workspace?.roles?.find((r: any) => r.id === workspace.yourRole)?.isOwnerRole || false) ||
                         workspace.yourPermission.includes("sessions_assign") ||
                         workspace.yourPermission.includes("sessions_host")
                       }
@@ -510,7 +510,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
                                     isSubmitting={isSubmitting}
                                     canEdit={
                                       canManage ||
-                                      workspace.roles?.find((r: any) => r.id === workspace.yourRole)?.isOwnerRole ||
+                                      (workspace?.roles?.find((r: any) => r.id === workspace.yourRole)?.isOwnerRole || false) ||
                                       workspace.yourPermission.includes("sessions_assign") ||
                                       (slotData.name === "Host" || slotData.name.toLowerCase() === "co-host" 
                                         ? workspace.yourPermission.includes("sessions_host")
@@ -592,7 +592,7 @@ const AutocompleteInput: React.FC<{
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const hasPermissionToEdit = () => {
     if (!workspace) return canEdit;
-    const isOwner = workspace.roles?.find((r: any) => r.id === workspace.yourRole)?.isOwnerRole || false;
+    const isOwner = workspace?.roles?.find((r: any) => r.id === workspace.yourRole)?.isOwnerRole || false;
     if (isOwner) return true;
     const hasAssignPermission = workspace.yourPermission.includes("sessions_assign");
     const hasClaimPermission = workspace.yourPermission.includes("sessions_claim");
@@ -684,7 +684,7 @@ const AutocompleteInput: React.FC<{
 
   const canAssignToUser = (targetUsername: string) => {
     if (!workspace) return true;
-    const isOwner = workspace.roles?.find((r: any) => r.id === workspace.yourRole)?.isOwnerRole || false;
+    const isOwner = workspace?.roles?.find((r: any) => r.id === workspace.yourRole)?.isOwnerRole || false;
     if (isOwner) return true;
     const hasAssignPermission = workspace.yourPermission.includes("sessions_assign");
     const hasClaimPermission = workspace.yourPermission.includes("sessions_claim");
@@ -935,9 +935,10 @@ const AutocompleteInput: React.FC<{
               e.stopPropagation();
               if (!isSubmitting && actualCanEdit) {
                 const canRemoveAssignment = () => {
-                  const isOwner = workspace.roles?.find((r: any) => r.id === workspace.yourRole)?.isOwnerRole || false;
                   if (!workspace) return true;
+                  const isOwner = workspace?.roles?.find((r: any) => r.id === workspace.yourRole)?.isOwnerRole || false;
                   if (isOwner) return true;
+                  
                   const hasAssignPermission = workspace.yourPermission.includes("sessions_assign");
                   const isAssignedToSelf = assignedUserId?.toString() === currentUserId.toString();
                   
@@ -995,7 +996,7 @@ const HostButton: React.FC<{
   const filteredUsers = availableUsers;
 const canRemoveHost = workspace ? 
     (() => {
-      const isOwner = workspace.roles?.find((r: any) => r.id === workspace.yourRole)?.isOwnerRole || false;
+      const isOwner = workspace?.roles?.find((r: any) => r.id === workspace.yourRole)?.isOwnerRole || false;
       if (isOwner) return true;
       const hasAssignPermission = workspace.yourPermission.includes("sessions_assign");
       const hasHostPermission = workspace.yourPermission.includes("sessions_host");
@@ -1055,7 +1056,7 @@ const RoleButton: React.FC<{
   const filteredUsers = availableUsers;
   const canRemoveRole = workspace ? 
     (() => {
-      const isOwner = workspace.roles?.find((r: any) => r.id === workspace.yourRole)?.isOwnerRole || false;
+      const isOwner = workspace?.roles?.find((r: any) => r.id === workspace.yourRole)?.isOwnerRole || false;
       if (isOwner) return true;
       const hasAssignPermission = workspace.yourPermission.includes("sessions_assign");
       const isCurrentUserAssigned = assignedUserId === currentUserId.toString();
