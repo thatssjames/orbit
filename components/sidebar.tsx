@@ -35,6 +35,7 @@ import {
   IconClockFilled,
   IconTrophy,
   IconTrophyFilled,
+  IconShieldFilled,
 } from "@tabler/icons-react"
 import axios from "axios"
 import clsx from "clsx"
