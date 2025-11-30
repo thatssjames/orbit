@@ -5,6 +5,7 @@ import type { pageWithLayout } from "@/layoutTypes"
 import { loginState, workspacestate } from "@/state"
 import Workspace from "@/layouts/workspace"
 import Sessions from "@/components/home/sessions"
+import Notices from "@/components/home/notices"
 import Docs from "@/components/home/docs"
 import Policies from "@/components/home/policies"
 import randomText from "@/utils/randomText"
@@ -30,6 +31,7 @@ import {
   IconArrowRight,
   IconGift,
   IconShield,
+  IconAlertTriangle,
 } from "@tabler/icons-react"
 import clsx from "clsx"
 
@@ -66,6 +68,13 @@ const Home: pageWithLayout = () => {
       title: "Sessions",
       description: "Ongoing and upcoming sessions",
       color: "bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20",
+    },
+    notices: {
+      component: Notices,
+      icon: IconAlertTriangle,
+      title: "Notices",
+      description: "Staff currently on notice",
+      color: "bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20",
     },
     documents: {
       component: Docs,
@@ -196,12 +205,16 @@ const Home: pageWithLayout = () => {
             />
           </div>
         )}
-        <div className="mb-8 z-0 relative">
-          <Birthdays />
-        </div>
-        <div className="mb-8 z-0 relative">
-          <NewToTeam />
-        </div>
+        {Array.isArray(workspace.settings.widgets) && workspace.settings.widgets.includes("birthdays") && (
+          <div className="mb-8 z-0 relative">
+            <Birthdays />
+          </div>
+        )}
+        {Array.isArray(workspace.settings.widgets) && workspace.settings.widgets.includes("new_members") && (
+          <div className="mb-8 z-0 relative">
+            <NewToTeam />
+          </div>
+        )}
         <div className="mb-8 z-0 relative">
           <StickyNoteAnnouncement />
         </div>
