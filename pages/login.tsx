@@ -86,7 +86,7 @@ const Login: NextPage = () => {
     loginMethods.reset();
     signupMethods.reset();
     setVerificationError(false);
-    // setSignupStep(0);
+    setSignupStep(0);
     setLoading(false);
   }, [mode]);
 
