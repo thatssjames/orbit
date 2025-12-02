@@ -99,17 +99,16 @@ jobs:
           cache-from: type=gha,scope=arm64
           cache-to: type=gha,mode=max,scope=arm64
 
-      # Build AMD64 separately
+      # Build AMD64 separately (no cache to avoid hangs)
       - name: Build and push AMD64 image
         uses: docker/build-push-action@v5
         with:
           context: .
           platforms: linux/amd64
           push: true
+          no-cache: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.next_version.outputs.new_tag }}-amd64
-          cache-from: type=gha,scope=amd64
-          cache-to: type=gha,mode=max,scope=amd64
 
       # Create multi-platform manifest
       - name: Create and push manifest
