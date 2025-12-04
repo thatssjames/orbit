@@ -238,6 +238,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
             "admin",
             "view_staff_config",
             "manage_sessions",
+            "sessions_unscheduled",
+            "sessions_scheduled",
             "manage_activity",
             "post_on_wall",
             "manage_wall",

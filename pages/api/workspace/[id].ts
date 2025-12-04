@@ -121,6 +121,8 @@ export async function handler(
 		'Assign users to Sessions': 'sessions_assign',
 		'Assign Self to Sessions': 'sessions_claim',
 		'Host Sessions': 'sessions_host',
+		"Create Unscheduled": "sessions_unscheduled",
+		"Create Scheduled": "sessions_scheduled",
 		"Manage sessions": "manage_sessions",
 		"Manage activity": "manage_activity",
 		"Manage quotas": "manage_quotas",

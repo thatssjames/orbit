@@ -136,6 +136,8 @@ export async function handler(
 					'admin',
 					'view_staff_config',
 					'manage_sessions',
+					'sessions_unscheduled',
+					'sessions_scheduled',
 					'sessions_assign',
 					'sessions_claim',
 					'sessions_host',
