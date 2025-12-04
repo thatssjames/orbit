@@ -238,6 +238,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
             "admin",
             "view_staff_config",
             "manage_sessions",
+            "sessions_unscheduled",
+            "sessions_scheduled",
             "manage_activity",
             "post_on_wall",
             "manage_wall",
@@ -298,7 +300,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       userId: req.session.userid,
       username: await getUsername(req.session.userid),
       displayname: await getDisplayName(req.session.userid),
-      thumbnail: await getThumbnail(req.session.userid),
+      thumbnail: getThumbnail(req.session.userid),
       isOwner: true,
     };
 

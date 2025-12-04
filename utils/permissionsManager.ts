@@ -61,7 +61,7 @@ async function retryNobloxRequest<T>(
 
 export function withPermissionCheck(
   handler: NextApiHandler,
-  permission?: string
+  permission?: string | string[]
 ) {
   return withSessionRoute(async (req: NextApiRequest, res: NextApiResponse) => {
     const uid = req.session.userid;
@@ -95,7 +95,9 @@ export function withPermissionCheck(
       const userrole = cached.data;
       if (userrole.isOwnerRole) return handler(req, res);
       if (!permission) return handler(req, res);
-      if (userrole.permissions?.includes(permission)) return handler(req, res);
+      const permissions = Array.isArray(permission) ? permission : [permission];
+      const hasPermission = permissions.some(perm => userrole.permissions?.includes(perm));
+      if (hasPermission) return handler(req, res);
       return res.status(401).json({ success: false, error: "Unauthorized" });
     }
 
@@ -114,25 +116,25 @@ export function withPermissionCheck(
         },
       },
     });
-    console.log("User data:", user);
     if (!user)
       return res.status(401).json({ success: false, error: "Unauthorized" });
     const userrole = user.roles[0];
-    console.log("User role:", userrole);
     if (!userrole)
       return res.status(401).json({ success: false, error: "Unauthorized" });
     permissionsCache.set(cacheKey, { data: userrole, timestamp: now });
     
     if (userrole.isOwnerRole) return handler(req, res);
     if (!permission) return handler(req, res);
-    if (userrole.permissions?.includes(permission)) return handler(req, res);
+    const permissions = Array.isArray(permission) ? permission : [permission];
+    const hasPermission = permissions.some(perm => userrole.permissions?.includes(perm));
+    if (hasPermission) return handler(req, res);
     return res.status(401).json({ success: false, error: "Unauthorized" });
   });
 }
 
 export function withPermissionCheckSsr(
   handler: (context: GetServerSidePropsContext) => Promise<any>,
-  permission?: string
+  permission?: string | string[]
 ) {
   return withSessionSsr(async (context) => {
     const { req, res, query } = context;
@@ -173,7 +175,9 @@ export function withPermissionCheckSsr(
       const userrole = cached.data;
       if (userrole.isOwnerRole) return handler(context);
       if (!permission) return handler(context);
-      if (userrole.permissions?.includes(permission)) return handler(context);
+      const permissions = Array.isArray(permission) ? permission : [permission];
+      const hasPermission = permissions.some(perm => userrole.permissions?.includes(perm));
+      if (hasPermission) return handler(context);
       return {
         redirect: {
           destination: "/",
@@ -217,10 +221,11 @@ export function withPermissionCheckSsr(
       };
     }
     permissionsCache.set(cacheKey, { data: userrole, timestamp: now });
+    const permissions = Array.isArray(permission) ? permission : (permission ? [permission] : []);
     const hasPermission =
       !permission ||
       user?.roles.some(
-        (role) => role.isOwnerRole || role.permissions.includes(permission)
+        (role) => role.isOwnerRole || permissions.some(perm => role.permissions.includes(perm))
       );
 
     if (!hasPermission) {
@@ -239,6 +244,48 @@ export function withPermissionCheckSsr(
 export async function checkGroupRoles(groupID: number) {
   try {
     console.log(`[checkGroupRoles] Starting role sync for group ${groupID}`);
+
+    const allPermissions = [
+      'admin',
+      'view_staff_config',
+      'manage_sessions',
+      'sessions_unscheduled',
+      'sessions_scheduled',
+      'sessions_assign',
+      'sessions_claim',
+      'sessions_host',
+      'manage_activity',
+      'post_on_wall',
+      'manage_wall',
+      'manage_views',
+      'view_wall',
+      'view_members',
+      'manage_members',
+      'manage_quotas',
+      'manage_docs',
+      'manage_policies',
+      'view_entire_groups_activity',
+      'manage_alliances',
+      'represent_alliance'
+    ];
+
+    try {
+      await prisma.role.updateMany({
+        where: {
+          workspaceGroupId: groupID,
+          isOwnerRole: true,
+        },
+        data: {
+          permissions: allPermissions,
+        },
+      });
+      console.log(`[checkGroupRoles] Updated owner role permissions for group ${groupID}`);
+    } catch (error) {
+      console.error(
+        `[checkGroupRoles] Failed to update owner role permissions for group ${groupID}:`,
+        error
+      );
+    }
 
     const rss = await retryNobloxRequest(() => noblox.getRoles(groupID)).catch((error) => {
       console.error(
@@ -494,18 +541,6 @@ export async function checkGroupRoles(groupID: number) {
                   continue;
                 }
 
-                // Add delay and retry for getThumbnail
-                await delay(300); // Small delay before thumbnail fetch
-                const thumbnail = await retryNobloxRequest(() => getThumbnail(member.userId)).catch(
-                  (error) => {
-                    console.error(
-                      `[checkGroupRoles] Failed to get thumbnail for user ${member.userId}:`,
-                      error
-                    );
-                    return "";
-                  }
-                );
-
                 await prisma.user
                   .upsert({
                     where: {
@@ -519,7 +554,7 @@ export async function checkGroupRoles(groupID: number) {
                         },
                       },
                       username: member.username,
-                      picture: thumbnail,
+                      picture: getThumbnail(member.userId),
                     },
                     update: {
                       roles: {

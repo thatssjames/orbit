@@ -59,7 +59,7 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
       },
     };
   },
-  "manage_sessions"
+  ["sessions_scheduled", "sessions_unscheduled"]
 );
 
 const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
@@ -111,6 +111,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
     (() => Promise<void>) | null
   >(null);
   const router = useRouter();
+
+  const canCreateScheduled = workspace.yourPermission?.includes("sessions_scheduled") || workspace.yourPermission?.includes("admin");
+  const canCreateUnscheduled = workspace.yourPermission?.includes("sessions_unscheduled") || workspace.yourPermission?.includes("admin");
 
   const checkOverlaps = async (sessionDate: Date, duration: number) => {
     try {
@@ -453,6 +456,8 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
     if (fallbackToManual && !form.getValues().gameId) return false;
     if (!allowUnscheduled && !enabled) return false;
     if (allowUnscheduled && enabled) return false;
+    if (enabled && !canCreateScheduled) return false;
+    if (allowUnscheduled && !canCreateUnscheduled) return false;
     if (enabled && times.length === 0 && !form.getValues().time) return false;
     if (enabled && days.length === 0) return false;
     if (allowUnscheduled && (!unscheduledDate || !unscheduledTime))
@@ -754,25 +759,31 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
               <div className="space-y-6 max-w-2xl">
                 <div className="p-4 bg-zinc-50 dark:bg-zinc-700/30 rounded-lg border border-gray-200 dark:border-zinc-700">
                   <div className="flex flex-col space-y-3">
-                    <Switchcomponenet
-                      label="Unscheduled session"
-                      checked={allowUnscheduled}
-                      onChange={() => {
-                        if (!allowUnscheduled && enabled) {
-                          setEnabled(false);
-                        }
-                        setAllowUnscheduled(!allowUnscheduled);
-                      }}
-                    />
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400 ml-10">
-                      Enable this to set up a one time session
-                    </p>
+                    <div className={!canCreateUnscheduled ? "opacity-50 cursor-not-allowed" : ""}>
+                      <Switchcomponenet
+                        label="Unscheduled session"
+                        checked={allowUnscheduled}
+                        onChange={() => {
+                          if (!canCreateUnscheduled) return;
+                          if (!allowUnscheduled && enabled) {
+                            setEnabled(false);
+                          }
+                          setAllowUnscheduled(!allowUnscheduled);
+                        }}
+                      />
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400 ml-10">
+                        {canCreateUnscheduled 
+                          ? "Enable this to set up a one time session"
+                          : "You don't have permission to create unscheduled sessions"}
+                      </p>
+                    </div>
 
-                    <div className="mt-2">
+                    <div className={!canCreateScheduled ? "opacity-50 cursor-not-allowed mt-2" : "mt-2"}>
                       <Switchcomponenet
                         label="Scheduled session"
                         checked={enabled}
                         onChange={() => {
+                          if (!canCreateScheduled) return;
                           if (!enabled && allowUnscheduled) {
                             setAllowUnscheduled(false);
                           }
@@ -780,7 +791,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                         }}
                       />
                       <p className="text-xs text-zinc-500 dark:text-zinc-400 ml-10">
-                        Enable this to set up recurring sessions on a schedule
+                        {canCreateScheduled
+                          ? "Enable this to set up recurring sessions on a schedule"
+                          : "You don't have permission to create scheduled sessions"}
                       </p>
                     </div>
                   </div>
