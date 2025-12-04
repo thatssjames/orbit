@@ -114,11 +114,9 @@ export function withPermissionCheck(
         },
       },
     });
-    console.log("User data:", user);
     if (!user)
       return res.status(401).json({ success: false, error: "Unauthorized" });
     const userrole = user.roles[0];
-    console.log("User role:", userrole);
     if (!userrole)
       return res.status(401).json({ success: false, error: "Unauthorized" });
     permissionsCache.set(cacheKey, { data: userrole, timestamp: now });
@@ -494,18 +492,6 @@ export async function checkGroupRoles(groupID: number) {
                   continue;
                 }
 
-                // Add delay and retry for getThumbnail
-                await delay(300); // Small delay before thumbnail fetch
-                const thumbnail = await retryNobloxRequest(() => getThumbnail(member.userId)).catch(
-                  (error) => {
-                    console.error(
-                      `[checkGroupRoles] Failed to get thumbnail for user ${member.userId}:`,
-                      error
-                    );
-                    return "";
-                  }
-                );
-
                 await prisma.user
                   .upsert({
                     where: {
@@ -519,7 +505,7 @@ export async function checkGroupRoles(groupID: number) {
                         },
                       },
                       username: member.username,
-                      picture: thumbnail,
+                      picture: getThumbnail(member.userId),
                     },
                     update: {
                       roles: {
