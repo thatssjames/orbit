@@ -124,11 +124,27 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     const hashedPassword = await safeHashPassword(password);
     console.log("Password hashed successfully");
 
-    // Create workspace with validated groupIdNumber
+    let groupName = `Group ${groupIdNumber}`;
+    let groupLogo = '';
+    
+    try {
+      const [logo, group] = await Promise.all([
+        noblox.getLogo(groupIdNumber).catch(() => ''),
+        noblox.getGroup(groupIdNumber).catch(() => null)
+      ]);
+      if (group) groupName = group.name;
+      if (logo) groupLogo = logo;
+    } catch (err) {
+      console.error('Failed to fetch group info during workspace setup:', err);
+    }
+
     const workspace = await prisma.workspace
       .create({
         data: {
           groupId: groupIdNumber,
+          groupName,
+          groupLogo,
+          lastSynced: new Date()
         },
       })
       .catch((e) => {

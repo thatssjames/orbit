@@ -22,8 +22,8 @@ type Data = {
 	user?: User
 	workspaces?: { 
 		groupId: number
-		groupthumbnail: string
-		groupname: string
+		groupThumbnail: string
+		groupName: string
 	}[]
 }
 
@@ -82,14 +82,15 @@ export async function handler(
 	if (dbuser?.roles?.length) {
 		roles = await Promise.all(
 			dbuser.roles.map(async (role) => {
-				const [groupThumbnail, group] = await Promise.all([
-					noblox.getLogo(role.workspaceGroupId).catch(() => ''),
-					noblox.getGroup(role.workspaceGroupId).catch(() => ({ name: 'Unknown' }))
-				]);
+				const workspace = await prisma.workspace.findUnique({
+					where: { groupId: role.workspaceGroupId },
+					select: { groupName: true, groupLogo: true, lastSynced: true }
+				});
+				
 				return {
 					groupId: role.workspaceGroupId,
-					groupThumbnail,
-					groupName: group.name,
+					groupThumbnail: workspace?.groupLogo,
+					groupName: workspace?.groupName,
 				};
 			})
 		);
