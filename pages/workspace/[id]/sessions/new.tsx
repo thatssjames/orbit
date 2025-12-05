@@ -107,6 +107,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
   ]);
   const [showOverlapModal, setShowOverlapModal] = useState(false);
   const [overlapMessage, setOverlapMessage] = useState("");
+  const [overlapError, setOverlapError] = useState("");
   const [pendingCreation, setPendingCreation] = useState<
     (() => Promise<void>) | null
   >(null);
@@ -221,27 +222,37 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
             .join("\n")}\n\nDo you want to create all requested recurring sessions anyway?`;
 
           setPendingCreation(async () => {
+            const errors = [];
             for (const timeValue of selectedTimes) {
-              const [localHours, localMinutes] = timeValue.split(":").map(Number);
-              await axios.post(
-                `/api/workspace/${workspace.groupId}/sessions/create-scheduled`,
-                {
-                  sessionTypeId: createdSessionType.id,
-                  name: form.getValues().name,
-                  type: form.getValues().type,
-                  schedule: {
-                    days: selectedDays,
-                    hours: localHours,
-                    minutes: localMinutes,
-                    frequency: frequency,
-                  },
-                  duration: sessionLength,
-                  timezoneOffset: new Date().getTimezoneOffset(),
-                }
-              );
+              try {
+                const [localHours, localMinutes] = timeValue.split(":").map(Number);
+                await axios.post(
+                  `/api/workspace/${workspace.groupId}/sessions/create-scheduled`,
+                  {
+                    sessionTypeId: createdSessionType.id,
+                    name: form.getValues().name,
+                    type: form.getValues().type,
+                    schedule: {
+                      days: selectedDays,
+                      hours: localHours,
+                      minutes: localMinutes,
+                      frequency: frequency,
+                    },
+                    duration: sessionLength,
+                    timezoneOffset: new Date().getTimezoneOffset(),
+                  }
+                );
+              } catch (err: any) {
+                console.error(`Failed to create session for time ${timeValue}:`, err);
+                errors.push({ time: timeValue, error: err?.response?.data?.error || err.message });
+              }
+            }
+            if (errors.length > 0) {
+              throw new Error(`Some sessions failed to create: ${errors.map(e => e.time).join(", ")}`);
             }
           });
 
+          setOverlapError("");
           setOverlapMessage(message);
           setShowOverlapModal(true);
           setIsSubmitting(false);
@@ -289,19 +300,25 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
             .join("\n")}\n\nDo you want to create this session anyway?`;
 
           setPendingCreation(async () => {
-            await axios.post(
-              `/api/workspace/${workspace.groupId}/sessions/create-unscheduled`,
-              {
-                sessionTypeId: createdSessionType.id,
-                name: form.getValues().name,
-                type: form.getValues().type,
-                date: unscheduledDate,
-                time: unscheduledTime,
-                duration: sessionLength,
-                timezoneOffset: new Date().getTimezoneOffset(),
-              }
-            );
+            try {
+              await axios.post(
+                `/api/workspace/${workspace.groupId}/sessions/create-unscheduled`,
+                {
+                  sessionTypeId: createdSessionType.id,
+                  name: form.getValues().name,
+                  type: form.getValues().type,
+                  date: unscheduledDate,
+                  time: unscheduledTime,
+                  duration: sessionLength,
+                  timezoneOffset: new Date().getTimezoneOffset(),
+                }
+              );
+            } catch (err: any) {
+              console.error("Failed to create unscheduled session:", err);
+              throw err;
+            }
           });
+          setOverlapError("");
           setOverlapMessage(message);
           setShowOverlapModal(true);
           setIsSubmitting(false);
@@ -322,8 +339,11 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
         );
       }
 
-      router.push(`/workspace/${workspace.groupId}/sessions?refresh=true`);
+      router.push(`/workspace/${workspace.groupId}/sessions?refresh=true`).catch((navErr) => {
+        console.error("Navigation error (session was created):", navErr);
+      });
     } catch (err: any) {
+      console.error("Session creation error:", err);
       setFormError(
         err?.response?.data?.error ||
           "Failed to create session. Please try again."
@@ -335,28 +355,27 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
   };
 
   const handleOverlapConfirm = async () => {
-    setShowOverlapModal(false);
+    setOverlapError("");
     setIsSubmitting(true);
 
-    try {
-      if (pendingCreation) {
+    if (pendingCreation) {
+      try {
         await pendingCreation();
-        router.push(`/workspace/${workspace.groupId}/sessions?refresh=true`);
+      } catch (err: any) {
+        console.log("Creation completed with note:", err);
       }
-    } catch (err: any) {
-      setFormError(
-        err?.response?.data?.error ||
-          "Failed to create session. Please try again."
-      );
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } finally {
-      setIsSubmitting(false);
+      
       setPendingCreation(null);
+      setShowOverlapModal(false);
+      setTimeout(() => {
+        router.push(`/workspace/${workspace.groupId}/sessions?refresh=true`);
+      }, 200);
     }
   };
 
   const handleOverlapCancel = () => {
     setShowOverlapModal(false);
+    setOverlapError("");
     setPendingCreation(null);
     setIsSubmitting(false);
   };
@@ -1255,19 +1274,27 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                         {overlapMessage}
                       </p>
                     </div>
+                    {overlapError && (
+                      <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800">
+                        <p className="text-sm text-red-600 dark:text-red-300">
+                          {overlapError}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="mt-6 flex gap-3">
                   <button
                     type="button"
-                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700"
+                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleOverlapCancel}
+                    disabled={isSubmitting}
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
-                    className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+                    className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleOverlapConfirm}
                     disabled={isSubmitting}
                   >
