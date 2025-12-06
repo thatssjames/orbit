@@ -2,7 +2,12 @@
 const nextConfig = {
 	reactStrictMode: true,
 	images: {
-	  domains: ['tr.rbxcdn.com'],
+	  remotePatterns: [
+		{
+		  protocol: 'https',
+		  hostname: 'tr.rbxcdn.com',
+		},
+	  ],
 	},
 	env: {
 	  NEXT_PUBLIC_DATABASE_CHECK: process.env.DATABASE_URL ? 'true' : '',
