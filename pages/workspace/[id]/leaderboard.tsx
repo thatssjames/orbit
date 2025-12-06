@@ -204,9 +204,9 @@ const Leaderboard: pageWithLayout = () => {
         </div>
         {topStaff.length > 0 && (
           <div className="mb-12">
-            <div className="flex items-end justify-center gap-6 mb-8 flex-wrap">
+            <div className="flex items-end justify-center gap-4 sm:gap-6 mb-8">
               {topStaff[1] && (
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-center flex-1 max-w-[120px]">
                   <div className="relative mb-4">
                     <div
                       className={`w-20 h-20 rounded-full flex items-center justify-center ${getRandomBg(
@@ -244,7 +244,7 @@ const Leaderboard: pageWithLayout = () => {
                   </div>
                 </div>
               )}
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center flex-1 max-w-[140px]">
                 <div className="relative mb-4">
                   <div
                     className={`w-24 h-24 rounded-full flex items-center justify-center ${getRandomBg(
@@ -287,7 +287,7 @@ const Leaderboard: pageWithLayout = () => {
                 </div>
               </div>
               {topStaff[2] && (
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-center flex-1 max-w-[120px]">
                   <div className="relative mb-4">
                     <div
                       className={`w-20 h-20 rounded-full flex items-center justify-center ${getRandomBg(
@@ -326,48 +326,6 @@ const Leaderboard: pageWithLayout = () => {
                 </div>
               )}
             </div>
-            {topStaff.length > 3 && (
-              <div className="flex items-center justify-center gap-8 flex-wrap">
-                {topStaff.slice(3, 5).map((user: any, index: number) => {
-                  const position = index + 4;
-                  return (
-                    <div
-                      key={user.userId}
-                      className="flex flex-col items-center"
-                    >
-                      <div className="relative mb-3">
-                        <div
-                          className={`w-16 h-16 rounded-full flex items-center justify-center ${getRandomBg(
-                            user.userId
-                          )}`}
-                        >
-                          <img
-                            src={user.picture}
-                            alt={user.username}
-                            className="w-16 h-16 rounded-full border-3 border-zinc-400 shadow-md object-cover"
-                            style={{ background: "transparent" }}
-                          />
-                        </div>
-                        <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 bg-zinc-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
-                          {position}
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <p className="font-medium text-zinc-900 dark:text-white">
-                          {user.username}
-                        </p>
-                        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                          {(() => {
-                            const minutes = Math.floor(user.ms / 1000 / 60);
-                            return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
-                          })()}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
           </div>
         )}
         <div className="bg-white dark:bg-zinc-800 border border-white/10 rounded-xl p-6 shadow-sm mb-8">
@@ -386,41 +344,41 @@ const Leaderboard: pageWithLayout = () => {
           </div>
 
           <div className="space-y-4">
-            {topStaff.length > 5 ? (
-              topStaff.slice(5, 10).map((user: any, index: number) => {
-                const actualPosition = index + 6;
+            {topStaff.length > 3 ? (
+              topStaff.slice(3, 8).map((user: any, index: number) => {
+                const actualPosition = index + 4;
                 return (
                   <div
                     key={user.userId}
-                    className="flex items-center justify-between p-4 rounded-lg bg-zinc-50 dark:bg-zinc-700 transition-all"
+                    className="flex items-center justify-between p-3 sm:p-4 rounded-lg bg-zinc-50 dark:bg-zinc-700 transition-all gap-2"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center justify-center w-10 h-10 rounded-full font-bold bg-zinc-300 dark:bg-zinc-600 text-zinc-700 dark:text-zinc-300">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                      <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full font-bold bg-zinc-300 dark:bg-zinc-600 text-zinc-700 dark:text-zinc-300 text-sm sm:text-base flex-shrink-0">
                         {actualPosition}
                       </div>
                       <div
-                        className={`w-12 h-12 rounded-full flex items-center justify-center ${getRandomBg(
+                        className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center flex-shrink-0 ${getRandomBg(
                           user.userId
                         )}`}
                       >
                         <img
                           src={user.picture}
                           alt={user.username}
-                          className="w-12 h-12 rounded-full border-2 border-white dark:border-zinc-700 shadow-sm object-cover"
+                          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-white dark:border-zinc-700 shadow-sm object-cover"
                           style={{ background: "transparent" }}
                         />
                       </div>
-                      <div>
-                        <span className="font-semibold text-lg text-zinc-900 dark:text-white">
+                      <div className="min-w-0 flex-1">
+                        <span className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-white truncate block">
                           {user.username}
                         </span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold text-xl text-zinc-900 dark:text-white">
+                    <div className="text-right flex-shrink-0">
+                      <p className="font-bold text-sm sm:text-lg text-zinc-900 dark:text-white whitespace-nowrap">
                         {(() => {
                           const minutes = Math.floor(user.ms / 1000 / 60);
-                          return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+                          return `${minutes}m`;
                         })()}
                       </p>
                     </div>
