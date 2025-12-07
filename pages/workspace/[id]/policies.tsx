@@ -248,6 +248,8 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
   const [showLinkManager, setShowLinkManager] = useState(false);
   const [selectedDocumentForLink, setSelectedDocumentForLink] =
     useState<any>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [policyToDelete, setPolicyToDelete] = useState<{id: string, name: string} | null>(null);
   const [policyMode, setPolicyMode] = useState<"internal" | "external">(
     "internal"
   );
@@ -413,20 +415,21 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
     }
   };
 
-  const handleDeletePolicy = async (documentId: string) => {
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this policy? This action cannot be undone."
-      )
-    ) {
-      return;
-    }
+  const handleDeletePolicy = async (documentId: string, documentName: string) => {
+    setPolicyToDelete({ id: documentId, name: documentName });
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeletePolicy = async () => {
+    if (!policyToDelete) return;
 
     try {
       await axios.delete(
-        `/api/workspace/${router.query.id}/policies/${documentId}`
+        `/api/workspace/${router.query.id}/policies/${policyToDelete.id}`
       );
       toast.success("Policy deleted successfully");
+      setShowDeleteModal(false);
+      setPolicyToDelete(null);
       router.reload();
     } catch (error: any) {
       toast.error(error.response?.data?.error || "Failed to delete policy");
@@ -870,7 +873,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                 </button>
                                 <button
                                   onClick={() =>
-                                    handleDeletePolicy(document.id)
+                                    handleDeletePolicy(document.id, document.name)
                                   }
                                   className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md"
                                   title="Delete Policy"
@@ -2647,6 +2650,36 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
             document={selectedDocumentForLink}
             workspaceId={router.query.id as string}
           />
+        )}
+
+        {showDeleteModal && policyToDelete && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
+              <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">
+                Confirm Deletion
+              </h2>
+              <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-6">
+                Are you sure you want to delete <strong>{policyToDelete.name}</strong>? This action cannot be undone.
+              </p>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setPolicyToDelete(null);
+                  }}
+                  className="px-4 py-2 rounded-md bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeletePolicy}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
