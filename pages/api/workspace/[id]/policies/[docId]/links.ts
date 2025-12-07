@@ -54,7 +54,16 @@ export async function handler(
 		});
 
 		// Generate actual URLs for each link
-		const baseUrl = typeof window !== "undefined" ? window.location.origin : ""
+		let baseUrl: string;
+		if (process.env.NEXTAUTH_URL) {
+			baseUrl = process.env.NEXTAUTH_URL;
+		} else {
+			const forwardedProto = req.headers['x-forwarded-proto'];
+			const protocol = Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto;
+			const finalProtocol = protocol || (req.headers.host?.includes('localhost') ? 'http' : 'https');
+			const host = req.headers['x-forwarded-host'] || req.headers.host;
+			baseUrl = `${finalProtocol}://${host}`;
+		}
 		const linksWithUrls = links.map(link => ({
 			...link,
 			url: `${baseUrl}/workspace/${id}/policies/sign/${docId}?link=${link.id}`,
@@ -103,9 +112,11 @@ export async function handler(
 		if (process.env.NEXTAUTH_URL) {
 			baseUrl = process.env.NEXTAUTH_URL;
 		} else {
-			const protocol = req.headers['x-forwarded-proto'] ||
-				(req.headers.host?.includes('localhost') ? 'http' : 'https');
-			baseUrl = `${protocol}://${req.headers.host}`;
+			const forwardedProto = req.headers['x-forwarded-proto'];
+			const protocol = Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto;
+			const finalProtocol = protocol || (req.headers.host?.includes('localhost') ? 'http' : 'https');
+			const host = req.headers['x-forwarded-host'] || req.headers.host;
+			baseUrl = `${finalProtocol}://${host}`;
 		}
 		const url = `${baseUrl}/workspace/${id}/policies/sign/${docId}?link=${newLink.id}`;
 
@@ -227,9 +238,11 @@ export async function handler(
 		if (process.env.NEXTAUTH_URL) {
 			baseUrl = process.env.NEXTAUTH_URL;
 		} else {
-			const protocol = req.headers['x-forwarded-proto'] ||
-				(req.headers.host?.includes('localhost') ? 'http' : 'https');
-			baseUrl = `${protocol}://${req.headers.host}`;
+			const forwardedProto = req.headers['x-forwarded-proto'];
+			const protocol = Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto;
+			const finalProtocol = protocol || (req.headers.host?.includes('localhost') ? 'http' : 'https');
+			const host = req.headers['x-forwarded-host'] || req.headers.host;
+			baseUrl = `${finalProtocol}://${host}`;
 		}
 		const url = `${baseUrl}/workspace/${id}/policies/sign/${docId}?link=${updatedLink.id}`;
 

@@ -48,9 +48,16 @@ export async function handler(
 	}
 
 	// Generate the direct link with proper protocol detection
-	const protocol = req.headers['x-forwarded-proto'] ||
-		(req.headers.host?.includes('localhost') ? 'http' : 'https');
-	const baseUrl = process.env.NEXTAUTH_URL || `${protocol}://${req.headers.host}`;
+	let baseUrl: string;
+	if (process.env.NEXTAUTH_URL) {
+		baseUrl = process.env.NEXTAUTH_URL;
+	} else {
+		const forwardedProto = req.headers['x-forwarded-proto'];
+		const protocol = Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto;
+		const finalProtocol = protocol || (req.headers.host?.includes('localhost') ? 'http' : 'https');
+		const host = req.headers['x-forwarded-host'] || req.headers.host;
+		baseUrl = `${finalProtocol}://${host}`;
+	}
 	const directLink = `${baseUrl}/workspace/${id}/policies/sign/${docId}`;
 
 	res.status(200).json({
