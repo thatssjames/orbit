@@ -29,6 +29,8 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 		'Assign users to Sessions': 'sessions_assign',
 		'Assign Self to Sessions': 'sessions_claim',
 		'Host/Co-Host Sessions': 'sessions_host',
+		'Create Unscheduled Sessions': 'sessions_unscheduled',
+		'Create Scheduled Sessions': 'sessions_scheduled',
 		"Manage sessions": "manage_sessions",
 		"Manage activity": "manage_activity",
 		"Manage quotas": "manage_quotas",

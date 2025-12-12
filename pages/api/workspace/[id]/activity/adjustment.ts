@@ -19,12 +19,6 @@ export default withPermissionCheck(async function handler(req: NextApiRequest, r
   const actorId = req.session.userid;
   if (!actorId) return res.status(401).json({ success: false, error: 'Unauthorized' });
 
-  const membership = await prisma.workspaceMember.findUnique({
-    where: { workspaceGroupId_userId: { workspaceGroupId, userId: BigInt(userId) } },
-    select: { userId: true }
-  });
-  if (!membership) return res.status(404).json({ success: false, error: 'User not in workspace' });
-
   const signedMinutes = action === 'remove' ? -Math.trunc(minutes) : Math.trunc(minutes);
 
   const adjustment = await prisma.activityAdjustment.create({

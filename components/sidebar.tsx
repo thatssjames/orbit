@@ -104,6 +104,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [noticesEnabled, setNoticesEnabled] = useState(false);
   const [leaderboardEnabled, setLeaderboardEnabled] = useState(false);
   const [policiesEnabled, setPoliciesEnabled] = useState(false);
+  const [pendingPolicyCount, setPendingPolicyCount] = useState(0);
   const router = useRouter()
 
   // Add body class to prevent scrolling when mobile menu is open
@@ -125,45 +126,45 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     filledIcon?: React.ElementType
     accessible?: boolean
   }[] = [
-    { name: "Home", href: "/workspace/[id]", icon: IconHome, filledIcon: IconHomeFilled },
-    { name: "Wall", href: "/workspace/[id]/wall", icon: IconMessage2, filledIcon: IconMessage2Filled },
-    { name: "Activity", href: "/workspace/[id]/activity", icon: IconClipboardList, filledIcon: IconClipboardListFilled, accessible: true },
+    { name: "Home", href: `/workspace/${workspace.groupId}`, icon: IconHome, filledIcon: IconHomeFilled },
+    { name: "Wall", href: `/workspace/${workspace.groupId}/wall`, icon: IconMessage2, filledIcon: IconMessage2Filled },
+    { name: "Activity", href: `/workspace/${workspace.groupId}/activity`, icon: IconClipboardList, filledIcon: IconClipboardListFilled, accessible: true },
 	...(leaderboardEnabled ? [{
       name: "Leaderboard",
-      href: "/workspace/[id]/leaderboard",
+      href: `/workspace/${workspace.groupId}/leaderboard`,
       icon: IconTrophy,
       filledIcon: IconTrophyFilled,
       accessible: workspace.yourPermission.includes("view_entire_groups_activity"),
     }] : []),
    ...(noticesEnabled ? [{
       name: "Notices",
-      href: "/workspace/[id]/notices",
+      href: `/workspace/${workspace.groupId}/notices`,
       icon: IconClock,
       filledIcon: IconClockFilled,
       accessible: true,
     }] : []),
     ...(alliesEnabled ? [{
       name: "Alliances",
-      href: "/workspace/[id]/alliances",
+      href: `/workspace/${workspace.groupId}/alliances`,
       icon: IconRosetteDiscountCheck,
       filledIcon: IconRosetteDiscountCheckFilled,
       accessible: true,
     }] : []),
     ...(sessionsEnabled ? [{
       name: "Sessions",
-      href: "/workspace/[id]/sessions",
+      href: `/workspace/${workspace.groupId}/sessions`,
       icon: IconBell,
       filledIcon: IconBellFilled,
       accessible: true,
     }] : []),
-    { name: "Staff", href: "/workspace/[id]/views", icon: IconUser, filledIcon: IconUserFilled, accessible: workspace.yourPermission.includes("view_members") },
-    ...(docsEnabled ? [{ name: "Docs", href: "/workspace/[id]/docs", icon: IconFileText, filledIcon: IconFileTextFilled, accessible: true }] : []),
-    ...(policiesEnabled ? [{ name: "Policies", href: "/workspace/[id]/policies", icon: IconShield, filledIcon: IconShieldFilled, accessible: workspace.yourPermission.includes("manage_policies") || workspace.yourPermission.includes("admin") }] : []),
-    { name: "Settings", href: "/workspace/[id]/settings", icon: IconSettings, filledIcon: IconSettingsFilled, accessible: workspace.yourPermission.includes("admin") },
+    { name: "Staff", href: `/workspace/${workspace.groupId}/views`, icon: IconUser, filledIcon: IconUserFilled, accessible: workspace.yourPermission.includes("view_members") },
+    ...(docsEnabled ? [{ name: "Docs", href: `/workspace/${workspace.groupId}/docs`, icon: IconFileText, filledIcon: IconFileTextFilled, accessible: true }] : []),
+    ...(policiesEnabled ? [{ name: "Policies", href: `/workspace/${workspace.groupId}/policies`, icon: IconShield, filledIcon: IconShieldFilled, accessible: true }] : []),
+    { name: "Settings", href: `/workspace/${workspace.groupId}/settings`, icon: IconSettings, filledIcon: IconSettingsFilled, accessible: workspace.yourPermission.includes("admin") },
   ];
 
   const gotopage = (page: string) => {
-    router.push(page.replace("[id]", workspace.groupId.toString()))
+    router.push(page)
     setIsMobileMenuOpen(false)
   }
 
@@ -198,117 +199,31 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   }, [showChangelog, changelog.length]);
 
   useEffect(() => {
-    // Fetch the config for docs/guides
-    fetch(`/api/workspace/${workspace.groupId}/settings/general/guides`)
+    fetch(`/api/workspace/${workspace.groupId}/settings/general/configuration`)
       .then(res => res.json())
       .then(data => {
-        let enabled = false;
-        let val = data.value ?? data;
-        if (typeof val === "string") {
-          try {
-            val = JSON.parse(val);
-          } catch {
-            val = {};
-          }
-        }
-        enabled =
-          typeof val === "object" && val !== null && "enabled" in val
-            ? (val as { enabled?: boolean }).enabled ?? false
-            : false;
-        setDocsEnabled(enabled);
+        setDocsEnabled(data.value.guides?.enabled ?? false);
+		setAlliesEnabled(data.value.allies?.enabled ?? false);
+		setSessionsEnabled(data.value.sessions?.enabled ?? false);
+		setNoticesEnabled(data.value.notices?.enabled ?? false);
+		setLeaderboardEnabled(data.value.leaderboard?.enabled ?? false);
+		setPoliciesEnabled(data.value.policies?.enabled ?? false);
       })
       .catch(() => setDocsEnabled(false));
   }, [workspace.groupId]);
 
   useEffect(() => {
-    fetch(`/api/workspace/${workspace.groupId}/settings/general/ally`)
-      .then(res => res.json())
-      .then(data => {
-        let enabled = false;
-        let val = data.value ?? data;
-        if (typeof val === "string") {
-          try { val = JSON.parse(val); } catch { val = {}; }
-        }
-        enabled =
-          typeof val === "object" && val !== null && "enabled" in val
-            ? (val as { enabled?: boolean }).enabled ?? false
-            : false;
-        setAlliesEnabled(enabled);
-      })
-      .catch(() => setAlliesEnabled(false));
-  }, [workspace.groupId]);
-
-  useEffect(() => {
-    fetch(`/api/workspace/${workspace.groupId}/settings/general/sessions`)
-      .then(res => res.json())
-      .then(data => {
-        let enabled = false;
-        let val = data.value ?? data;
-        if (typeof val === "string") {
-          try { val = JSON.parse(val); } catch { val = {}; }
-        }
-        enabled =
-          typeof val === "object" && val !== null && "enabled" in val
-            ? (val as { enabled?: boolean }).enabled ?? false
-            : false;
-        setSessionsEnabled(enabled);
-      })
-      .catch(() => setSessionsEnabled(false));
-  }, [workspace.groupId]);
-
-    useEffect(() => {
-    fetch(`/api/workspace/${workspace.groupId}/settings/general/notices`)
-      .then(res => res.json())
-      .then(data => {
-        let enabled = false;
-        let val = data.value ?? data;
-        if (typeof val === "string") {
-          try { val = JSON.parse(val); } catch { val = {}; }
-        }
-        enabled =
-          typeof val === "object" && val !== null && "enabled" in val
-            ? (val as { enabled?: boolean }).enabled ?? false
-            : false;
-        setNoticesEnabled(enabled);
-      })
-      .catch(() => setNoticesEnabled(false));
-  }, [workspace.groupId]);
-
-  useEffect(() => {
-    fetch(`/api/workspace/${workspace.groupId}/settings/general/leaderboard`)
-      .then(res => res.json())
-      .then(data => {
-        let enabled = false;
-        let val = data.value ?? data;
-        if (typeof val === "string") {
-          try { val = JSON.parse(val); } catch { val = {}; }
-        }
-        enabled =
-          typeof val === "object" && val !== null && "enabled" in val
-            ? (val as { enabled?: boolean }).enabled ?? false
-            : false;
-        setLeaderboardEnabled(enabled);
-      })
-      .catch(() => setLeaderboardEnabled(false));
-  }, [workspace.groupId]);
-
-  useEffect(() => {
-    fetch(`/api/workspace/${workspace.groupId}/settings/general/policies`)
-      .then(res => res.json())
-      .then(data => {
-        let enabled = false;
-        let val = data.value ?? data;
-        if (typeof val === "string") {
-          try { val = JSON.parse(val); } catch { val = {}; }
-        }
-        enabled =
-          typeof val === "object" && val !== null && "enabled" in val
-            ? (val as { enabled?: boolean }).enabled ?? false
-            : false;
-        setPoliciesEnabled(enabled);
-      })
-      .catch(() => setPoliciesEnabled(false));
-  }, [workspace.groupId]);
+    if (policiesEnabled) {
+      fetch(`/api/workspace/${workspace.groupId}/policies/pending`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setPendingPolicyCount(data.count);
+          }
+        })
+        .catch(() => setPendingPolicyCount(0));
+    }
+  }, [workspace.groupId, policiesEnabled]);
 
   return (
     <>
@@ -428,7 +343,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     key={page.name}
                     onClick={() => gotopage(page.href)}
                     className={clsx(
-                      "w-full gap-3 px-2 py-2 rounded-lg text-sm font-medium transition-all duration-300",
+                      "w-full gap-3 px-2 py-2 rounded-lg text-sm font-medium transition-all duration-300 relative",
                       router.asPath === page.href.replace("[id]", workspace.groupId.toString())
                         ? "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))] font-semibold"
                         : "text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-700",
@@ -446,11 +361,23 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       <div className="flex items-center gap-2">
                         <span>{page.name}</span>
                         {page.name === "Policies" && (
-                          <span className="px-1.5 py-0.5 text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded-full">
-                            BETA
-                          </span>
+                          <>
+                            <span className="px-1.5 py-0.5 text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded-full">
+                              BETA
+                            </span>
+                            {pendingPolicyCount > 0 && (
+                              <span className="px-1.5 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full">
+                                {pendingPolicyCount}
+                              </span>
+                            )}
+                          </>
                         )}
                       </div>
+                    )}
+                    {isCollapsed && page.name === "Policies" && pendingPolicyCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                        {pendingPolicyCount}
+                      </span>
                     )}
                   </button>
                 )
