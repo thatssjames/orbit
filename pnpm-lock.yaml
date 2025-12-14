@@ -8955,7 +8955,7 @@ snapshots:
   next@16.0.10(@babel/core@7.28.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sass@1.94.2):
     dependencies:
       '@next/env': 16.0.10
-      '@swc/helpers': 0.5.15
+      '@swc/helpers': 0.5.5
       caniuse-lite: 1.0.30001760
       postcss: 8.4.31
       react: 18.3.1
