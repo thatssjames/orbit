@@ -133,7 +133,7 @@ importers:
         version: 0.6.0
       next:
         specifier: ^16.0.10
-        version: 16.0.10(@babel/core@7.28.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sass@1.94.2)
+        version: 16.0.10(@babel/core@7.28.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sass@1.96.0)
       next-remove-imports:
         specifier: ^1.0.12
         version: 1.0.12(webpack@5.103.0)
@@ -8952,7 +8952,7 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
-  next@16.0.10(@babel/core@7.28.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sass@1.94.2):
+  next@16.0.10(@babel/core@7.28.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sass@1.96.0):
     dependencies:
       '@next/env': 16.0.10
       '@swc/helpers': 0.5.5
