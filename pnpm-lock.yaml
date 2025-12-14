@@ -8970,7 +8970,7 @@ snapshots:
       '@next/swc-linux-x64-musl': 16.0.10
       '@next/swc-win32-arm64-msvc': 16.0.10
       '@next/swc-win32-x64-msvc': 16.0.10
-      sass: 1.94.2
+      sass: 1.96.0
       sharp: 0.34.5
     transitivePeerDependencies:
       - '@babel/core'
