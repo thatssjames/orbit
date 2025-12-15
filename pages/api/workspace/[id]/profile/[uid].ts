@@ -114,6 +114,14 @@ export default withSessionRoute(async function handler(
       },
     });
 
+    const notices = await prisma.inactivityNotice.findMany({
+      where: {
+        userId,
+        workspaceGroupId,
+      },
+      orderBy: { id: "desc" },
+    });
+
     const hostedSessions = await prisma.session.findMany({
       where: {
         ownerId: userId,
@@ -288,6 +296,11 @@ export default withSessionRoute(async function handler(
       ownerId: session.ownerId?.toString() || null,
     }));
 
+    const serializedNotices = notices.map((notice) => ({
+      ...notice,
+      userId: notice.userId.toString(),
+    }));
+
     return res.status(200).json({
       success: true,
       data: {
@@ -298,6 +311,7 @@ export default withSessionRoute(async function handler(
         },
         sessions: serializedSessions,
         adjustments: serializedAdjustments,
+        notices: serializedNotices,
         hostedSessions: serializedHostedSessions,
         roleBasedSessionsHosted,
         roleBasedSessionsAttended,
