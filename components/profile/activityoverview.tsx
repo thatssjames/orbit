@@ -582,7 +582,7 @@ export function ActivityOverview({
                         <div className="flex flex-wrap gap-2">
                           {concurrentUsers.map((user: any) => (
                             <div
-                              key={user.sessionId}
+                              key={user.userId}
                               className={`w-8 h-8 rounded-full overflow-hidden ring-2 ring-white dark:ring-zinc-800 ${getRandomBg(
                                 user.userId
                               )}`}
