@@ -445,7 +445,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 </Menu.Item>
               </Menu.Items>
             </Menu>
-          
             {!isCollapsed && (
               <button
                 onClick={() => {
@@ -456,13 +455,16 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 © Copyright Notices
               </button>
             )}
-
             {!isCollapsed && (
-              <div className="mt-2 text-xs text-zinc-500">
-                Orbit v{packageJson.version} - <button onClick={() => setShowChangelog(true)} className="mt-2 text-left text-xs text-zinc-500 hover:text-primary">Changelog</button>
+              <div className="mt-1 text-xs text-zinc-500">
+                <a href="https://docs.planetaryapp.us" target="_blank" rel="noopener noreferrer" className="hover:text-primary">Documentation</a>
               </div>
             )}
-			
+            {!isCollapsed && (
+              <div className="mt-1 text-xs text-zinc-500">
+                Orbit v{packageJson.version} - <button onClick={() => setShowChangelog(true)} className="text-xs text-zinc-500 hover:text-primary">Changelog</button>
+              </div>
+            )}		
           </div>
 
           <Dialog
