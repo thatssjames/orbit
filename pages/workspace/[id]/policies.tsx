@@ -2402,7 +2402,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
 
         {showComplianceModal && selectedPolicyForModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
               <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700">
                 <div className="flex items-center justify-between">
                   <div>
