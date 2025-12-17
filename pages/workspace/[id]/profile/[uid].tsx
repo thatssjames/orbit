@@ -32,10 +32,12 @@ import {
   IconMoon,
   IconCloud,
   IconStars,
+  IconExternalLink,
 } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import noblox from "noblox.js";
 
 export const getServerSideProps = withPermissionCheckSsr(
   async ({ query, req }) => {
@@ -366,6 +368,12 @@ export const getServerSideProps = withPermissionCheckSsr(
         registered: true,
         birthdayDay: true,
         birthdayMonth: true,
+        ranks: {
+          select: {
+            rankId: true,
+            workspaceGroupId: true,
+          },
+        },
       },
     });
 
@@ -384,6 +392,45 @@ export const getServerSideProps = withPermissionCheckSsr(
         discordId: true,
       },
     });
+
+    const memberRoles = await prisma.role.findMany({
+      where: {
+        workspaceGroupId: parseInt(query.id as string),
+        members: {
+          some: {
+            userid: BigInt(query.uid as string),
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        isOwnerRole: true,
+      },
+      orderBy: {
+        isOwnerRole: "desc",
+      },
+    });
+
+    let memberRoleName: string | null = null;
+    try {
+      const workspaceGroupId = parseInt(query.id as string);
+      const roles = await noblox.getRoles(workspaceGroupId);
+      const userRankRecord =
+        user?.ranks?.find(
+          (r: any) => Number(r.workspaceGroupId) === workspaceGroupId
+        ) || user?.ranks?.[0];
+
+      if (userRankRecord) {
+        const rankId = Number(userRankRecord.rankId);
+        const groupRole = roles.find((r: any) => r.rank === rankId);
+        if (groupRole?.name) {
+          memberRoleName = groupRole.name;
+        }
+      }
+    } catch (e) {
+      memberRoleName = null;
+    }
 
     let lineManager = null;
     if (membership?.lineManagerId) {
@@ -477,6 +524,7 @@ export const getServerSideProps = withPermissionCheckSsr(
             ? membership.joinDate.toISOString()
             : null,
         },
+        memberRoleName,
         workspaceMember: membership ? {
           department: membership.department,
           lineManagerId: membership.lineManagerId?.toString() || null,
@@ -509,6 +557,7 @@ type pageProps = {
     displayName: string;
     avatar: string;
   };
+  memberRoleName: string | null;
   userBook: any;
   quotas: Quota[];
   sessionsHosted: number;
@@ -555,6 +604,7 @@ const Profile: pageWithLayout<pageProps> = ({
   userBook: initialUserBook,
   isUser,
   info,
+  memberRoleName,
   sessionsHosted,
   sessionsAttended,
   allianceVisits,
@@ -783,7 +833,7 @@ const Profile: pageWithLayout<pageProps> = ({
                 <IconUserCircle className="w-4 h-4 text-white" />
               </div>
             </div>
-            <div className="flex-1 flex items-center justify-between">
+            <div className="flex-1 flex items-center justify-between gap-4">
               <div>
                 <h1 className="text-2xl font-medium text-zinc-900 dark:text-white">
                   {info.displayName}
@@ -791,79 +841,63 @@ const Profile: pageWithLayout<pageProps> = ({
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
                   @{info.username}
                 </p>
+                {memberRoleName && (
+                  <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mt-0.5">
+                    {memberRoleName}
+                  </p>
+                )}
               </div>
-              {workspaceMember && workspaceMember.timezone && (() => {
-                const userHour = new Date().toLocaleString('en-US', {
-                  timeZone: workspaceMember.timezone,
-                  hour: 'numeric',
-                  hour12: false
-                });
-                const hour = parseInt(userHour);
-                const isDay = hour >= 6 && hour < 18;
-                
-                return (
-                  <div className={`relative overflow-hidden px-4 py-2.5 rounded-xl shadow-md ${
-                    isDay 
-                      ? 'bg-gradient-to-br from-sky-400 via-blue-400 to-blue-500' 
-                      : 'bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900'
-                  }`}>
-                    <div className="absolute inset-0 opacity-10">
+              <div className="flex items-center gap-3">
+                {workspaceMember && workspaceMember.timezone && (() => {
+                  const userHour = new Date().toLocaleString("en-US", {
+                    timeZone: workspaceMember.timezone,
+                    hour: "numeric",
+                    hour12: false,
+                  });
+                  const hour = parseInt(userHour);
+                  const isDay = hour >= 6 && hour < 18;
+
+                  return (
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-900 text-white shadow-sm border border-primary/40">
                       {isDay ? (
-                        <>
-                          <IconCloud className="absolute top-1 right-2 w-8 h-8 text-white" />
-                          <IconCloud className="absolute bottom-2 left-4 w-6 h-6 text-white" />
-                          <IconCloud className="absolute top-2 left-12 w-7 h-7 text-white" />
-                          <IconCloud className="absolute bottom-1 right-8 w-5 h-5 text-white" />
-                          <IconCloud className="absolute top-3 right-12 w-4 h-4 text-white" />
-                        </>
+                        <IconSun className="w-4 h-4 text-amber-300" />
                       ) : (
-                        <>
-                          <IconStars className="absolute top-1 right-2 w-5 h-5 text-white" />
-                          <IconStars className="absolute bottom-1 left-3 w-4 h-4 text-white" />
-                          <IconStars className="absolute top-2 left-8 w-3 h-3 text-white" />
-                          <IconStars className="absolute top-3 right-8 w-4 h-4 text-white" />
-                          <IconStars className="absolute bottom-2 right-4 w-3 h-3 text-white" />
-                          <IconStars className="absolute top-1 left-16 w-5 h-5 text-white" />
-                          <IconStars className="absolute bottom-3 left-12 w-3 h-3 text-white" />
-                          <IconStars className="absolute top-4 right-14 w-3 h-3 text-white" />
-                        </>
+                        <IconMoon className="w-4 h-4 text-zinc-100" />
                       )}
-                    </div>
-                    <div className="relative flex items-center gap-2.5 text-white">
-                      {isDay ? (
-                        <IconSun className="w-5 h-5 animate-pulse" />
-                      ) : (
-                        <IconMoon className="w-5 h-5" />
-                      )}
-                      <span className="text-sm font-semibold">
-                        {currentTime.toLocaleTimeString('en-US', {
+                      <span className="text-sm font-semibold tabular-nums">
+                        {currentTime.toLocaleTimeString("en-US", {
                           timeZone: workspaceMember.timezone,
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          hour12: true
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
                         })}
                       </span>
                     </div>
-                  </div>
-                );
-              })()}
+                  );
+                })()}
+                <a
+                  href={`https://www.roblox.com/users/${user.userid}/profile`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-zinc-300 bg-white text-xs sm:text-sm font-medium text-zinc-900 hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800"
+                >
+                  <IconExternalLink className="w-4 h-4" />
+                  <span>View on Roblox</span>
+                </a>
+              </div>
             </div>
           </div>
         </div>
 
         <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
           <Tab.Group>
-            <Tab.List className="flex gap-8 px-6 border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
+            <Tab.List className="flex p-1 gap-1 mx-4 mt-3 mb-2 bg-zinc-50 dark:bg-zinc-700/60 border border-zinc-200 dark:border-zinc-600 rounded-lg">
               <Tab
                 className={({ selected }) =>
-                  `flex items-center gap-2 px-1 py-4 text-sm font-medium transition-colors relative ${
+                  `flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                     selected
-                      ? "text-primary"
-                      : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                  } ${
-                    selected
-                      ? "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary"
-                      : ""
+                      ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
+                      : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
                   }`
                 }
               >
@@ -872,14 +906,10 @@ const Profile: pageWithLayout<pageProps> = ({
               </Tab>
               <Tab
                 className={({ selected }) =>
-                  `flex items-center gap-2 px-1 py-4 text-sm font-medium transition-colors relative ${
+                  `flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                     selected
-                      ? "text-primary"
-                      : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                  } ${
-                    selected
-                      ? "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary"
-                      : ""
+                      ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
+                      : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
                   }`
                 }
               >
@@ -888,14 +918,10 @@ const Profile: pageWithLayout<pageProps> = ({
               </Tab>
               <Tab
                 className={({ selected }) =>
-                  `flex items-center gap-2 px-1 py-4 text-sm font-medium transition-colors relative ${
+                  `flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                     selected
-                      ? "text-primary"
-                      : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                  } ${
-                    selected
-                      ? "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary"
-                      : ""
+                      ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
+                      : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
                   }`
                 }
               >
@@ -905,14 +931,10 @@ const Profile: pageWithLayout<pageProps> = ({
               {noticesEnabled && (
                 <Tab
                   className={({ selected }) =>
-                    `flex items-center gap-2 px-1 py-4 text-sm font-medium transition-colors relative ${
+                    `flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                       selected
-                        ? "text-primary"
-                        : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                    } ${
-                      selected
-                        ? "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary"
-                        : ""
+                        ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
+                        : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
                     }`
                   }
                 >

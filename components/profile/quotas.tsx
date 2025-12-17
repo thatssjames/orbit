@@ -74,8 +74,8 @@ export function QuotasProgress({
 
   if (quotas.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="bg-white dark:bg-zinc-700 rounded-xl p-8 max-w-md mx-auto">
+      <div className="text-center py-10">
+        <div className="bg-zinc-50 dark:bg-zinc-800/60 rounded-xl p-8 max-w-md mx-auto">
           <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
             <IconChartBar className="w-8 h-8 text-primary" />
           </div>
@@ -91,21 +91,26 @@ export function QuotasProgress({
   }
 
   return (
-    <div className="bg-white dark:bg-zinc-700 rounded-xl shadow-sm overflow-hidden">
-      <div className="flex items-center gap-3 p-4 border-b border-zinc-200 dark:border-zinc-600">
-        <div className="bg-primary/10 p-2 rounded-lg">
+    <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
+      <div className="flex items-center gap-3 p-6 border-b border-zinc-200 dark:border-zinc-700">
+        <div className="p-2 bg-primary/10 rounded-lg">
           <IconChartBar className="w-5 h-5 text-primary" />
         </div>
-        <h2 className="text-lg font-medium dark:text-white text-zinc-900">
-          Activity Quotas
-        </h2>
+        <div>
+          <h2 className="text-lg font-semibold dark:text-white text-zinc-900">
+            Activity Quotas
+          </h2>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            Track how this member is progressing against their targets
+          </p>
+        </div>
       </div>
-      <div className="p-4">
+      <div className="p-4 md:p-6">
         <div className="grid gap-4">
           {quotas.map((quota: any) => (
             <div
               key={quota.id}
-              className="bg-zinc-50 dark:bg-zinc-500 rounded-lg p-4"
+              className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-4"
             >
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-sm font-medium dark:text-white text-zinc-900">

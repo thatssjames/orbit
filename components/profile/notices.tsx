@@ -111,12 +111,22 @@ const Notices: FC<Props> = ({ notices, canManageMembers = false, userId }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-zinc-700 rounded-xl shadow-sm overflow-hidden">
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
-            Inactivity Notices
-          </h2>
+    <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
+      <div className="p-6 space-y-4">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <IconCalendarTime className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                Inactivity Notices
+              </h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                Record and review approved time off for this member.
+              </p>
+            </div>
+          </div>
           {canManageMembers && !showCreateForm && (
             <button
               onClick={() => setShowCreateForm(true)}
@@ -129,7 +139,7 @@ const Notices: FC<Props> = ({ notices, canManageMembers = false, userId }) => {
         </div>
 
         {canManageMembers && showCreateForm && (
-          <div className="bg-zinc-50 dark:bg-zinc-600 rounded-lg p-4 mb-6">
+          <div className="bg-zinc-50 dark:bg-zinc-800/60 rounded-lg p-4 mb-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                 Create Notices Record
@@ -304,7 +314,7 @@ const Notices: FC<Props> = ({ notices, canManageMembers = false, userId }) => {
         )}
 
         {localNotices.filter((n) => !n.reviewed).length > 0 && (
-          <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md flex items-center justify-between">
+          <div className="mb-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md flex items-center justify-between">
             <div className="text-sm text-yellow-800 dark:text-yellow-300">
               {localNotices.filter((n) => !n.reviewed).length} pending notice(s)
               for this user
@@ -327,7 +337,7 @@ const Notices: FC<Props> = ({ notices, canManageMembers = false, userId }) => {
             No inactivity notices found.
           </p>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {localNotices.map((notice: any) => {
               const now = new Date();
               const isActive =
@@ -339,7 +349,7 @@ const Notices: FC<Props> = ({ notices, canManageMembers = false, userId }) => {
               return (
                 <div
                   key={notice.id}
-                  className="flex gap-4 p-4 bg-zinc-50 dark:bg-zinc-700 rounded-lg"
+                  className="flex gap-4 p-4 bg-zinc-50 dark:bg-zinc-800/60 rounded-lg"
                 >
                   <div className="flex-shrink-0">{getStatusIcon(notice)}</div>
                   <div className="flex-grow">
@@ -387,7 +397,7 @@ const Notices: FC<Props> = ({ notices, canManageMembers = false, userId }) => {
                             toast.error("Failed to revoke notice");
                           }
                         }}
-                        className="px-3 py-1 bg-red-50 text-red-600 rounded-md text-sm"
+                        className="px-3 py-1.5 text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500/60"
                       >
                         Revoke
                       </button>

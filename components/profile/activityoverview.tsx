@@ -268,79 +268,101 @@ export function ActivityOverview({
   }, [data, isDark]);
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        <div className="bg-white dark:bg-zinc-700 rounded-xl shadow-sm overflow-hidden">
-          <div className="flex items-center gap-3 p-4 border-b border-zinc-200 dark:border-zinc-600">
-            <div className="bg-primary/10 p-2 rounded-lg">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-4">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-primary/10 rounded-lg">
               <IconPlayerPlay className="w-5 h-5 text-primary" />
             </div>
-            <h2 className="text-lg font-medium text-zinc-900 dark:text-white">
-              Activity Metrics
-            </h2>
-          </div>
-          <div className="p-6 text-center">
-            <div className="text-4xl font-bold text-zinc-900 dark:text-white mb-2">
-              {displayMinutes}
-            </div>
-            <div className="text-sm text-zinc-600 dark:text-zinc-400">
-              minutes of activity
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white dark:bg-zinc-700 rounded-xl shadow-sm overflow-hidden">
-          <div className="flex items-center gap-3 p-4 border-b border-zinc-200 dark:border-zinc-600">
-            <div className="bg-primary/10 p-2 rounded-lg">
-              <IconUsers className="w-5 h-5 text-primary" />
-            </div>
-            <h2 className="text-lg font-medium text-zinc-900 dark:text-white">
-              Messages Sent
-            </h2>
-          </div>
-          <div className="p-6 text-center">
-            <div className="text-4xl font-bold text-zinc-900 dark:text-white mb-2">
-              {messages}
-            </div>
-            <div className="text-sm text-zinc-600 dark:text-zinc-400">
-              messages during this period
-            </div>
-          </div>
-        </div>
-        
-        {idleTimeEnabled && (
-          <div className="bg-white dark:bg-zinc-700 rounded-xl shadow-sm overflow-hidden">
-            <div className="flex items-center gap-3 p-4 border-b border-zinc-200 dark:border-zinc-600">
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <IconClock className="w-5 h-5 text-primary" />
-              </div>
-              <h2 className="text-lg font-medium text-zinc-900 dark:text-white">
-                Idle Time
+            <div>
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                Activity
+              </p>
+              <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">
+                Activity Metrics
               </h2>
             </div>
-            <div className="p-6 text-center">
-              <div className="text-4xl font-bold text-zinc-900 dark:text-white mb-2">
+          </div>
+          <div className="text-center">
+            <div className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-white mb-1">
+              {displayMinutes}
+            </div>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              minutes of activity
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-4">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <IconUsers className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                Messages
+              </p>
+              <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">
+                Messages Sent
+              </h2>
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-white mb-1">
+              {messages}
+            </div>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              messages during this period
+            </p>
+          </div>
+        </div>
+
+        {idleTimeEnabled && (
+          <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <IconClock className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                  Idle time
+                </p>
+                <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">
+                  Idle Time
+                </h2>
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-white mb-1">
                 {idleTime}
               </div>
-              <div className="text-sm text-zinc-600 dark:text-zinc-400">
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
                 minutes idle
-              </div>
+              </p>
             </div>
           </div>
         )}
-      </div>      <div className="bg-white dark:bg-zinc-700 rounded-xl shadow-sm overflow-hidden">
-        <div className="flex items-center gap-3 p-4 border-b border-zinc-200 dark:border-zinc-600">
-          <div className="bg-primary/10 p-2 rounded-lg">
+      </div>
+
+      <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
+        <div className="flex items-center gap-3 p-6 border-b border-zinc-200 dark:border-zinc-700">
+          <div className="p-2 bg-primary/10 rounded-lg">
             <IconCalendarTime className="w-5 h-5 text-primary" />
           </div>
-          <h2 className="text-lg font-medium text-zinc-900 dark:text-white">
-            Activity Timeline
-          </h2>
+          <div>
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">
+              Activity Timeline
+            </h2>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Sessions, inactivity notices, and manual adjustments
+            </p>
+          </div>
         </div>
-        <div className="p-4">
+        <div className="p-4 md:p-6">
           {sortedTimeline.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="bg-white dark:bg-zinc-700 rounded-xl p-8 max-w-md mx-auto">
+            <div className="text-center py-10">
+              <div className="bg-zinc-50 dark:bg-zinc-800/60 rounded-xl p-8 max-w-md mx-auto">
                 <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                   <IconClipboardList className="w-8 h-8 text-primary" />
                 </div>

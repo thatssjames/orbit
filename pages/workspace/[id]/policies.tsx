@@ -609,35 +609,31 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
               ? "Review and acknowledge required policies"
               : "Manage workspace policies and track acknowledgments"}
           </p>
-          <div className="flex gap-2 border-b border-zinc-200 dark:border-zinc-700">
+          <div className="flex p-1 gap-1 bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 rounded-lg">
             <button
               onClick={() => setViewMode("user")}
               className={clsx(
-                "px-4 py-2 text-sm font-medium transition-colors relative",
+                "flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors",
                 viewMode === "user"
-                  ? "text-primary border-b-2 border-primary"
-                  : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+                  ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
+                  : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
               )}
             >
-              <div className="flex items-center gap-2">
-                <IconUser className="w-4 h-4" />
-                <span>My Policies</span>
-              </div>
+              <IconUser className="w-4 h-4" />
+              <span>My Policies</span>
             </button>
             {canManagePolicies && (
               <button
                 onClick={() => setViewMode("admin")}
                 className={clsx(
-                  "px-4 py-2 text-sm font-medium transition-colors relative",
+                  "flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors",
                   viewMode === "admin"
-                    ? "text-primary border-b-2 border-primary"
-                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
+                    : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
                 )}
               >
-                <div className="flex items-center gap-2">
-                  <IconSettings className="w-4 h-4" />
-                  <span>Manage Policies</span>
-                </div>
+                <IconSettings className="w-4 h-4" />
+                <span>Manage Policies</span>
               </button>
             )}
           </div>
@@ -651,15 +647,15 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
         )}
         {viewMode === "admin" && canManagePolicies && (
           <>
-            <div className="flex items-center space-x-2 mb-6">
-              <div className="bg-white dark:bg-zinc-800 rounded-lg p-1 shadow-sm">
+            <div className="flex items-center mb-6">
+              <div className="flex p-1 gap-1 bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 rounded-lg">
                 <button
                   onClick={() => setSelectedView("overview")}
                   className={clsx(
-                    "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+                    "px-4 py-2 text-sm font-medium rounded-md transition-colors",
                     selectedView === "overview"
-                      ? "bg-primary text-white"
-                      : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                      ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
+                      : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
                   )}
                 >
                   Overview
@@ -667,10 +663,10 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                 <button
                   onClick={() => setSelectedView("compliance")}
                   className={clsx(
-                    "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+                    "px-4 py-2 text-sm font-medium rounded-md transition-colors",
                     selectedView === "compliance"
                       ? "bg-primary text-white"
-                      : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                      : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
                   )}
                 >
                   Compliance
@@ -678,10 +674,10 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                 <button
                   onClick={() => setSelectedView("create")}
                   className={clsx(
-                    "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+                    "px-4 py-2 text-sm font-medium rounded-md transition-colors",
                     selectedView === "create"
                       ? "bg-primary text-white"
-                      : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                      : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
                   )}
                 >
                   Create Policy

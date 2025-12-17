@@ -195,17 +195,13 @@ const Activity: FC<Props> = ({
       <Toaster position="bottom-center" />
       
       <Tab.Group>
-        <Tab.List className="flex gap-8 px-1 border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
+        <Tab.List className="flex p-1 gap-1 mx-1 mt-1 bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 rounded-lg">
           <Tab
             className={({ selected }) =>
-              `flex items-center gap-2 px-1 py-4 text-sm font-medium transition-colors relative ${
+              `flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                 selected
-                  ? "text-primary"
-                  : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-              } ${
-                selected
-                  ? "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary"
-                  : ""
+                  ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
+                  : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
               }`
             }
           >
@@ -214,14 +210,10 @@ const Activity: FC<Props> = ({
           </Tab>
           <Tab
             className={({ selected }) =>
-              `flex items-center gap-2 px-1 py-4 text-sm font-medium transition-colors relative ${
+              `flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                 selected
-                  ? "text-primary"
-                  : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-              } ${
-                selected
-                  ? "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary"
-                  : ""
+                  ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
+                  : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
               }`
             }
           >
@@ -230,14 +222,10 @@ const Activity: FC<Props> = ({
           </Tab>
           <Tab
             className={({ selected }) =>
-              `flex items-center gap-2 px-1 py-4 text-sm font-medium transition-colors relative ${
+              `flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                 selected
-                  ? "text-primary"
-                  : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-              } ${
-                selected
-                  ? "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary"
-                  : ""
+                  ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
+                  : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
               }`
             }
           >
@@ -247,39 +235,39 @@ const Activity: FC<Props> = ({
         </Tab.List>
 
         {getCurrentWeekLabel && (
-          <div className="flex justify-center mb-6">
-            <div className="flex items-center gap-3 bg-white dark:bg-zinc-700 rounded-full px-4 py-3 shadow-sm border border-zinc-200 dark:border-zinc-600">
-            <button
-              onClick={goToPreviousWeek}
-              disabled={!canGoBack || loadingHistory}
-              className="p-1.5 rounded-full text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <IconChevronLeft className="w-4 h-4" />
-            </button>
-            <div className="text-center px-3">
-              <p className="text-sm font-medium text-zinc-900 dark:text-white whitespace-nowrap">
-                {selectedWeek > 0 && availableHistory[selectedWeek - 1] ? (
-                  <>
-                    {moment(
-                      availableHistory[selectedWeek - 1].period.start
-                    ).format("MMM DD")}{" "}
-                    -{" "}
-                    {moment(
-                      availableHistory[selectedWeek - 1].period.end
-                    ).format("MMM DD, YYYY")}
-                  </>
-                ) : (
-                  getCurrentWeekLabel()
-                )}
-              </p>
-            </div>
-            <button
-              onClick={goToNextWeek}
-              disabled={!canGoForward || loadingHistory}
-              className="p-1.5 rounded-full text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <IconChevronRight className="w-4 h-4" />
-            </button>
+          <div className="flex justify-center mt-4 mb-6">
+            <div className="inline-flex items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-800/80 px-3 py-1.5 border border-zinc-200 dark:border-zinc-700 shadow-sm">
+              <button
+                onClick={goToPreviousWeek}
+                disabled={!canGoBack || loadingHistory}
+                className="p-1.5 rounded-full text-zinc-500 dark:text-zinc-300 hover:bg-zinc-200/70 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <IconChevronLeft className="w-4 h-4" />
+              </button>
+              <div className="px-2">
+                <p className="text-xs sm:text-sm font-medium text-zinc-800 dark:text-zinc-50 whitespace-nowrap">
+                  {selectedWeek > 0 && availableHistory[selectedWeek - 1] ? (
+                    <>
+                      {moment(
+                        availableHistory[selectedWeek - 1].period.start
+                      ).format("MMM DD")}{" "}
+                      -{" "}
+                      {moment(
+                        availableHistory[selectedWeek - 1].period.end
+                      ).format("MMM DD, YYYY")}
+                    </>
+                  ) : (
+                    getCurrentWeekLabel()
+                  )}
+                </p>
+              </div>
+              <button
+                onClick={goToNextWeek}
+                disabled={!canGoForward || loadingHistory}
+                className="p-1.5 rounded-full text-zinc-500 dark:text-zinc-300 hover:bg-zinc-200/70 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <IconChevronRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         )}
@@ -409,23 +397,23 @@ const Activity: FC<Props> = ({
                     Manual Adjustment
                   </Dialog.Title>
                   <div className="space-y-4">
-                    <div className="flex gap-2">
+                    <div className="flex p-0.5 gap-1 bg-zinc-100 dark:bg-zinc-800/70 rounded-lg border border-zinc-200 dark:border-zinc-600">
                       <button
                         onClick={() => setAdjustType("award")}
-                        className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium border ${
+                        className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                           adjustType === "award"
-                            ? "bg-green-500 text-white border-green-500"
-                            : "bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 border-transparent"
+                            ? "bg-primary text-white shadow-sm"
+                            : "text-zinc-700 dark:text-zinc-200 hover:bg-white/70 dark:hover:bg-zinc-700"
                         }`}
                       >
                         Award
                       </button>
                       <button
                         onClick={() => setAdjustType("remove")}
-                        className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium border ${
+                        className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                           adjustType === "remove"
-                            ? "bg-red-500 text-white border-red-500"
-                            : "bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 border-transparent"
+                            ? "bg-red-600 text-white shadow-sm"
+                            : "text-zinc-700 dark:text-zinc-200 hover:bg-white/70 dark:hover:bg-zinc-700"
                         }`}
                       >
                         Remove
@@ -448,7 +436,7 @@ const Activity: FC<Props> = ({
                             )
                           )
                         }
-                        className="w-full px-3 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-white text-sm outline-none"
+                        className="w-full px-3 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-white text-sm border border-zinc-300 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary"
                         placeholder="e.g. 10"
                       />
                     </div>
@@ -460,7 +448,7 @@ const Activity: FC<Props> = ({
                         value={adjustReason}
                         onChange={(e) => setAdjustReason(e.target.value)}
                         rows={3}
-                        className="w-full px-3 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-white text-sm outline-none resize-none"
+                        className="w-full px-3 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-white text-sm border border-zinc-300 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                         placeholder="Recognition for outstanding support"
                       />
                     </div>
@@ -468,7 +456,7 @@ const Activity: FC<Props> = ({
                   <div className="mt-6 flex gap-2">
                     <button
                       onClick={() => setAdjustModal(false)}
-                      className="flex-1 px-4 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-sm font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition"
+                      className="flex-1 px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-800 text-sm font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
                     >
                       Cancel
                     </button>
