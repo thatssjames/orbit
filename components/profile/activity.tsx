@@ -195,57 +195,57 @@ const Activity: FC<Props> = ({
       <Toaster position="bottom-center" />
       
       <Tab.Group>
-        <Tab.List className="flex p-1 gap-1 mx-1 mt-1 bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 rounded-lg">
+        <Tab.List className="flex p-1 gap-1 mx-1 mt-1 bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-x-auto scrollbar-hide">
           <Tab
             className={({ selected }) =>
-              `flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              `flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap flex-shrink-0 ${
                 selected
                   ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
                   : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
               }`
             }
           >
-            <IconChartBar className="w-4 h-4" />
+            <IconChartBar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Activity
           </Tab>
           <Tab
             className={({ selected }) =>
-              `flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              `flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap flex-shrink-0 ${
                 selected
                   ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
                   : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
               }`
             }
           >
-            <IconCalendarEvent className="w-4 h-4" />
+            <IconCalendarEvent className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Sessions
           </Tab>
           <Tab
             className={({ selected }) =>
-              `flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              `flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap flex-shrink-0 ${
                 selected
                   ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
                   : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
               }`
             }
           >
-            <IconTarget className="w-4 h-4" />
+            <IconTarget className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Quotas
           </Tab>
         </Tab.List>
 
         {getCurrentWeekLabel && (
-          <div className="flex justify-center mt-4 mb-6">
-            <div className="inline-flex items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-800/80 px-3 py-1.5 border border-zinc-200 dark:border-zinc-700 shadow-sm">
+          <div className="flex justify-center mt-4 mb-6 px-2">
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full bg-zinc-100 dark:bg-zinc-800/80 px-2 sm:px-3 py-1.5 border border-zinc-200 dark:border-zinc-700 shadow-sm max-w-full">
               <button
                 onClick={goToPreviousWeek}
                 disabled={!canGoBack || loadingHistory}
-                className="p-1.5 rounded-full text-zinc-500 dark:text-zinc-300 hover:bg-zinc-200/70 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="p-1 sm:p-1.5 rounded-full text-zinc-500 dark:text-zinc-300 hover:bg-zinc-200/70 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
               >
-                <IconChevronLeft className="w-4 h-4" />
+                <IconChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
-              <div className="px-2">
-                <p className="text-xs sm:text-sm font-medium text-zinc-800 dark:text-zinc-50 whitespace-nowrap">
+              <div className="px-1 sm:px-2 min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-zinc-800 dark:text-zinc-50 whitespace-nowrap truncate">
                   {selectedWeek > 0 && availableHistory[selectedWeek - 1] ? (
                     <>
                       {moment(
@@ -264,9 +264,9 @@ const Activity: FC<Props> = ({
               <button
                 onClick={goToNextWeek}
                 disabled={!canGoForward || loadingHistory}
-                className="p-1.5 rounded-full text-zinc-500 dark:text-zinc-300 hover:bg-zinc-200/70 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="p-1 sm:p-1.5 rounded-full text-zinc-500 dark:text-zinc-300 hover:bg-zinc-200/70 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
               >
-                <IconChevronRight className="w-4 h-4" />
+                <IconChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </div>
           </div>

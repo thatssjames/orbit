@@ -194,34 +194,34 @@ export function InformationTab({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+        <h3 className="text-base sm:text-lg font-semibold text-zinc-900 dark:text-white">
           Information
         </h3>
         {canEdit && !editing && (
           <button
             onClick={() => setEditing(true)}
-            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
+            className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
           >
-            <IconPencil className="w-4 h-4" />
+            <IconPencil className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Edit
           </button>
         )}
         {editing && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto">
             <button
               onClick={handleCancel}
-              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition flex-1 sm:flex-initial"
             >
-              <IconX className="w-4 h-4" />
+              <IconX className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={loading}
-              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg text-white bg-[#ff0099] hover:bg-[#ff0099]/90 transition"
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg text-white bg-[#ff0099] hover:bg-[#ff0099]/90 transition flex-1 sm:flex-initial"
             >
-              <IconCheck className="w-4 h-4" />
+              <IconCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               Save
             </button>
           </div>

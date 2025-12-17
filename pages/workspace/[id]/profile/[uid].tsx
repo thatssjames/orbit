@@ -814,40 +814,40 @@ const Profile: pageWithLayout<pageProps> = ({
     <div className="pagePadding">
       <Toaster position="bottom-center" />
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 shadow-sm mb-6">
-          <div className="flex items-center gap-4">
-            <div className="relative">
+        <div className="bg-white dark:bg-zinc-800 rounded-xl p-4 sm:p-6 shadow-sm mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="relative flex-shrink-0">
               <div
-                className={`rounded-xl h-20 w-20 flex items-center justify-center ${getRandomBg(
+                className={`rounded-xl h-16 w-16 sm:h-20 sm:w-20 flex items-center justify-center ${getRandomBg(
                   user.userid
                 )}`}
               >
                 <img
                   src={info.avatar}
-                  className="rounded-xl h-20 w-20 object-cover border-2 border-white"
+                  className="rounded-xl h-16 w-16 sm:h-20 sm:w-20 object-cover border-2 border-white"
                   alt={`${info.displayName}'s avatar`}
                   style={{ background: "transparent" }}
                 />
               </div>
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary rounded-lg flex items-center justify-center">
-                <IconUserCircle className="w-4 h-4 text-white" />
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 bg-primary rounded-lg flex items-center justify-center">
+                <IconUserCircle className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
               </div>
             </div>
-            <div className="flex-1 flex items-center justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-medium text-zinc-900 dark:text-white">
+            <div className="flex-1 w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+              <div className="flex-1 min-w-0">
+                <h1 className="text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white truncate">
                   {info.displayName}
                 </h1>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 truncate">
                   @{info.username}
                 </p>
                 {memberRoleName && (
-                  <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mt-0.5">
+                  <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
                     {memberRoleName}
                   </p>
                 )}
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 {workspaceMember && workspaceMember.timezone && (() => {
                   const userHour = new Date().toLocaleString("en-US", {
                     timeZone: workspaceMember.timezone,
@@ -858,13 +858,13 @@ const Profile: pageWithLayout<pageProps> = ({
                   const isDay = hour >= 6 && hour < 18;
 
                   return (
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-900 text-white shadow-sm border border-primary/40">
+                    <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-zinc-900 text-white shadow-sm border border-primary/40">
                       {isDay ? (
-                        <IconSun className="w-4 h-4 text-amber-300" />
+                        <IconSun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300" />
                       ) : (
-                        <IconMoon className="w-4 h-4 text-zinc-100" />
+                        <IconMoon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-100" />
                       )}
-                      <span className="text-sm font-semibold tabular-nums">
+                      <span className="text-xs sm:text-sm font-semibold tabular-nums">
                         {currentTime.toLocaleTimeString("en-US", {
                           timeZone: workspaceMember.timezone,
                           hour: "2-digit",
@@ -879,10 +879,11 @@ const Profile: pageWithLayout<pageProps> = ({
                   href={`https://www.roblox.com/users/${user.userid}/profile`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-zinc-300 bg-white text-xs sm:text-sm font-medium text-zinc-900 hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800"
+                  className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full border border-zinc-300 bg-white text-xs font-medium text-zinc-900 hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800 whitespace-nowrap"
                 >
-                  <IconExternalLink className="w-4 h-4" />
-                  <span>View on Roblox</span>
+                  <IconExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">View on Roblox</span>
+                  <span className="sm:hidden">Roblox</span>
                 </a>
               </div>
             </div>
@@ -891,59 +892,59 @@ const Profile: pageWithLayout<pageProps> = ({
 
         <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
           <Tab.Group>
-            <Tab.List className="flex p-1 gap-1 mx-4 mt-3 mb-2 bg-zinc-50 dark:bg-zinc-700/60 border border-zinc-200 dark:border-zinc-600 rounded-lg">
+            <Tab.List className="flex p-1 gap-1 mx-2 sm:mx-4 mt-3 mb-2 bg-zinc-50 dark:bg-zinc-700/60 border border-zinc-200 dark:border-zinc-600 rounded-lg overflow-x-auto scrollbar-hide">
               <Tab
                 className={({ selected }) =>
-                  `flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  `flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap flex-shrink-0 ${
                     selected
                       ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
                       : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
                   }`
                 }
               >
-                <IconClipboard className="w-4 h-4" />
+                <IconClipboard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 Details
               </Tab>
               <Tab
                 className={({ selected }) =>
-                  `flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  `flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap flex-shrink-0 ${
                     selected
                       ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
                       : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
                   }`
                 }
               >
-                <IconHistory className="w-4 h-4" />
+                <IconHistory className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 Activity
               </Tab>
               <Tab
                 className={({ selected }) =>
-                  `flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  `flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap flex-shrink-0 ${
                     selected
                       ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
                       : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
                   }`
                 }
               >
-                <IconBook className="w-4 h-4" />
+                <IconBook className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 Logbook
               </Tab>
               {noticesEnabled && (
                 <Tab
                   className={({ selected }) =>
-                    `flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    `flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap flex-shrink-0 ${
                       selected
                         ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
                         : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
                     }`
                   }
                 >
-                  <IconCalendar className="w-4 h-4" />
+                  <IconCalendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   Time off
                 </Tab>
               )}
             </Tab.List>
-            <Tab.Panels className="p-4 bg-white dark:bg-zinc-800 rounded-b-xl">
+            <Tab.Panels className="p-3 sm:p-4 bg-white dark:bg-zinc-800 rounded-b-xl">
               <Tab.Panel>
                 <InformationTab
                   user={{
