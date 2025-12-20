@@ -90,11 +90,11 @@ export function withPermissionCheck(
     const now = Date.now();
     const cached = permissionsCache.get(cacheKey);
     if (cached && (now - cached.timestamp) < PERMISSIONS_CACHE_DURATION) {
-      const userrole = cached.data;
-      if (userrole.isOwnerRole) return handler(req, res);
+      const cachedData = cached.data;
+      if (cachedData.isAdmin) return handler(req, res);
       if (!permission) return handler(req, res);
       const permissions = Array.isArray(permission) ? permission : [permission];
-      const hasPermission = permissions.some(perm => userrole.permissions?.includes(perm));
+      const hasPermission = permissions.some(perm => cachedData.permissions?.includes(perm));
       if (hasPermission) return handler(req, res);
       return res.status(401).json({ success: false, error: "Unauthorized" });
     }
@@ -108,8 +108,10 @@ export function withPermissionCheck(
           where: {
             workspaceGroupId: workspaceId,
           },
-          orderBy: {
-            isOwnerRole: "desc",
+        },
+        workspaceMemberships: {
+          where: {
+            workspaceGroupId: workspaceId,
           },
         },
       },
@@ -119,9 +121,13 @@ export function withPermissionCheck(
     const userrole = user.roles[0];
     if (!userrole)
       return res.status(401).json({ success: false, error: "Unauthorized" });
-    permissionsCache.set(cacheKey, { data: userrole, timestamp: now });
     
-    if (userrole.isOwnerRole) return handler(req, res);
+    const membership = user.workspaceMemberships[0];
+    const isAdmin = membership?.isAdmin || false;
+    
+    permissionsCache.set(cacheKey, { data: { permissions: userrole.permissions, isAdmin }, timestamp: now });
+    
+    if (isAdmin) return handler(req, res);
     if (!permission) return handler(req, res);
     const permissions = Array.isArray(permission) ? permission : [permission];
     const hasPermission = permissions.some(perm => userrole.permissions?.includes(perm));
@@ -170,11 +176,11 @@ export function withPermissionCheckSsr(
     const now = Date.now();
     const cached = permissionsCache.get(cacheKey);
     if (cached && (now - cached.timestamp) < PERMISSIONS_CACHE_DURATION) {
-      const userrole = cached.data;
-      if (userrole.isOwnerRole) return handler(context);
+      const cachedData = cached.data;
+      if (cachedData.isAdmin) return handler(context);
       if (!permission) return handler(context);
       const permissions = Array.isArray(permission) ? permission : [permission];
-      const hasPermission = permissions.some(perm => userrole.permissions?.includes(perm));
+      const hasPermission = permissions.some(perm => cachedData.permissions?.includes(perm));
       if (hasPermission) return handler(context);
       return {
         redirect: {
@@ -193,8 +199,10 @@ export function withPermissionCheckSsr(
           where: {
             workspaceGroupId: workspaceId,
           },
-          orderBy: {
-            isOwnerRole: "desc",
+        },
+        workspaceMemberships: {
+          where: {
+            workspaceGroupId: workspaceId,
           },
         },
       },
@@ -218,12 +226,17 @@ export function withPermissionCheckSsr(
         },
       };
     }
-    permissionsCache.set(cacheKey, { data: userrole, timestamp: now });
+    
+    const membership = user.workspaceMemberships[0];
+    const isAdmin = membership?.isAdmin || false;
+    
+    permissionsCache.set(cacheKey, { data: { permissions: userrole.permissions, isAdmin }, timestamp: now });
     const permissions = Array.isArray(permission) ? permission : (permission ? [permission] : []);
     const hasPermission =
       !permission ||
+      isAdmin ||
       user?.roles.some(
-        (role) => role.isOwnerRole || permissions.some(perm => role.permissions.includes(perm))
+        (role) => permissions.some(perm => role.permissions.includes(perm))
       );
 
     if (!hasPermission) {
@@ -263,44 +276,137 @@ export async function checkGroupRoles(groupID: number) {
       console.error(`[update-group] Failed to update group info cache:`, err);
     }
 
-    const allPermissions = [
-      'admin',
-      'view_staff_config',
-      'manage_sessions',
-      'sessions_unscheduled',
-      'sessions_scheduled',
-      'sessions_assign',
-      'sessions_claim',
-      'sessions_host',
-      'manage_activity',
-      'post_on_wall',
-      'manage_wall',
-      'manage_views',
-      'view_wall',
-      'view_members',
-      'manage_members',
-      'manage_quotas',
-      'manage_docs',
-      'manage_policies',
-      'view_entire_groups_activity',
-      'manage_alliances',
-      'represent_alliance'
-    ];
-
+    // Migrate users from old admin role to new workspace membership check
     try {
-      await prisma.role.updateMany({
+      const ownerRoles = await prisma.role.findMany({
         where: {
           workspaceGroupId: groupID,
           isOwnerRole: true,
         },
-        data: {
-          permissions: allPermissions,
+        include: {
+          members: true,
         },
       });
-      console.log(`[update-group] Updated owner role permissions for group ${groupID}`);
+
+      for (const ownerRole of ownerRoles) {
+        console.log(`[update-group] Migrating ${ownerRole.members.length} users from owner role ${ownerRole.id} to membership admin`);
+        const availableRoles = await prisma.role.findMany({
+          where: {
+            workspaceGroupId: groupID,
+            id: {
+              not: ownerRole.id,
+            },
+          },
+        });
+
+        let fallbackRole;
+        if (availableRoles.length === 0) {
+          fallbackRole = await prisma.role.create({
+            data: {
+              workspaceGroupId: groupID,
+              name: "Default",
+              permissions: [],
+              groupRoles: [],
+              isOwnerRole: false,
+            },
+          });
+          console.log(`[update-group] Created default fallback role for group ${groupID}`);
+          availableRoles.push(fallbackRole);
+        }
+        
+        for (const member of ownerRole.members) {
+          await prisma.workspaceMember.upsert({
+            where: {
+              workspaceGroupId_userId: {
+                workspaceGroupId: groupID,
+                userId: member.userid,
+              },
+            },
+            update: {
+              isAdmin: true,
+            },
+            create: {
+              workspaceGroupId: groupID,
+              userId: member.userid,
+              joinDate: new Date(),
+              isAdmin: true,
+            },
+          }).catch((error) => {
+            console.error(
+              `[update-group] Failed to set isAdmin for user ${member.userid}:`,
+              error
+            );
+          });
+
+          let targetRole = null;
+          const userRank = await prisma.rank.findFirst({
+            where: {
+              userId: member.userid,
+              workspaceGroupId: groupID,
+            },
+          }).catch(() => null);
+
+          if (userRank) {
+            const rankId = Number(userRank.rankId);
+            const roleWithRank = await retryNobloxRequest(() => noblox.getRole(groupID, rankId))
+              .then(roleInfo => {
+                return availableRoles.find(r => r.groupRoles?.includes(roleInfo.id));
+              })
+              .catch(() => null);
+            
+            if (roleWithRank) {
+              targetRole = roleWithRank;
+              console.log(`[update-group] Found role ${targetRole.name} matching user ${member.userid} rank`);
+            }
+          }
+
+          if (!targetRole && availableRoles.length > 0) {
+            targetRole = availableRoles[0];
+            console.log(`[update-group] Using fallback role ${targetRole.name} for user ${member.userid}`);
+          }
+
+          if (targetRole) {
+            await prisma.user.update({
+              where: {
+                userid: member.userid,
+              },
+              data: {
+                roles: {
+                  disconnect: {
+                    id: ownerRole.id,
+                  },
+                  connect: {
+                    id: targetRole.id,
+                  },
+                },
+              },
+            }).catch((error) => {
+              console.error(
+                `[update-group] Failed to swap role for user ${member.userid}:`,
+                error
+              );
+            });
+          }
+        }
+
+        await prisma.role.delete({
+          where: {
+            id: ownerRole.id,
+          },
+        }).catch((error) => {
+          console.error(
+            `[update-group] Failed to delete owner role ${ownerRole.id}:`,
+            error
+          );
+        });
+      }
+
+      if (ownerRoles.length > 0) {
+        console.log(`[update-group] Migrated ${ownerRoles.length} owner roles to isAdmin memberships for group ${groupID}`);
+      }
     } catch (error) {
       console.error(
-        `[update-group] Failed to update owner role permissions for group ${groupID}:`,
+        `[update-group] Failed to migrate owner roles for group ${groupID}:`,
         error
       );
     }
@@ -321,7 +427,7 @@ export async function checkGroupRoles(groupID: number) {
 
     const rs = await prisma.role
       .findMany({
-        where: {
+        where: { 
           workspaceGroupId: groupID,
         },
       })

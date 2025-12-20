@@ -26,7 +26,9 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       include: {
         roles: {
           where: { workspaceGroupId: workspaceGroupId },
-          orderBy: { isOwnerRole: "desc" },
+        },
+        workspaceMemberships: {
+          where: { workspaceGroupId: workspaceGroupId },
         },
       },
     });
@@ -34,8 +36,9 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     if (!currentUser || !currentUser.roles || currentUser.roles.length === 0)
       return res.status(401).json({ success: false, error: "Unauthorized." });
 
-    const userRole = currentUser.roles[0];
-    if (!userRole.isOwnerRole)
+    const membership = currentUser.workspaceMemberships[0];
+    const isAdmin = membership?.isAdmin || false;
+    if (!isAdmin)
       return res.status(401).json({ success: false, error: "Only owners may delete entries." });
 
     const entry = await prisma.userBook.findUnique({ where: { id: entryId as string } });

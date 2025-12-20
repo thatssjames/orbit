@@ -39,12 +39,17 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         where: {
           workspaceGroupId: parseInt(req.query.id as string),
         },
-        orderBy: {
-          isOwnerRole: "desc",
+      },
+      workspaceMemberships: {
+        where: {
+          workspaceGroupId: parseInt(req.query.id as string),
         },
       },
     },
   });
+
+  const membership = user?.workspaceMemberships[0];
+  const isAdmin = membership?.isAdmin || false;
 
   const schedule = await prisma.schedule.findFirst({
     where: {
@@ -65,7 +70,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     !schedule?.sessionType.hostingRoles.find(
       (r) => r.id === user?.roles[0].id
     ) &&
-    !user?.roles[0].isOwnerRole &&
+    !isAdmin &&
     !user?.roles[0].permissions.includes("admin")
   )
     return res

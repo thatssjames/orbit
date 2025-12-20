@@ -362,6 +362,7 @@ model workspaceMember {
   lineManagerId    BigInt?
   timezone         String?
   discordId        String?
+  isAdmin          Boolean?  @default(false)
   user             user      @relation(fields: [userId], references: [userid])
   workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
   lineManager      user?     @relation("LineManager", fields: [lineManagerId], references: [userid], onDelete: NoAction, onUpdate: NoAction)

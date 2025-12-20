@@ -39,12 +39,17 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         where: {
           workspaceGroupId: parseInt(req.query.id as string),
         },
-        orderBy: {
-          isOwnerRole: "desc",
+      },
+      workspaceMemberships: {
+        where: {
+          workspaceGroupId: parseInt(req.query.id as string),
         },
       },
     },
   });
+
+  const membership = user?.workspaceMemberships[0];
+  const isAdmin = membership?.isAdmin || false;
 
   const schedule = await prisma.schedule.findFirst({
     where: {
@@ -70,13 +75,12 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     hostingRoleIds.includes(ur.id)
   );
 
-  const hasOwnerRole = userRoles.some((ur: any) => ur.isOwnerRole);
   const hasAdminPerm = userRoles.some(
     (ur: any) =>
       Array.isArray(ur.permissions) && ur.permissions.includes("admin")
   );
 
-  if (!hasHostingRole && !hasOwnerRole && !hasAdminPerm) {
+  if (!hasHostingRole && !isAdmin && !hasAdminPerm) {
     return res.status(403).json({
       success: false,
       error: "You do not have permission to claim.",

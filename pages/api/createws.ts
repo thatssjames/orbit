@@ -104,7 +104,26 @@ export async function handler(
 			data: {
 				workspaceGroupId: groupId,
 				userId: BigInt(req.session.userid),
-				joinDate: new Date()
+				joinDate: new Date(),
+				isAdmin: true
+			}
+		})
+
+		const defaultRole = await tx.role.create({
+			data: {
+				name: 'Default',
+				workspaceGroupId: groupId,
+				permissions: [],
+				groupRoles: []
+			}
+		})
+
+		await tx.user.update({
+			where: { userid: req.session.userid },
+			data: {
+				roles: {
+					connect: { id: defaultRole.id }
+				}
 			}
 		})
 
@@ -150,43 +169,11 @@ export async function handler(
 				}
 			]
 		})
-
-		const role = await tx.role.create({
-			data: {
-				workspaceGroupId: groupId,
-				name: 'Admin',
-				isOwnerRole: true,
-				permissions: [
-					'admin',
-					'view_staff_config',
-					'manage_sessions',
-					'sessions_unscheduled',
-					'sessions_scheduled',
-					'sessions_assign',
-					'sessions_claim',
-					'sessions_host',
-					'manage_activity',
-					'post_on_wall',
-					'manage_wall',
-					'manage_views',
-					'view_wall',
-					'view_members',
-					'manage_members',
-					'manage_quotas',
-					'manage_docs',
-					'manage_policies',
-					'view_entire_groups_activity',
-					'manage_alliances',
-					'represent_alliance'
-				],
-				members: { connect: { userid: BigInt(req.session.userid) } }
-			}
-		})
-
-		await tx.user.update({
-			where: { userid: req.session.userid },
-			data: { isOwner: true }
-		})
+// Removed as secondary workspace creators are NOT the instance owner, which would give them equal access to edit oauth.
+		//await tx.user.update({
+			//where: { userid: req.session.userid },
+			//data: { isOwner: true }
+		//})
 
 		return ws
 	})

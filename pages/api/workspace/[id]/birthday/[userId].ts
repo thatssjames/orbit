@@ -20,13 +20,17 @@ export default withSessionRoute(async function handler(req: NextApiRequest, res:
 
 	const actor = await prisma.user.findFirst({
 		where: { userid: BigInt(actingUserId) },
-		include: { roles: { where: { workspaceGroupId }, take: 1 } }
+		include: {
+			roles: { where: { workspaceGroupId }, take: 1 },
+			workspaceMemberships: { where: { workspaceGroupId }, take: 1 }
+		}
 	});
 	
+	const actorMembership = actor?.workspaceMemberships?.[0];
+	const isAdmin = actorMembership?.isAdmin || false;
 	const actorRole = actor?.roles?.[0];
 	const perms = actorRole?.permissions || [];
-	const isOwner = actorRole?.isOwnerRole;
-	const allowed = isOwner || perms.includes('manage_activity') || perms.includes('manage_users') || perms.includes('manage_workspace');
+	const allowed = isAdmin || perms.includes('manage_activity') || perms.includes('manage_users') || perms.includes('manage_workspace');
 	if (!allowed) return res.status(403).json({ success: false, error: 'Insufficient permissions' });
 
 	if (req.method === 'GET') {

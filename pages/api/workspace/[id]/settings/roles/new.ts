@@ -24,7 +24,6 @@ export async function handler(
 		data: {
 			name: 'New role',
 			workspaceGroupId: parseInt(req.query.id as string),
-			isOwnerRole: false,
 		}
 	});
 	try {

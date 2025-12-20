@@ -27,22 +27,23 @@ export async function handler(
 			roles: {
 				where: {
 					workspaceGroupId: parseInt(req.query.id as string)
-				},
-				orderBy: {
-					isOwnerRole: 'desc'
+				}
+			},
+			workspaceMemberships: {
+				where: {
+					workspaceGroupId: parseInt(req.query.id as string)
 				}
 			}
 		}
 	});
 	if (!user?.roles.length) return res.status(404).json({ success: false, error: 'User not found' });
-	if (user.roles[0].isOwnerRole) return res.status(403).json({ success: false, error: 'You cannot change the role of the workspace owner' });
+	
 	const newrole = await prisma.role.findUnique({
 		where: {
 			id: req.body.role
 		}
 	});
 	if (!newrole) return res.status(404).json({ success: false, error: 'Role not found' });
-	if (newrole.isOwnerRole) return res.status(403).json({ success: false, error: 'You cannot assign anyone to the owner role' });
 	if (user.roles.length === 0) return res.status(404).json({ success: false, error: 'User not found' });
 	await prisma.user.update({
 		where: {

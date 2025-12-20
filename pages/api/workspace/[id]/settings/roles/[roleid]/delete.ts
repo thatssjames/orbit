@@ -30,8 +30,26 @@ export async function handler(
 	});
 	const oldrole = role.find(r => r.id === req.query.roleid);
 	if (!oldrole) return res.status(404).json({ success: false, error: 'Role not found' });
-	if (oldrole.isOwnerRole) return res.status(403).json({ success: false, error: 'You cannot delete the owner role' });
 	if (!(role.length - 1)) return res.status(404).json({ success: false, error: 'You cant delete a role with no fallback ' });
+	
+	const adminMembers = await prisma.workspaceMember.findMany({
+		where: {
+			workspaceGroupId: parseInt(req.query.id as string),
+			isAdmin: true,
+			user: {
+				roles: {
+					some: {
+						id: req.query.roleid as string
+					}
+				}
+			}
+		}
+	});
+	
+	if (adminMembers.length > 0) {
+		return res.status(403).json({ success: false, error: 'Cannot delete a role assigned to an admin user' });
+	}
+	
 	const newrole = role[0];
 
 	for (const member of oldrole.members) {

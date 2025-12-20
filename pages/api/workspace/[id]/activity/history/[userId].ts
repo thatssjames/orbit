@@ -34,8 +34,10 @@ export default withSessionRoute(async function handler(
           where: {
             workspaceGroupId: workspaceGroupId,
           },
-          orderBy: {
-            isOwnerRole: "desc",
+        },
+        workspaceMemberships: {
+          where: {
+            workspaceGroupId: workspaceGroupId,
           },
         },
       },
@@ -45,13 +47,15 @@ export default withSessionRoute(async function handler(
       return res.status(401).json({ success: false, error: "Unauthorized" });
     }
 
+    const membership = user.workspaceMemberships[0];
+    const isAdmin = membership?.isAdmin || false;
     const userRole = user.roles[0];
     if (!userRole) {
       return res.status(401).json({ success: false, error: "Unauthorized" });
     }
 
     if (
-      !userRole.isOwnerRole &&
+      !isAdmin &&
       !userRole.permissions?.includes("manage_activity")
     ) {
       return res.status(401).json({ success: false, error: "Unauthorized" });

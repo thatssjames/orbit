@@ -27,20 +27,24 @@ const withAllyPermissionCheck = (handler: any) => {
 				roles: {
 					where: {
 						workspaceGroupId: workspaceId
-					},
-					orderBy: {
-						isOwnerRole: 'desc'
+					}
+				},
+				workspaceMemberships: {
+					where: {
+						workspaceGroupId: workspaceId
 					}
 				}
 			}
 		});
 		
 		if (!user) return res.status(401).json({ success: false, error: 'Unauthorized' });
+		const membership = user.workspaceMemberships[0];
+		const isAdmin = membership?.isAdmin || false;
 		const userrole = user.roles[0];
 		if (!userrole) return res.status(401).json({ success: false, error: 'Unauthorized' });
 		
 		// Check if user has management permissions
-		if (userrole.isOwnerRole) return handler(req, res);
+		if (isAdmin) return handler(req, res);
 		if (userrole.permissions?.includes('manage_alliances')) return handler(req, res);
 		
 		// Check if user is a representative of this specific ally

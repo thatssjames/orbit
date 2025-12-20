@@ -103,16 +103,17 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
               userid: BigInt(req.session.userid),
             },
             include: {
-              roles: {
+              workspaceMemberships: {
                 where: {
                   workspaceGroupId: workspaceGroupId,
-                  isOwnerRole: true,
                 },
               },
             },
           });
 
-          if (!adminUser?.roles.length) {
+          const adminMembership = adminUser?.workspaceMemberships[0];
+          const isAdmin = adminMembership?.isAdmin || false;
+          if (!isAdmin) {
             return res.status(403).json({
               success: false,
               error:
@@ -177,16 +178,17 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
                     userid: BigInt(req.session.userid),
                   },
                   include: {
-                    roles: {
+                    workspaceMemberships: {
                       where: {
                         workspaceGroupId: workspaceGroupId,
-                        isOwnerRole: true,
                       },
                     },
                   },
                 });
 
-                if (!adminUser?.roles.length) {
+                const adminMembership = adminUser?.workspaceMemberships[0];
+                const isAdmin = adminMembership?.isAdmin || false;
+                if (!isAdmin) {
                   return res.status(403).json({
                     success: false,
                     error:
@@ -392,20 +394,18 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
               }
             }
 
-            if (!role.isOwnerRole) {
-              await prisma.user.update({
-                where: {
-                  userid: BigInt(userId),
-                },
-                data: {
-                  roles: {
-                    connect: {
-                      id: role.id,
-                    },
+            await prisma.user.update({
+              where: {
+                userid: BigInt(userId),
+              },
+              data: {
+                roles: {
+                  connect: {
+                    id: role.id,
                   },
                 },
-              });
-            }
+              },
+            });
           }
         }
       } catch (rankUpdateError) {

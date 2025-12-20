@@ -17,14 +17,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     include: {
       roles: {
         where: { workspaceGroupId: workspaceId },
-        orderBy: { isOwnerRole: "desc" },
+      },
+      workspaceMemberships: {
+        where: { workspaceGroupId: workspaceId },
       },
     },
   });
 
+  const membership = user?.workspaceMemberships?.[0];
+  const isAdmin = membership?.isAdmin || false;
   const userRole = user?.roles?.[0];
   const hasAdminPermission =
-    userRole?.permissions?.includes("admin") || userRole?.isOwnerRole;
+    userRole?.permissions?.includes("admin") || isAdmin;
 
   if (req.method === "GET") {
     try {

@@ -37,25 +37,22 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(asy
       roles: {
         where: {
           workspaceGroupId: Number.parseInt(params.id as string),
-        },
-        orderBy: {
-          isOwnerRole: 'desc'
         }
+      },
+      workspaceMemberships: {
+        where: {
+          workspaceGroupId: Number.parseInt(params.id as string),
+        },
       },
     },
   })
 
-  //get all roles including owner roles
   const roles = await prisma.role.findMany({
     where: {
       workspaceGroupId: Number.parseInt(params.id as string),
-    },
-    orderBy: {
-      isOwnerRole: 'desc'
     }
   })
 
-  //promise all to get user with username, displayname and thumbnail
   const usersWithInfo = await Promise.all(
     users.map(async (user) => {
       const username = user.username || (await getUsername(user.userid))
@@ -67,6 +64,11 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(asy
         username,
         thumbnail,
         displayName,
+        workspaceMemberships: user.workspaceMemberships?.map(m => ({
+          ...m,
+          userId: Number(m.userId),
+          lineManagerId: m.lineManagerId ? Number(m.lineManagerId) : null,
+        })),
       }
     }),
   )

@@ -27,15 +27,21 @@ export async function handler(
 			roles: {
 				where: {
 					workspaceGroupId: parseInt(req.query.id as string)
-				},
-				orderBy: {
-					isOwnerRole: 'desc'
+				}
+			},
+			workspaceMemberships: {
+				where: {
+					workspaceGroupId: parseInt(req.query.id as string)
 				}
 			}
 		}
 	});
 	if (!user?.roles.length) return res.status(404).json({ success: false, error: 'User not found' });
-	if (user.roles[0].isOwnerRole) return res.status(403).json({ success: false, error: 'You cannot remove the owner of a workspace' });
+	const membership = user.workspaceMemberships[0];
+	if (membership?.isAdmin) {
+		return res.status(403).json({ success: false, error: 'You cannot remove an admin from the workspace' });
+	}
+	
 	await prisma.user.update({
 		where: {
 			userid: parseInt(req.query.userid as string)

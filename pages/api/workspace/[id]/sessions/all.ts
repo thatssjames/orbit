@@ -38,17 +38,22 @@ export default withPermissionCheck(
       });
 
       let userRole = null;
+      let isAdmin = false;
       if (userId) {
         const user = await prisma.user.findFirst({
           where: { userid: BigInt(userId) },
           include: {
             roles: {
               where: { workspaceGroupId: parseInt(id as string) },
-              orderBy: { isOwnerRole: "desc" },
+            },
+            workspaceMemberships: {
+              where: { workspaceGroupId: parseInt(id as string) },
             },
           },
         });
         userRole = user?.roles?.[0];
+        const membership = user?.workspaceMemberships?.[0];
+        isAdmin = membership?.isAdmin || false;
       }
 
       const visibilityFilters = await getConfig(
@@ -60,7 +65,7 @@ export default withPermissionCheck(
       if (
         visibilityFilters &&
         userRole &&
-        !userRole.isOwnerRole &&
+        !isAdmin &&
         !userRole.permissions?.includes("admin")
       ) {
         const roleId = userRole.id;

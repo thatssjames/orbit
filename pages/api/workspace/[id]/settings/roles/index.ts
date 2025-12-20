@@ -23,9 +23,6 @@ export async function handler(
 	const roles = await prisma.role.findMany({
 		where: {
 			workspaceGroupId: Number(workspaceId)
-		},
-		orderBy: {
-			isOwnerRole: 'desc'
 		}
 	});
 	

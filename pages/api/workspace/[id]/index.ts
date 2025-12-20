@@ -46,11 +46,7 @@ export async function handler(
 			groupId: parseInt(req.query.id as string)
 		},
 		include: {
-			roles: {
-				orderBy: {
-					isOwnerRole: 'desc'
-				}
-			}
+			roles: true
 		}
 	});
 	if (!workspace) return res.status(404).json({ success: false, error: 'Not found' });
@@ -63,9 +59,11 @@ export async function handler(
 			roles: {
 				where: {
 					workspaceGroupId: workspace.groupId
-				},
-				orderBy: {
-					isOwnerRole: 'desc'
+				}
+			},
+			workspaceMemberships: {
+				where: {
+					workspaceGroupId: workspace.groupId
 				}
 			}
 		}
@@ -94,11 +92,16 @@ export async function handler(
 		"Manage docs": "manage_docs",
 		"Manage alliances": "manage_alliances",
 		"Admin (Manage workspace)": "admin",
-	};	res.status(200).json({ success: true, permissions: user.roles[0].permissions, workspace: {
+	};	
+	
+	const membership = user.workspaceMemberships[0];
+	const isAdmin = membership?.isAdmin || false;
+	
+	res.status(200).json({ success: true, permissions: user.roles[0].permissions, workspace: {
 		groupId: workspace.groupId,
 		groupThumbnail: groupLogo,
 		groupName: groupName,
-		yourPermission: user.roles[0].isOwnerRole ? Object.values(permissions) : user.roles[0].permissions,
+		yourPermission: isAdmin ? Object.values(permissions) : user.roles[0].permissions,
 		groupTheme: themeconfig,
 		roles: workspace.roles,
 		yourRole: user.roles[0].id,

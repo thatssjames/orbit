@@ -32,12 +32,20 @@ export default withSessionRoute(async function handler(
           workspaceGroupId,
         },
       },
+      workspaceMemberships: {
+        where: {
+          workspaceGroupId,
+        },
+      },
     },
   });
 
-  const canManageAlliances = currentUser?.roles?.some((role) =>
-    role.permissions?.includes("manage_alliances")
-  ) ?? false;
+  const membership = currentUser?.workspaceMemberships?.[0];
+  const isAdmin = membership?.isAdmin || false;
+  const canManageAlliances = isAdmin ||
+    (currentUser?.roles?.some((role) =>
+      role.permissions?.includes("manage_alliances")
+    ) ?? false);
 
   const alliance = await prisma.ally.findFirst({
     where: {

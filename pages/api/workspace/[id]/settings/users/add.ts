@@ -26,7 +26,7 @@ export async function handler(
 
 	const role = await prisma.role.findFirst({
 		where: {
-			isOwnerRole: false,
+			workspaceGroupId: parseInt(req.query.id as string),
 		}
 	});
 	const u = await prisma.user.findFirst({
@@ -65,6 +65,23 @@ export async function handler(
 			}
 		},
 	});
+	
+	await prisma.workspaceMember.upsert({
+		where: {
+			workspaceGroupId_userId: {
+				workspaceGroupId: parseInt(req.query.id as string),
+				userId: userid
+			}
+		},
+		update: {},
+		create: {
+			workspaceGroupId: parseInt(req.query.id as string),
+			userId: userid,
+			joinDate: new Date(),
+			isAdmin: false
+		}
+	});
+	
 	const newuser = {
 		roles: [
 			role

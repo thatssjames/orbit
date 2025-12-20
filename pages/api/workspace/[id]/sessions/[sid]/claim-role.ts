@@ -83,6 +83,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
             workspaceGroupId: parseInt(req.query.id as string),
           },
         },
+        workspaceMemberships: {
+          where: {
+            workspaceGroupId: parseInt(req.query.id as string),
+          },
+        },
       },
     });
 
@@ -93,10 +98,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       });
     }
 
+    const membership = currentUser.workspaceMemberships[0];
+    const isAdmin = membership?.isAdmin || false;
     const userPermissions = currentUser.roles[0].permissions;
-    const hasAssignPermission = userPermissions.includes("sessions_assign") || userPermissions.includes("admin"); 
-    const hasClaimPermission = userPermissions.includes("sessions_claim") || userPermissions.includes("admin")
-    const hasHostPermission = userPermissions.includes("sessions_host") || userPermissions.includes("admin")
+    const hasAssignPermission = isAdmin || userPermissions.includes("sessions_assign") || userPermissions.includes("admin"); 
+    const hasClaimPermission = isAdmin || userPermissions.includes("sessions_claim") || userPermissions.includes("admin")
+    const hasHostPermission = isAdmin || userPermissions.includes("sessions_host") || userPermissions.includes("admin")
     const isAssigningToSelf = userId && userId.toString() === currentUserId.toString();
 
     if (action === "unclaim") {

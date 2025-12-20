@@ -76,9 +76,6 @@ export async function handler(
 		prisma.role.findMany({
 			where: {
 				workspaceGroupId: workspace.groupId
-			},
-			orderBy: {
-				isOwnerRole: 'desc'
 			}
 		}),
 		noblox.getGroup(workspace.groupId),
@@ -91,9 +88,11 @@ export async function handler(
 				roles: {
 					where: {
 						workspaceGroupId: workspace.groupId
-					},
-					orderBy: {
-						isOwnerRole: 'desc'
+					}
+				},
+				workspaceMemberships: {
+					where: {
+						workspaceGroupId: workspace.groupId
 					}
 				}
 			}
@@ -133,11 +132,14 @@ export async function handler(
 		"Admin (Manage workspace)": "admin",
 	};	
 	
+	const membership = user.workspaceMemberships[0];
+	const isAdmin = membership?.isAdmin || false;
+	
 	res.status(200).json({ success: true, permissions: user.roles[0].permissions, workspace: {
 		groupId: workspace.groupId,
 		groupThumbnail: groupLogo,
 		groupName: groupinfo.name,
-		yourPermission: user.roles[0].isOwnerRole ? Object.values(permissions) : user.roles[0].permissions,
+		yourPermission: isAdmin ? Object.values(permissions) : user.roles[0].permissions,
 		groupTheme: themeconfig,
 		roles: roles,
 		yourRole: user.roles[0].id,

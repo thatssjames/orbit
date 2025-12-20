@@ -71,6 +71,11 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
             workspaceGroupId: parseInt(req.query.id as string),
           },
         },
+        workspaceMemberships: {
+          where: {
+            workspaceGroupId: parseInt(req.query.id as string),
+          },
+        },
       },
     });
 
@@ -81,10 +86,11 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       });
     }
 
+    const membership = currentUser.workspaceMemberships[0];
+    const isAdmin = membership?.isAdmin || false;
     const userPermissions = currentUser.roles[0].permissions;
-    const isOwner = currentUser.roles[0].isOwnerRole;
-    const hasAssignPermission = isOwner || userPermissions.includes("sessions_assign");
-    const hasHostPermission = isOwner || userPermissions.includes("sessions_host");
+    const hasAssignPermission = isAdmin || userPermissions.includes("sessions_assign");
+    const hasHostPermission = isAdmin || userPermissions.includes("sessions_host");
     const isAssigningToSelf = ownerId && ownerId.toString() === currentUserId.toString();
     const isRemoving = !ownerId;
     const currentSession = await prisma.session.findUnique({
@@ -109,6 +115,11 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
               workspaceGroupId: parseInt(req.query.id as string),
             },
           },
+          workspaceMemberships: {
+            where: {
+              workspaceGroupId: parseInt(req.query.id as string),
+            },
+          },
         },
       });
 
@@ -119,8 +130,9 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       }
       if (hasHostPermission && !hasAssignPermission && !isAssigningToSelf) {
         const targetUserPermissions = targetUser.roles[0]?.permissions || [];
-        const targetIsOwner = targetUser.roles[0]?.isOwnerRole || false;
-        const targetHasHostPermission = targetIsOwner || targetUserPermissions.includes("sessions_host");
+        const targetMembership = targetUser.workspaceMemberships?.[0];
+        const targetIsAdmin = targetMembership?.isAdmin || false;
+        const targetHasHostPermission = targetIsAdmin || targetUserPermissions.includes("sessions_host");
         if (!targetHasHostPermission) {
           return res.status(403).json({ 
             success: false, 
