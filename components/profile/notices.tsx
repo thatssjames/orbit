@@ -10,11 +10,11 @@ import { workspacestate, loginState } from "@/state";
 
 interface Props {
   notices: any[];
-  canManageMembers?: boolean;
+  canManageNotices?: boolean;
   userId?: string;
 }
 
-const Notices: FC<Props> = ({ notices, canManageMembers = false, userId }) => {
+const Notices: FC<Props> = ({ notices, canManageNotices = false, userId }) => {
   const router = useRouter();
   const [workspace] = useRecoilState(workspacestate);
   const [login] = useRecoilState(loginState);
@@ -127,7 +127,7 @@ const Notices: FC<Props> = ({ notices, canManageMembers = false, userId }) => {
               </p>
             </div>
           </div>
-          {canManageMembers && !showCreateForm && (
+          {canManageNotices && !showCreateForm && (
             <button
               onClick={() => setShowCreateForm(true)}
               className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-primary text-white text-xs sm:text-sm rounded-md hover:bg-primary/90 transition-colors whitespace-nowrap flex-shrink-0"
@@ -138,7 +138,7 @@ const Notices: FC<Props> = ({ notices, canManageMembers = false, userId }) => {
           )}
         </div>
 
-        {canManageMembers && showCreateForm && (
+        {canManageNotices && showCreateForm && (
           <div className="bg-zinc-50 dark:bg-zinc-800/60 rounded-lg p-3 sm:p-4 mb-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xs sm:text-sm font-medium text-zinc-900 dark:text-zinc-100">

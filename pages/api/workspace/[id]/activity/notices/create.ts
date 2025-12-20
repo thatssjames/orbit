@@ -12,7 +12,7 @@ type Data = {
 	notice?: inactivityNotice
 }
 
-export default withPermissionCheck(handler);
+export default withPermissionCheck(handler, "create_notices");
 
 export async function handler(
 	req: NextApiRequest,

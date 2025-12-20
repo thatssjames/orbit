@@ -61,17 +61,35 @@ export const getServerSideProps = withPermissionCheckSsr(
             },
           },
         },
+        workspaceMemberships: {
+          where: {
+            workspaceGroupId: parseInt(query.id as string),
+          },
+        },
       },
     });
+    const membership = currentUser?.workspaceMemberships?.[0];
+    const isAdmin = membership?.isAdmin || false;
     const hasManagePermission =
-      currentUser?.roles?.some((role) =>
+      isAdmin ||
+      (currentUser?.roles?.some((role) =>
         role.permissions?.includes("manage_activity")
-      ) ?? false;
+      ) ??
+        false);
 
     const hasManageMembersPermission =
-      currentUser?.roles?.some((role) =>
+      isAdmin ||
+      (currentUser?.roles?.some((role) =>
         role.permissions?.includes("manage_members")
-      ) ?? false;
+      ) ??
+        false);
+
+    const hasManageNoticesPermission =
+      isAdmin ||
+      (currentUser?.roles?.some((role) =>
+        role.permissions?.includes("manage_notices")
+      ) ??
+        false);
 
     if (!hasManagePermission) {
       return { notFound: true };
@@ -86,9 +104,6 @@ export const getServerSideProps = withPermissionCheckSsr(
           where: {
             workspaceGroupId: parseInt(query.id as string),
           },
-          orderBy: {
-            isOwnerRole: "desc",
-          },
           include: {
             quotaRoles: {
               include: {
@@ -102,8 +117,6 @@ export const getServerSideProps = withPermissionCheckSsr(
 
     if (!userTakingAction) return { notFound: true };
 
-    const isAdmin = hasManagePermission;
-
     const currentDate = new Date();
     const lastReset = await prisma.activityReset.findFirst({
       where: {
@@ -116,8 +129,10 @@ export const getServerSideProps = withPermissionCheckSsr(
 
     // Use last reset date, or November 30th 2024, whichever is more recent
     const nov30 = new Date("2024-11-30T00:00:00Z");
-    const startDate = lastReset?.resetAt 
-      ? (lastReset.resetAt > nov30 ? lastReset.resetAt : nov30)
+    const startDate = lastReset?.resetAt
+      ? lastReset.resetAt > nov30
+        ? lastReset.resetAt
+        : nov30
       : nov30;
 
     const quotas = userTakingAction.roles
@@ -377,14 +392,14 @@ export const getServerSideProps = withPermissionCheckSsr(
       },
     });
 
-    const membership = await prisma.workspaceMember.findUnique({
+    const targetUserMembership = await prisma.workspaceMember.findUnique({
       where: {
         workspaceGroupId_userId: {
           workspaceGroupId: parseInt(query.id as string),
           userId: BigInt(query.uid as string),
         },
       },
-      select: { 
+      select: {
         joinDate: true,
         department: true,
         lineManagerId: true,
@@ -433,9 +448,9 @@ export const getServerSideProps = withPermissionCheckSsr(
     }
 
     let lineManager = null;
-    if (membership?.lineManagerId) {
+    if (targetUserMembership?.lineManagerId) {
       const manager = await prisma.user.findUnique({
-        where: { userid: membership.lineManagerId },
+        where: { userid: targetUserMembership.lineManagerId },
         select: {
           userid: true,
           username: true,
@@ -446,7 +461,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         lineManager = {
           userid: manager.userid.toString(),
           username: manager.username,
-          picture: manager.picture || '',
+          picture: manager.picture || "",
         };
       }
     }
@@ -469,7 +484,7 @@ export const getServerSideProps = withPermissionCheckSsr(
     const allMembers = allMembersRaw.map((member) => ({
       userid: member.user.userid.toString(),
       username: member.user.username,
-      picture: member.user.picture || '',
+      picture: member.user.picture || "",
     }));
 
     if (!user) {
@@ -520,21 +535,25 @@ export const getServerSideProps = withPermissionCheckSsr(
             )
           ),
           userid: user.userid.toString(),
-          joinDate: membership?.joinDate
-            ? membership.joinDate.toISOString()
+          joinDate: targetUserMembership?.joinDate
+            ? targetUserMembership.joinDate.toISOString()
             : null,
         },
         memberRoleName,
-        workspaceMember: membership ? {
-          department: membership.department,
-          lineManagerId: membership.lineManagerId?.toString() || null,
-          timezone: membership.timezone,
-          discordId: membership.discordId,
-        } : null,
+        workspaceMember: targetUserMembership
+          ? {
+              department: targetUserMembership.department,
+              lineManagerId:
+                targetUserMembership.lineManagerId?.toString() || null,
+              timezone: targetUserMembership.timezone,
+              discordId: targetUserMembership.discordId,
+            }
+          : null,
         lineManager,
         allMembers,
         noticesEnabled,
         canManageMembers: hasManageMembersPermission,
+        canManageNotices: hasManageNoticesPermission,
       },
     };
   }
@@ -592,6 +611,7 @@ type pageProps = {
   }>;
   noticesEnabled: boolean;
   canManageMembers: boolean;
+  canManageNotices: boolean;
 };
 const Profile: pageWithLayout<pageProps> = ({
   notices,
@@ -616,6 +636,7 @@ const Profile: pageWithLayout<pageProps> = ({
   allMembers,
   noticesEnabled,
   canManageMembers,
+  canManageNotices,
 }) => {
   const [login, setLogin] = useRecoilState(loginState);
   const [userBook, setUserBook] = useState(initialUserBook);
@@ -650,7 +671,7 @@ const Profile: pageWithLayout<pageProps> = ({
     }, 1000);
     return () => clearInterval(timer);
   }, []);
-  
+
   useEffect(() => {
     async function fetchAvailableHistory() {
       try {
@@ -782,22 +803,22 @@ const Profile: pageWithLayout<pageProps> = ({
   };
 
   const BG_COLORS = [
-    "bg-red-200",
-    "bg-green-200",
-    "bg-emerald-200",
-    "bg-red-300",
-    "bg-green-300",
-    "bg-emerald-300",
-    "bg-amber-200",
-    "bg-yellow-200",
-    "bg-red-100",
-    "bg-green-100",
-    "bg-lime-200",
-    "bg-rose-200",
-    "bg-amber-300",
-    "bg-teal-200",
-    "bg-lime-300",
     "bg-rose-300",
+    "bg-lime-300",
+    "bg-teal-200",
+    "bg-amber-300",
+    "bg-rose-200",
+    "bg-lime-200",
+    "bg-green-100",
+    "bg-red-100",
+    "bg-yellow-200",
+    "bg-amber-200",
+    "bg-emerald-300",
+    "bg-green-300",
+    "bg-red-300",
+    "bg-emerald-200",
+    "bg-green-200",
+    "bg-red-200",
   ];
 
   function getRandomBg(userid: string, username?: string) {
@@ -848,33 +869,35 @@ const Profile: pageWithLayout<pageProps> = ({
                 )}
               </div>
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                {workspaceMember && workspaceMember.timezone && (() => {
-                  const userHour = new Date().toLocaleString("en-US", {
-                    timeZone: workspaceMember.timezone,
-                    hour: "numeric",
-                    hour12: false,
-                  });
-                  const hour = parseInt(userHour);
-                  const isDay = hour >= 6 && hour < 18;
+                {workspaceMember &&
+                  workspaceMember.timezone &&
+                  (() => {
+                    const userHour = new Date().toLocaleString("en-US", {
+                      timeZone: workspaceMember.timezone,
+                      hour: "numeric",
+                      hour12: false,
+                    });
+                    const hour = parseInt(userHour);
+                    const isDay = hour >= 6 && hour < 18;
 
-                  return (
-                    <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-zinc-900 text-white shadow-sm border border-primary/40">
-                      {isDay ? (
-                        <IconSun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300" />
-                      ) : (
-                        <IconMoon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-100" />
-                      )}
-                      <span className="text-xs sm:text-sm font-semibold tabular-nums">
-                        {currentTime.toLocaleTimeString("en-US", {
-                          timeZone: workspaceMember.timezone,
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: true,
-                        })}
-                      </span>
-                    </div>
-                  );
-                })()}
+                    return (
+                      <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-zinc-900 text-white shadow-sm border border-primary/40">
+                        {isDay ? (
+                          <IconSun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300" />
+                        ) : (
+                          <IconMoon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-100" />
+                        )}
+                        <span className="text-xs sm:text-sm font-semibold tabular-nums">
+                          {currentTime.toLocaleTimeString("en-US", {
+                            timeZone: workspaceMember.timezone,
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          })}
+                        </span>
+                      </div>
+                    );
+                  })()}
                 <a
                   href={`https://www.roblox.com/users/${user.userid}/profile`}
                   target="_blank"
@@ -1005,7 +1028,7 @@ const Profile: pageWithLayout<pageProps> = ({
                 <Tab.Panel>
                   <Notices
                     notices={notices}
-                    canManageMembers={canManageMembers}
+                    canManageNotices={canManageNotices}
                     userId={user.userid}
                   />
                 </Tab.Panel>
