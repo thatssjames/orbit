@@ -31,22 +31,22 @@ import PatternEditDialog from "@/components/sessionpatterns";
 import { Dialog, Transition } from "@headlessui/react";
 
 const BG_COLORS = [
-  "bg-red-200",
-  "bg-green-200",
-  "bg-emerald-200",
-  "bg-red-300",
-  "bg-green-300",
-  "bg-emerald-300",
-  "bg-amber-200",
-  "bg-yellow-200",
-  "bg-red-100",
-  "bg-green-100",
-  "bg-lime-200",
-  "bg-rose-200",
-  "bg-amber-300",
-  "bg-teal-200",
-  "bg-lime-300",
   "bg-rose-300",
+  "bg-lime-300",
+  "bg-teal-200",
+  "bg-amber-300",
+  "bg-rose-200",
+  "bg-lime-200",
+  "bg-green-100",
+  "bg-red-100",
+  "bg-yellow-200",
+  "bg-amber-200",
+  "bg-emerald-300",
+  "bg-green-300",
+  "bg-red-300",
+  "bg-emerald-200",
+  "bg-green-200",
+  "bg-red-200",
 ];
 
 function getRandomBg(userid: string, username?: string) {
@@ -370,7 +370,7 @@ const WeeklyCalendar: React.FC<{
                   return (
                     <div
                       key={session.id}
-                      className={`rounded-xl p-4 cursor-pointer transition-all group transform hover:-translate-y-0.5 shadow-sm border min-w-[260px] ${
+                      className={`rounded-xl p-4 cursor-pointer transition-all group transform hover:-translate-y-0.5 shadow-sm border min-w-[260px] h-[110px] ${
                         isActive
                           ? "border-emerald-200 dark:border-emerald-600/50"
                           : "bg-white border border-zinc-200 dark:bg-zinc-900/30 dark:border-zinc-800/60"
@@ -948,61 +948,19 @@ const Home: pageWithLayout<pageProps> = (props) => {
                 return (
                   <div className="px-2" key={session.id}>
                     <div
-                      className={`rounded-xl p-4 cursor-pointer transition-all group transform hover:-translate-y-0.5 shadow-sm border w-[260px] ${
+                      className={`rounded-xl p-4 cursor-pointer transition-all group transform hover:-translate-y-0.5 shadow-sm border w-[260px] h-[110px] flex flex-col overflow-hidden ${
                         isActive
                           ? "border-emerald-200 dark:border-emerald-600/50"
                           : "bg-white border border-zinc-200 dark:bg-zinc-800/50 dark:border-zinc-800/60"
                       } backdrop-blur-sm`}
                       onClick={() => handleSessionClick(session)}
                     >
-                      <div className="flex items-start justify-between mb-auto">
+                      <div className="flex items-start justify-between mb-auto overflow-hidden">
                         <div className="flex-1 min-w-0 overflow-hidden">
                           <div className="flex items-center justify-between w-full">
                             <h4 className="flex-1 min-w-0 font-medium text-zinc-900 dark:text-white truncate mb-0">
                               {session.name || session.sessionType.name}
                             </h4>
-
-                            <div className="flex items-center gap-1 ml-2 z-10 flex-shrink-0">
-                              {session.owner && (
-                                <div
-                                  className={`w-8 h-8 min-w-[2rem] rounded-full flex items-center justify-center ring-2 ring-white dark:ring-zinc-800 ${getRandomBg(
-                                    session.owner.userid.toString()
-                                  )}`}
-                                >
-                                  <img
-                                    src={
-                                      session.owner.picture ||
-                                      "/default-avatar.jpg"
-                                    }
-                                    className="w-7 h-7 rounded-full object-cover"
-                                    onError={(e) => {
-                                      e.currentTarget.src =
-                                        "/default-avatar.jpg";
-                                    }}
-                                  />
-                                </div>
-                              )}
-
-                              {coHost && (
-                                <div
-                                  className={`w-8 h-8 min-w-[2rem] rounded-full flex items-center justify-center ring-2 ring-white dark:ring-zinc-800 ${getRandomBg(
-                                    coHost.user.userid.toString()
-                                  )} ${session.owner ? "-ml-2" : ""}`}
-                                >
-                                  <img
-                                    src={
-                                      coHost.user.picture ||
-                                      "/default-avatar.jpg"
-                                    }
-                                    className="w-7 h-7 rounded-full object-cover"
-                                    onError={(e) => {
-                                      e.currentTarget.src =
-                                        "/default-avatar.jpg";
-                                    }}
-                                  />
-                                </div>
-                              )}
-                            </div>
                           </div>
 
                           <div className="flex items-center gap-2 mb-2 min-h-[28px] flex-wrap">
@@ -1030,8 +988,8 @@ const Home: pageWithLayout<pageProps> = (props) => {
                             )}
                           </div>
 
-                          <div className="flex items-center gap-4 text-sm text-zinc-600 dark:text-zinc-400">
-                            <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-3 text-sm text-zinc-600 dark:text-zinc-400 w-full">
+                            <div className="flex items-center gap-1 flex-shrink-0">
                               <IconClock className="w-4 h-4" />
                               {new Date(session.date).toLocaleTimeString(
                                 undefined,
@@ -1042,14 +1000,57 @@ const Home: pageWithLayout<pageProps> = (props) => {
                                 }
                               )}
                             </div>
-                            <div className="flex items-center gap-1">
-                              <IconUserCircle className="w-4 h-4" />
-                              {session.owner?.username || "Unclaimed"}
+                            <div className="flex items-center gap-1 min-w-0">
+                              <IconUserCircle className="w-4 h-4 flex-shrink-0" />
+                              <span className="truncate">
+                                {session.owner?.username || "Unclaimed"}
+                              </span>
                             </div>
                           </div>
                         </div>
 
-                        <div className="relative">
+                        <div className="relative w-0 h-0">
+                          <div className="absolute top-0 right-0 flex items-center gap-1 z-10">
+                            {session.owner && (
+                              <div
+                                className={`w-8 h-8 min-w-[2rem] rounded-full flex items-center justify-center ring-2 ring-white dark:ring-zinc-800 ${getRandomBg(
+                                  session.owner.userid.toString()
+                                )}`}
+                              >
+                                <img
+                                  src={
+                                    session.owner.picture ||
+                                    "/default-avatar.jpg"
+                                  }
+                                  className="w-7 h-7 rounded-full object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.src =
+                                      "/default-avatar.jpg";
+                                  }}
+                                />
+                              </div>
+                            )}
+
+                            {coHost && (
+                              <div
+                                className={`w-8 h-8 min-w-[2rem] rounded-full flex items-center justify-center ring-2 ring-white dark:ring-zinc-800 ${getRandomBg(
+                                  coHost.user.userid.toString()
+                                )} ${session.owner ? "-ml-2" : ""}`}
+                              >
+                                <img
+                                  src={
+                                    coHost.user.picture ||
+                                    "/default-avatar.jpg"
+                                  }
+                                  className="w-7 h-7 rounded-full object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.src =
+                                      "/default-avatar.jpg";
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </div>
                           {workspace.yourPermission &&
                             workspace.yourPermission.includes(
                               "manage_sessions"

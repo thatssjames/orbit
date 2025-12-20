@@ -25,22 +25,22 @@ import {
 } from "@tabler/icons-react";
 
 const BG_COLORS = [
-  "bg-red-200",
-  "bg-green-200",
-  "bg-emerald-200",
-  "bg-red-300",
-  "bg-green-300",
-  "bg-emerald-300",
-  "bg-amber-200",
-  "bg-yellow-200",
-  "bg-red-100",
-  "bg-green-100",
-  "bg-lime-200",
-  "bg-rose-200",
-  "bg-amber-300",
-  "bg-teal-200",
-  "bg-lime-300",
   "bg-rose-300",
+  "bg-lime-300",
+  "bg-teal-200",
+  "bg-amber-300",
+  "bg-rose-200",
+  "bg-lime-200",
+  "bg-green-100",
+  "bg-red-100",
+  "bg-yellow-200",
+  "bg-amber-200",
+  "bg-emerald-300",
+  "bg-green-300",
+  "bg-red-300",
+  "bg-emerald-200",
+  "bg-green-200",
+  "bg-red-200",
 ];
 
 function getRandomBg(userid: string) {
@@ -100,6 +100,9 @@ export const getServerSideProps = withPermissionCheckSsr(
               },
             },
           },
+        },
+        workspaceMemberships: {
+          where: { workspaceGroupId: workspaceId },
         },
       },
     });
@@ -322,9 +325,11 @@ export const getServerSideProps = withPermissionCheckSsr(
       };
     });
 
-    const hasManagePermission = profileData?.roles.some(
+    const membership = profileData?.workspaceMemberships?.[0];
+    const isAdmin = membership?.isAdmin || false;
+    const hasManagePermission = isAdmin || profileData?.roles.some(
       (role: any) =>
-        role.isOwnerRole || role.permissions.includes("manage_quotas")
+        role.permissions.includes("manage_quotas")
     );
 
     let allQuotas: any[] = [];
@@ -347,9 +352,6 @@ export const getServerSideProps = withPermissionCheckSsr(
       roles = await prisma.role.findMany({
         where: {
           workspaceGroupId: workspaceId,
-        },
-        orderBy: {
-          isOwnerRole: "desc",
         },
       });
     }
@@ -509,38 +511,34 @@ const Quotas: pageWithLayout<pageProps> = ({
             </div>
           </div>
 
-          <div className="flex gap-2 mb-6 border-b border-zinc-200 dark:border-zinc-700">
-            <button
-              onClick={() => setActiveTab("my-quotas")}
-              className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
-                activeTab === "my-quotas"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <IconTarget className="w-4 h-4" />
-                My Quotas
-              </div>
-            </button>
-            {canManageQuotas && (
+          {canManageQuotas && (
+            <div className="flex p-1 gap-1 bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 rounded-lg mb-6">
               <button
-                onClick={() => setActiveTab("manage-quotas")}
-                className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
-                  activeTab === "manage-quotas"
-                    ? "border-primary text-primary"
-                    : "border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+                onClick={() => setActiveTab("my-quotas")}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  activeTab === "my-quotas"
+                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
+                    : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <IconClipboardList className="w-4 h-4" />
-                  Manage Quotas
-                </div>
+                <IconTarget className="w-4 h-4" />
+                <span>My Quotas</span>
               </button>
-            )}
-          </div>
+              <button
+                onClick={() => setActiveTab("manage-quotas")}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  activeTab === "manage-quotas"
+                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
+                    : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
+                }`}
+              >
+                <IconClipboardList className="w-4 h-4" />
+                <span>Manage Quotas</span>
+              </button>
+            </div>
+          )}
 
-          {activeTab === "my-quotas" && (
+          {(!canManageQuotas || activeTab === "my-quotas") && (
             <div>
               {myQuotas.length === 0 ? (
                 <div className="text-center py-12">

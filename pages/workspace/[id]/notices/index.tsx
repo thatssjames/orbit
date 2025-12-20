@@ -24,22 +24,22 @@ import {
 } from "@tabler/icons-react";
 
 const BG_COLORS = [
-  "bg-red-200",
-  "bg-green-200",
-  "bg-emerald-200",
-  "bg-red-300",
-  "bg-green-300",
-  "bg-emerald-300",
-  "bg-amber-200",
-  "bg-yellow-200",
-  "bg-red-100",
-  "bg-green-100",
-  "bg-lime-200",
-  "bg-rose-200",
-  "bg-amber-300",
-  "bg-teal-200",
-  "bg-lime-300",
   "bg-rose-300",
+  "bg-lime-300",
+  "bg-teal-200",
+  "bg-amber-300",
+  "bg-rose-200",
+  "bg-lime-200",
+  "bg-green-100",
+  "bg-red-100",
+  "bg-yellow-200",
+  "bg-amber-200",
+  "bg-emerald-300",
+  "bg-green-300",
+  "bg-red-300",
+  "bg-emerald-200",
+  "bg-green-200",
+  "bg-red-200",
 ];
 
 function getRandomBg(userid: string, username?: string) {
@@ -97,6 +97,11 @@ export const getServerSideProps = withPermissionCheckSsr(
             isOwnerRole: "desc",
           },
         },
+        workspaceMemberships: {
+          where: {
+            workspaceGroupId: workspaceId,
+          },
+        },
       },
     });
 
@@ -127,8 +132,13 @@ export const getServerSideProps = withPermissionCheckSsr(
       return { notFound: true };
     }
 
-    const hasManagePermission = user?.roles.some(
-      (role) => role.isOwnerRole || role.permissions.includes("manage_activity")
+    const membership = user?.workspaceMemberships?.[0];
+    const isAdmin = membership?.isAdmin || false;
+    const hasManagePermission = isAdmin || user?.roles.some(
+      (role) => role.permissions.includes("manage_notices")
+    );
+    const hasCreatePermission = isAdmin || user?.roles.some(
+      (role) => role.permissions.includes("create_notices")
     );
     if (hasManagePermission) {
       allNotices = await prisma.inactivityNotice.findMany({
@@ -157,9 +167,11 @@ export const getServerSideProps = withPermissionCheckSsr(
           )
         ) as NoticeWithUser[],
         canManageNotices: hasManagePermission,
+        canCreateNotices: !!hasCreatePermission,
       },
     };
-  }
+  },
+  undefined
 );
 
 type pageProps = InferGetServerSidePropsType<typeof getServerSideProps>;
@@ -168,12 +180,14 @@ interface NoticesPageProps {
   userNotices: NoticeWithUser[];
   allNotices: NoticeWithUser[];
   canManageNotices: boolean;
+  canCreateNotices: boolean;
 }
 
 const Notices: pageWithLayout<NoticesPageProps> = ({
   userNotices: initialUserNotices,
   allNotices: initialAllNotices,
   canManageNotices: canManageNoticesProp,
+  canCreateNotices,
 }) => {
   const router = useRouter();
   const { id } = router.query;
@@ -487,7 +501,9 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                 </div>
               )}
 
-              <div className="bg-white dark:bg-zinc-800 border border-white/10 rounded-xl p-6 shadow-sm mb-8">
+                <div className="bg-white dark:bg-zinc-800 border border-white/10 rounded-xl p-6 shadow-sm mb-8">
+                  {canCreateNotices ? (
+                <>
                 <div className="flex items-center gap-3 mb-4">
                   <div className="bg-primary/10 p-2 rounded-lg">
                     <IconPlus className="w-5 h-5 text-primary" />
@@ -641,6 +657,12 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                 >
                   {isCreating ? "Submitting..." : "Submit Notice"}
                 </button>
+                </>
+                ) : (
+                  <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                    You don't have permission to create notices.
+                  </div>
+                )}
               </div>
 
               {userNotices.length > 0 && (
