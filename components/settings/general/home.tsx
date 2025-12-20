@@ -35,7 +35,6 @@ const Color: FC<props> = (props) => {
     "Ongoing sessions": "sessions",
     "Latest wall messages": "wall",
     "Latest documents": "documents",
-    "Policies overview": "policies",
     "Inactivity Notices": "notices",
     "Upcoming Birthdays": "birthdays",
     "New Team Members": "new_members",
